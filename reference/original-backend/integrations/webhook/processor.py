@@ -1,0 +1,232 @@
+import logging
+from sqlalchemy.orm import Session
+
+from integrations.webhook.schemas import StandardizedWebhookEvent
+from integrations.webhook.auto_product import ensure_product_from_webhook
+from database.models.customer import Customer
+from database.models.transaction import Transaction, TransactionStatus
+from database.models.customer_product import CustomerProduct
+from database.core.timezone import now_sp
+from services.push_notifications import push_service
+from services.currency import to_system_base
+
+logger = logging.getLogger(__name__)
+
+
+def get_saopaulo_time():
+    """Helper para pegar o tempo exato de São Paulo."""
+    return now_sp()
+
+
+def process_webhook_event(db: Session, event: StandardizedWebhookEvent, company_id: int = 1):
+    """
+    Processa um evento padronizado de webhook, atualizando as tabelas:
+    1. Customer (cria ou atualiza saldos se for compra aprovada)
+    2. Transaction (registra a transação com suas utms)
+    3. CustomerProduct (libera o produto para o usuário se não tinha e se for aprovada)
+    4. Recovery (cria registro de recuperação se for pendente)
+    
+    Args:
+        db: Database session
+        event: Evento padronizado do webhook
+        company_id: ID da empresa (multi-tenant)
+    """
+    logger.info(f"Processando webhook event: {event.external_id} | Status: {event.status}")
+    
+    # -------------------------------------------------------------
+    # 1. PROCESSAMENTO DO CUSTOMER
+    # -------------------------------------------------------------
+    customer = db.query(Customer).filter(
+        Customer.email == event.customer_email,
+        Customer.company_id == company_id
+    ).first()
+    
+    if not customer:
+        customer = Customer(
+            company_id=company_id,
+            external_id=event.customer_external_id,
+            email=event.customer_email,
+            name=event.customer_name,
+            cpf=event.customer_cpf,
+            phone=event.customer_phone,
+            total_spent=0.0,
+            total_orders=0
+        )
+        db.add(customer)
+        db.flush()
+    else:
+        if event.customer_external_id and not customer.external_id:
+            customer.external_id = event.customer_external_id
+        if event.customer_name and not customer.name:
+            customer.name = event.customer_name
+        if event.customer_cpf and not customer.cpf:
+            customer.cpf = event.customer_cpf
+        if event.customer_phone and not customer.phone:
+            customer.phone = event.customer_phone
+
+    # -------------------------------------------------------------
+    # 2. SE A TRANSAÇÃO JÁ EXISTIR
+    # -------------------------------------------------------------
+    existing_tx = db.query(Transaction).filter(
+        Transaction.external_id == event.external_id,
+        Transaction.company_id == company_id
+    ).first()
+    
+    currency_code = getattr(event, "currency", "BRL") or "BRL"
+    base_amount, amount_mzn, orig_currency, orig_amount = to_system_base(
+        event.amount,
+        currency_code
+    )
+
+    if existing_tx:
+        logger.info(f"Transação {event.external_id} já existia. Status: {existing_tx.status} -> {event.status}")
+        is_newly_approved = existing_tx.status != TransactionStatus.APPROVED and event.status == TransactionStatus.APPROVED
+        is_newly_pending = existing_tx.status != TransactionStatus.PENDING and event.status == TransactionStatus.PENDING
+        is_newly_refunded = existing_tx.status == TransactionStatus.APPROVED and event.status in [TransactionStatus.REFUNDED, TransactionStatus.CHARGEBACK]
+        
+        existing_tx.status = event.status
+        if getattr(event, "payment_method", None) and not getattr(existing_tx, "payment_method", None):
+            existing_tx.payment_method = event.payment_method
+        if getattr(existing_tx, "amount_mzn", None) is None:
+            existing_tx.amount_mzn = amount_mzn
+            existing_tx.original_currency = orig_currency
+            existing_tx.original_amount = orig_amount
+        
+        if is_newly_approved:
+            customer.total_spent += existing_tx.amount
+            customer.total_orders += 1
+            customer.last_purchase_at = get_saopaulo_time()
+            if not customer.first_purchase_at:
+                customer.first_purchase_at = customer.last_purchase_at
+            
+            # Enviar notificação push para venda aprovada tardiamente
+            try:
+                push_service.send_sale_notification(
+                    db=db,
+                    amount=existing_tx.amount,
+                    product_name=event.product_name or "Produto",
+                    customer_name=event.customer_name,
+                    company_id=company_id,
+                    amount_mzn=existing_tx.amount_mzn or amount_mzn
+                )
+            except Exception as e:
+                logger.error("Erro ao enviar notificação push: %s", repr(e))
+
+        elif is_newly_pending:
+            try:
+                push_service.send_sale_notification(
+                    db=db,
+                    amount=existing_tx.amount,
+                    product_name=event.product_name or "Produto",
+                    customer_name=event.customer_name,
+                    company_id=company_id,
+                    amount_mzn=existing_tx.amount_mzn or amount_mzn,
+                    status="pending",
+                )
+            except Exception as e:
+                logger.error("Erro ao enviar notificação push de venda pendente: %s", repr(e))
+                
+        elif is_newly_refunded:
+            customer.total_spent -= existing_tx.amount
+            customer.total_orders -= 1
+            if customer.total_orders < 0:
+                customer.total_orders = 0
+            if customer.total_spent < 0:
+                customer.total_spent = 0.0
+
+        db.commit()
+        return existing_tx
+    
+    # -------------------------------------------------------------
+    # 3. TRANSAÇÃO NOVA
+    # -------------------------------------------------------------
+    if event.status == TransactionStatus.APPROVED:
+        customer.total_spent += base_amount
+        customer.total_orders += 1
+        customer.last_purchase_at = get_saopaulo_time()
+        if not customer.first_purchase_at:
+            customer.first_purchase_at = customer.last_purchase_at
+
+    # Auto-criação de produto (se não existir, cria com checkout + alias)
+    product = ensure_product_from_webhook(db, event, company_id)
+    product_id_to_save = product.id if product else None
+    
+    # Se for uma nova transação de chargeback/reembolso recebida direto (ex: reenvio webhooks de histórico)
+    # e chegar aqui com 0, tentamos copiar da possível venda original usando email e nome do produto (já que external_id falhou).
+    if event.status in [TransactionStatus.REFUNDED, TransactionStatus.CHARGEBACK] and base_amount == 0.0:
+        original_tx = db.query(Transaction).filter(
+            Transaction.customer_email == event.customer_email,
+            Transaction.product_name == event.product_name,
+            Transaction.status == TransactionStatus.APPROVED
+        ).order_by(Transaction.id.desc()).first()
+        
+        if original_tx:
+            base_amount = original_tx.amount
+            amount_mzn = original_tx.amount_mzn or round(original_tx.amount * 13, 2)
+            orig_currency = original_tx.original_currency or orig_currency
+            orig_amount = original_tx.original_amount or original_tx.amount
+    
+    new_tx = Transaction(
+        company_id=company_id,
+        external_id=event.external_id,
+        platform=event.platform,
+        status=event.status,
+        amount=base_amount,
+        original_currency=orig_currency,
+        original_amount=orig_amount,
+        amount_mzn=amount_mzn,
+        payment_method=event.payment_method,
+        customer_id=customer.id,
+        product_id=product_id_to_save,
+        product_name=event.product_name,
+        customer_email=customer.email,
+        utm_source=event.utm_source,
+        utm_medium=event.utm_medium,
+        utm_campaign=event.utm_campaign,
+        utm_content=event.utm_content,
+        utm_term=event.utm_term,
+        src=event.src,
+        webhook_slug=event.webhook_slug,
+        checkout_url=event.checkout_url,
+        order_bumps=event.order_bumps
+    )
+    db.add(new_tx)
+    
+    # -------------------------------------------------------------
+    # 4. LIBERAR ACESSO AO PRODUTO (Junction CustomerProduct)
+    # -------------------------------------------------------------
+    if product and event.status == TransactionStatus.APPROVED:
+        already_has = db.query(CustomerProduct).filter(
+            CustomerProduct.customer_id == customer.id,
+            CustomerProduct.product_id == product.id
+        ).first()
+        
+        if not already_has:
+            new_cp = CustomerProduct(
+                customer_id=customer.id,
+                product_id=product.id,
+            )
+            db.add(new_cp)
+    
+    db.commit()
+    logger.info(f"Webhook processado com sucesso. Transação: {new_tx.id} | Moeda: {orig_currency} | Metical: {amount_mzn} MT")
+    
+    # -------------------------------------------------------------
+    # 5. ENVIAR NOTIFICAÇÃO PUSH (se for venda aprovada)
+    # -------------------------------------------------------------
+    if event.status in [TransactionStatus.APPROVED, TransactionStatus.PENDING]:
+        try:
+            push_service.send_sale_notification(
+                db=db,
+                amount=base_amount,
+                product_name=event.product_name or "Produto",
+                customer_name=event.customer_name,
+                company_id=company_id,
+                    amount_mzn=amount_mzn,
+                    status="pending" if event.status == TransactionStatus.PENDING else "approved",
+            )
+        except Exception as e:
+            logger.error("Erro ao enviar notificação push de venda: %s", repr(e))
+            # Não falha o processamento do webhook se a notificação falhar
+    
+    return new_tx

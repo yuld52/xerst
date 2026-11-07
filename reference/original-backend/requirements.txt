@@ -1,0 +1,21 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+psycopg2-binary
+psycopg[binary]
+python-jose[cryptography]
+bcrypt
+python-dotenv
+pydantic[email]>=2.0
+alembic
+httpx
+openpyxl
+python-multipart
+langchain>=0.3.0
+langchain-openai>=0.2.0
+langchain-core>=0.3.0
+stripe
+pywebpush
+tzdata
+# LangChain's Pydantic v1 compatibility layer is not supported by Python 3.14.
+# Use Python 3.11-3.13 for the backend runtime.

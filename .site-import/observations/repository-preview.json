@@ -1,0 +1,197 @@
+{
+  "source_comparison": "blocked: repository has no confirmed running app URL",
+  "checks": [
+    {
+      "route": "/dashboard",
+      "viewport": {
+        "width": 1280,
+        "height": 1800
+      },
+      "trigger": "navigation and wheel",
+      "result": "LomusTrack\nDashboard\nCampanhas\nVendas\nClientes\nProdutos\nFunil\nPlataformas\nFacebook Ads\n\nNEXUSCALE AI\n\n\ud83d\ude80 Quase l\u00e1\n\n92%\nD\nDemonstra\u00e7\u00e3o\nOwner\nD\nDashboard - Principal\n\nVis\u00e3o geral do desempenho\n\nPr\u00eamios\n1.7M MT/1M MT\nFILTROS\nHoje\nTodos\nTodas\nTodas Contas\nImpostos\nCustos\n\nFATURAMENTO\n\n1,66 M MT\n\nLUCRO\n\n1,11 M MT\n\nINVESTIDO\n\n548 mil MT\n\nCPA: 647 MT\n\nROAS\n\n3.02x\n\nVENDAS\n\n847\n\nTicket M\u00e9dio: 1.956 MT\n\nMARG",
+      "status": "passed",
+      "errors": [],
+      "screenshot": "/tmp/browser/repository-import/1280-dashboard.png"
+    },
+    {
+      "route": "/campaigns",
+      "viewport": {
+        "width": 1280,
+        "height": 1800
+      },
+      "trigger": "navigation and wheel",
+      "result": "LomusTrack\nDashboard\nCampanhas\nVendas\nClientes\nProdutos\nFunil\nPlataformas\nFacebook Ads\n\nNEXUSCALE AI\n\n\ud83d\ude80 Quase l\u00e1\n\n92%\nD\nDemonstra\u00e7\u00e3o\nOwner\nD\nCampanhas\n\nPerformance com vendas reais\n\nNova Campanha\nVendas\nGargalos\n\nATIVAS\n\n3\n\nINVESTIDO\n\n340 mil MT\n\nFATURAMENTO\n\n1,14 M MT\n\nLUCRO\n\n799,5 mil MT\n\nVENDAS\n\n595\n\nROAS\n\n3.35x\n\nHoje\nAtiva\nVendas\nLance\nOr\u00e7amento\nConta\nTag\nValor\nCAMPANHA\n\t\nGASTOS\n\t\nVENDAS\n\t\nFAT",
+      "status": "passed",
+      "errors": [],
+      "screenshot": "/tmp/browser/repository-import/1280-campaigns.png"
+    },
+    {
+      "route": "/sales",
+      "viewport": {
+        "width": 1280,
+        "height": 1800
+      },
+      "trigger": "navigation and wheel",
+      "result": "LomusTrack\nDashboard\nCampanhas\nVendas\nClientes\nProdutos\nFunil\nPlataformas\nFacebook Ads\n\nNEXUSCALE AI\n\n\ud83d\ude80 Quase l\u00e1\n\n92%\nD\nDemonstra\u00e7\u00e3o\nOwner\nD\nVendas\n\nTransa\u00e7\u00f5es realizadas\n\nHoje\nFiltros\n\nTOTAL\n\n8\n\nAPROVADAS\n\n5\n\nFATURAMENTO\n\n330,2 mil MT\n\nTICKET M\u00c9DIO\n\n3.861 MT\n\nREEMBOLSOS\n\n1\n\nCHARGEBACKS\n\n1\n\nDATA\tPRODUTO\tPLATAFORMA\tSTATUS\tVALOR\tCLIENTE\tA\u00c7\u00d5ES\n09/03, 14:32\tEbook Fitness Premium\tKiwify\tAprovada\t\n2.561",
+      "status": "passed",
+      "errors": [],
+      "screenshot": "/tmp/browser/repository-import/1280-sales.png"
+    },
+    {
+      "route": "/customers",
+      "viewport": {
+        "width": 1280,
+        "height": 1800
+      },
+      "trigger": "navigation and wheel",
+      "result": "LomusTrack\nDashboard\nCampanhas\nVendas\nClientes\nProdutos\nFunil\nPlataformas\nFacebook Ads\n\nNEXUSCALE AI\n\n\ud83d\ude80 Quase l\u00e1\n\n92%\nD\nDemonstra\u00e7\u00e3o\nOwner\nD\nClientes\n\nTodos os clientes que compraram seus produtos\n\nHoje\nFiltros\n\nTOTAL CLIENTES\n\n8\n\nTOTAL PEDIDOS\n\n13\n\nTOTAL FATURADO\n\n46.293 MT\n\nTICKET M\u00c9DIO\n\n3.561 MT\n\nCLIENTE\tTELEFONE\tCPF\tPRIMEIRA COMPRA\tTOTAL GASTO\tPEDIDOS\tA\u00c7\u00d5ES\n\nJo\u00e3o Silva\njoao.silva@gmail.com\n\t(1",
+      "status": "passed",
+      "errors": [],
+      "screenshot": "/tmp/browser/repository-import/1280-customers.png"
+    },
+    {
+      "route": "/products",
+      "viewport": {
+        "width": 1280,
+        "height": 1800
+      },
+      "trigger": "navigation and wheel",
+      "result": "LomusTrack\nDashboard\nCampanhas\nVendas\nClientes\nProdutos\nFunil\nPlataformas\nFacebook Ads\n\nNEXUSCALE AI\n\n\ud83d\ude80 Quase l\u00e1\n\n92%\nD\nDemonstra\u00e7\u00e3o\nOwner\nD\nProdutos\n\nGerencie seus produtos, checkouts, order bumps e upsells\n\nNovo Produto\nE\nEbook Fitness Premium\nKiwify\n2 checkouts\n\nVENDAS\n\n189\n\nTOTAL\n\n577.876 MT\n\nC\nCurso Marketing Digital\nKiwify\n1 checkouts\n\nVENDAS\n\n234\n\nTOTAL\n\n1.137.357 MT\n\nM\nMentoria Premium\nKiw",
+      "status": "passed",
+      "errors": [],
+      "screenshot": "/tmp/browser/repository-import/1280-products.png"
+    },
+    {
+      "route": "/funnel",
+      "viewport": {
+        "width": 1280,
+        "height": 1800
+      },
+      "trigger": "navigation and wheel",
+      "result": "LomusTrack\nDashboard\nCampanhas\nVendas\nClientes\nProdutos\nFunil\nPlataformas\nFacebook Ads\n\nNEXUSCALE AI\n\n\ud83d\ude80 Quase l\u00e1\n\n92%\nD\nDemonstra\u00e7\u00e3o\nOwner\nD\nFunil\n\nVisualize a convers\u00e3o do seu funil\n\nConvers\u00e3o\nCompara\u00e7\u00e3o\nHoje\nProduto\nEbook Fitness Premium\nConvers\u00e3o baseada em\nEtapa Anterior\n\nCliques\n\n4.6k\n\nLanding Page Views\n\n4.0k\n\n\u2193 86.6%\n\nInicia\u00e7\u00e3o de Compra\n\n312\n\n\u2193 7.8%\n\nVendas\n\n189\n\n240.799,00 MT\n\n\u2193 60.6%\n\nOr",
+      "status": "passed",
+      "errors": [],
+      "screenshot": "/tmp/browser/repository-import/1280-funnel.png"
+    },
+    {
+      "route": "/platforms",
+      "viewport": {
+        "width": 1280,
+        "height": 1800
+      },
+      "trigger": "navigation and wheel",
+      "result": "LomusTrack\nDashboard\nCampanhas\nVendas\nClientes\nProdutos\nFunil\nPlataformas\nFacebook Ads\n\nNEXUSCALE AI\n\n\ud83d\ude80 Quase l\u00e1\n\n92%\nD\nDemonstra\u00e7\u00e3o\nOwner\nD\nPlataformas\n\nGerencie seus endpoints de webhook\n\nImportar Dados\nNovo Endpoint\n\nNenhum endpoint criado. Clique em \"Novo Endpoint\" para come\u00e7ar.\n\nDados de exemplo\nDesativar",
+      "status": "passed",
+      "errors": [],
+      "screenshot": "/tmp/browser/repository-import/1280-platforms.png"
+    },
+    {
+      "route": "/facebook-ads",
+      "viewport": {
+        "width": 1280,
+        "height": 1800
+      },
+      "trigger": "navigation and wheel",
+      "result": "LomusTrack\nDashboard\nCampanhas\nVendas\nClientes\nProdutos\nFunil\nPlataformas\nFacebook Ads\n\nNEXUSCALE AI\n\n\ud83d\ude80 Quase l\u00e1\n\n92%\nD\nDemonstra\u00e7\u00e3o\nOwner\nD\nMeta Ads\n\nGerencie suas contas de an\u00fancio\n\nAdicionar Conta\nNOME\tACCOUNT ID\tADICIONADA EM\tSTATUS\tA\u00c7\u00d5ES\n\nNexuscale - Oficial\n\t\nNexuscale - Oficial\nact_123456789\n\t01/01/2026\t\nToken inv\u00e1lido\t\n\n\nNexuscale - Secund\u00e1ria\n\t\nNexuscale - Secund\u00e1ria\nact_987654321\n\t01/02/",
+      "status": "passed",
+      "errors": [],
+      "screenshot": "/tmp/browser/repository-import/1280-facebook-ads.png"
+    },
+    {
+      "route": "/dashboard",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "trigger": "navigation and wheel",
+      "result": "Dashboard - Principal\n\nVis\u00e3o geral do desempenho\n\nFILTROS\nHoje\nTodos\nTodas\nTodas Contas\nImpostos\nCustos\n\nFATURAMENTO\n\n1,66 M MT\n\nLUCRO\n\n1,11 M MT\n\nINVESTIDO\n\n548 mil MT\n\nCPA: 647 MT\n\nROAS\n\n3.02x\n\nVENDAS\n\n847\n\nTicket M\u00e9dio: 1.956 MT\n\nMARGEM DE LUCRO\n\n66.9%\n\nTAXA DE CONVERS\u00c3O\n\n4.2%\n\n20.166 cliques\n\nCHARGEBACKS\n\n34.794 MT\n\nTaxa: 2.1%\n\nPerformance Di\u00e1ria\nFaturamento, investimento e lucro no per\u00edodo\n8 ",
+      "status": "passed",
+      "errors": [],
+      "screenshot": "/tmp/browser/repository-import/390-dashboard.png"
+    },
+    {
+      "route": "/campaigns",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "trigger": "navigation and wheel",
+      "result": "Campanhas\n\nPerformance com vendas reais\n\nVendas\nGargalos\n\nATIVAS\n\n3\n\nINVESTIDO\n\n340 mil MT\n\nFATURAMENTO\n\n1,14 M MT\n\nLUCRO\n\n799,5 mil MT\n\nVENDAS\n\n595\n\nROAS\n\n3.35x\n\nHoje\nAtiva\nVendas\nLance\nOr\u00e7amento\nConta\nTag\nValor\nCAMPANHA\n\t\nGASTOS\n\t\nVENDAS\n\t\nFATURAMENTO\n\t\nLUCRO\n\t\nROAS\n\t\nCPA\n\t\nCPC\n\t\nCTR\n\t\nLPV\n\t\nIC\n\n\nCampaign - Ebook Fitness\n500\u00a0MTn/dia\n\t8500\u00a0MTn\t189\t28\u00a0400\u00a0MTn\t19\u00a0900\u00a0MTn\t3.34x\t\n44,97\u00a0MTn\t24,05 MT\t3",
+      "status": "passed",
+      "errors": [],
+      "screenshot": "/tmp/browser/repository-import/390-campaigns.png"
+    },
+    {
+      "route": "/sales",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "trigger": "navigation and wheel",
+      "result": "Vendas\n\nTransa\u00e7\u00f5es realizadas\n\nHoje\nFiltros\n\nTOTAL\n\n8\n\nAPROVADAS\n\n5\n\nFATURAMENTO\n\n330,2 mil MT\n\nTICKET M\u00c9DIO\n\n3.861 MT\n\nREEMBOLSOS\n\n1\n\nCHARGEBACKS\n\n1\n\nDATA\tPRODUTO\tPLATAFORMA\tSTATUS\tVALOR\tCLIENTE\tA\u00c7\u00d5ES\n09/03, 14:32\tEbook Fitness Premium\tKiwify\tAprovada\t\n2.561,00 MT\n\tjo***@gmail.com\t\n\n09/03, 13:15\tCurso Marketing Digital\tKiwify\tAprovada\t\n3.861,00 MT\n\tma***@hotmail.com\t\n\n09/03, 12:45\tMentoria Premiu",
+      "status": "passed",
+      "errors": [],
+      "screenshot": "/tmp/browser/repository-import/390-sales.png"
+    },
+    {
+      "route": "/customers",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "trigger": "navigation and wheel",
+      "result": "Clientes\n\nTodos os clientes que compraram seus produtos\n\nHoje\nFiltros\n\nTOTAL CLIENTES\n\n8\n\nTOTAL PEDIDOS\n\n13\n\nTOTAL FATURADO\n\n46.293 MT\n\nTICKET M\u00c9DIO\n\n3.561 MT\n\nCLIENTE\tTELEFONE\tCPF\tPRIMEIRA COMPRA\tTOTAL GASTO\tPEDIDOS\tA\u00c7\u00d5ES\n\nJo\u00e3o Silva\njoao.silva@gmail.com\n\t(11) 99123-4567\t***..**.***-12\t15/01/26\t8.983 MT\t3\t\n\n\nMaria Oliveira\nmaria.oliveira@hotmail.com\n\t(21) 98765-4321\t***..**.***-34\t05/03/26\t3.861 ",
+      "status": "passed",
+      "errors": [],
+      "screenshot": "/tmp/browser/repository-import/390-customers.png"
+    },
+    {
+      "route": "/products",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "trigger": "navigation and wheel",
+      "result": "Produtos\n\nGerencie seus produtos, checkouts, order bumps e upsells\n\nNovo Produto\nE\nEbook Fitness Premium\nKiwify\n2 checkouts\nC\nCurso Marketing Digital\nKiwify\n1 checkouts\nM\nMentoria Premium\nKiwify\n1 checkouts\nDashboard\nCampanhas\nIA\nVendas\nClientes\nProdutos\nFunil\nPlataformas\nFacebook Ads\nConfigura\u00e7\u00f5es\nMeu Perfil\nValores Reais\nMais\nDados de exemplo\nDesativar",
+      "status": "passed",
+      "errors": [],
+      "screenshot": "/tmp/browser/repository-import/390-products.png"
+    },
+    {
+      "route": "/funnel",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "trigger": "navigation and wheel",
+      "result": "Dashboard\nCampanhas\nIA\nVendas\nClientes\nProdutos\nFunil\nPlataformas\nFacebook Ads\nConfigura\u00e7\u00f5es\nMeu Perfil\nValores Reais\nMais\nDados de exemplo\nDesativar",
+      "status": "passed",
+      "errors": [],
+      "screenshot": "/tmp/browser/repository-import/390-funnel.png"
+    },
+    {
+      "route": "/platforms",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "trigger": "navigation and wheel",
+      "result": "Plataformas\n\nGerencie seus endpoints de webhook\n\nImportar Dados\nNovo Endpoint\nDashboard\nCampanhas\nIA\nVendas\nClientes\nProdutos\nFunil\nPlataformas\nFacebook Ads\nConfigura\u00e7\u00f5es\nMeu Perfil\nValores Reais\nMais\nDados de exemplo\nDesativar",
+      "status": "passed",
+      "errors": [],
+      "screenshot": "/tmp/browser/repository-import/390-platforms.png"
+    },
+    {
+      "route": "/facebook-ads",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "trigger": "navigation and wheel",
+      "result": "Meta Ads\n\nGerencie suas contas de an\u00fancio\n\nAdicionar Conta\nNOME\tACCOUNT ID\tADICIONADA EM\tSTATUS\tA\u00c7\u00d5ES\n\nNexuscale - Oficial\n\t\nNexuscale - Oficial\nact_123456789\n\t01/01/2026\t\nToken inv\u00e1lido\t\n\n\nNexuscale - Secund\u00e1ria\n\t\nNexuscale - Secund\u00e1ria\nact_987654321\n\t01/02/2026\t\nToken inv\u00e1lido\t\nDashboard\nCampanhas\nIA\nVendas\nClientes\nProdutos\nFunil\nPlataformas\nFacebook Ads\nConfigura\u00e7\u00f5es\nMeu Perfil\nValores Reais\nM",
+      "status": "passed",
+      "errors": [],
+      "screenshot": "/tmp/browser/repository-import/390-facebook-ads.png"
+    }
+  ]
+}
