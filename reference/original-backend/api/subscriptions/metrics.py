@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel, Literal
+from pydantic import BaseModel
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from datetime import datetime
+from typing import Literal
 
 from database.core.connection import get_db
 from database.models.admin import Admin, UserRole
