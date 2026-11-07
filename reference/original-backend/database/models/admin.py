@@ -26,6 +26,8 @@ class Admin(Base):
     # Campos para controle de assinatura (futuro)
     is_active = Column(Integer, default=1, nullable=False)  # 1=ativo, 0=suspenso
     subscription_expires_at = Column(DateTime, nullable=True)  # NULL = sem limite
+    subscription_plan = Column(String(20), nullable=False, default="free", server_default="free")
+    subscription_started_at = Column(DateTime, nullable=True)
     token_version = Column(Integer, default=1, nullable=False)
     two_factor_secret = Column(String(64), nullable=True)
     two_factor_enabled = Column(Boolean, default=False, nullable=False)

@@ -24,6 +24,7 @@ import { Route as DashboardDashboardRouteImport } from './routes/_dashboard.dash
 import { Route as DashboardFacebookAdsRouteImport } from './routes/_dashboard.facebook-ads'
 import { Route as DashboardFunnelRouteImport } from './routes/_dashboard.funnel'
 import { Route as DashboardGeminiRouteImport } from './routes/_dashboard.gemini'
+import { Route as DashboardMySubscriptionRouteImport } from './routes/_dashboard.my-subscription'
 import { Route as DashboardNotificationSettingsRouteImport } from './routes/_dashboard.notification-settings'
 import { Route as DashboardPlatformsRouteImport } from './routes/_dashboard.platforms'
 import { Route as DashboardProductsRouteImport } from './routes/_dashboard.products'
@@ -114,6 +115,11 @@ const DashboardFunnelRoute = DashboardFunnelRouteImport.update({
 const DashboardGeminiRoute = DashboardGeminiRouteImport.update({
   id: '/gemini',
   path: '/gemini',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardMySubscriptionRoute = DashboardMySubscriptionRouteImport.update({
+  id: '/my-subscription',
+  path: '/my-subscription',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardNotificationSettingsRoute =
@@ -221,6 +227,7 @@ export interface FileRoutesByFullPath {
   '/facebook-ads': typeof DashboardFacebookAdsRoute
   '/funnel': typeof DashboardFunnelRoute
   '/gemini': typeof DashboardGeminiRoute
+  '/my-subscription': typeof DashboardMySubscriptionRoute
   '/notification-settings': typeof DashboardNotificationSettingsRoute
   '/platforms': typeof DashboardPlatformsRoute
   '/products': typeof DashboardProductsRoute
@@ -253,6 +260,7 @@ export interface FileRoutesByTo {
   '/facebook-ads': typeof DashboardFacebookAdsRoute
   '/funnel': typeof DashboardFunnelRoute
   '/gemini': typeof DashboardGeminiRoute
+  '/my-subscription': typeof DashboardMySubscriptionRoute
   '/notification-settings': typeof DashboardNotificationSettingsRoute
   '/platforms': typeof DashboardPlatformsRoute
   '/products': typeof DashboardProductsRoute
@@ -288,6 +296,7 @@ export interface FileRoutesById {
   '/_dashboard/facebook-ads': typeof DashboardFacebookAdsRoute
   '/_dashboard/funnel': typeof DashboardFunnelRoute
   '/_dashboard/gemini': typeof DashboardGeminiRoute
+  '/_dashboard/my-subscription': typeof DashboardMySubscriptionRoute
   '/_dashboard/notification-settings': typeof DashboardNotificationSettingsRoute
   '/_dashboard/platforms': typeof DashboardPlatformsRoute
   '/_dashboard/products': typeof DashboardProductsRoute
@@ -322,6 +331,7 @@ export interface FileRouteTypes {
     | '/facebook-ads'
     | '/funnel'
     | '/gemini'
+    | '/my-subscription'
     | '/notification-settings'
     | '/platforms'
     | '/products'
@@ -354,6 +364,7 @@ export interface FileRouteTypes {
     | '/facebook-ads'
     | '/funnel'
     | '/gemini'
+    | '/my-subscription'
     | '/notification-settings'
     | '/platforms'
     | '/products'
@@ -388,6 +399,7 @@ export interface FileRouteTypes {
     | '/_dashboard/facebook-ads'
     | '/_dashboard/funnel'
     | '/_dashboard/gemini'
+    | '/_dashboard/my-subscription'
     | '/_dashboard/notification-settings'
     | '/_dashboard/platforms'
     | '/_dashboard/products'
@@ -525,6 +537,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardGeminiRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/_dashboard/my-subscription': {
+      id: '/_dashboard/my-subscription'
+      path: '/my-subscription'
+      fullPath: '/my-subscription'
+      preLoaderRoute: typeof DashboardMySubscriptionRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/_dashboard/notification-settings': {
       id: '/_dashboard/notification-settings'
       path: '/notification-settings'
@@ -655,6 +674,7 @@ interface DashboardRouteChildren {
   DashboardFacebookAdsRoute: typeof DashboardFacebookAdsRoute
   DashboardFunnelRoute: typeof DashboardFunnelRoute
   DashboardGeminiRoute: typeof DashboardGeminiRoute
+  DashboardMySubscriptionRoute: typeof DashboardMySubscriptionRoute
   DashboardNotificationSettingsRoute: typeof DashboardNotificationSettingsRoute
   DashboardPlatformsRoute: typeof DashboardPlatformsRoute
   DashboardProductsRoute: typeof DashboardProductsRoute
@@ -675,6 +695,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardFacebookAdsRoute: DashboardFacebookAdsRoute,
   DashboardFunnelRoute: DashboardFunnelRoute,
   DashboardGeminiRoute: DashboardGeminiRoute,
+  DashboardMySubscriptionRoute: DashboardMySubscriptionRoute,
   DashboardNotificationSettingsRoute: DashboardNotificationSettingsRoute,
   DashboardPlatformsRoute: DashboardPlatformsRoute,
   DashboardProductsRoute: DashboardProductsRoute,

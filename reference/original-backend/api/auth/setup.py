@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr
 import bcrypt
+from datetime import datetime
 from database.core.connection import get_db
 from database.models.admin import Admin, UserRole
 
@@ -83,6 +84,8 @@ def create_admin(data: SetupRequest, db: Session = Depends(get_db)):
             role=UserRole.owner,  # Cada signup vira owner da própria empresa
             company_id=new_company_id,  # SaaS: cada empresa isolada
             is_active=1,  # Explicitamente definir is_active
+            subscription_plan="free",
+            subscription_started_at=datetime.utcnow(),
         )
         db.add(admin)
         db.commit()

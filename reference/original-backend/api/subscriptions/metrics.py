@@ -1,8 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import func
 from sqlalchemy.orm import Session
+from datetime import datetime
 
 from database.core.connection import get_db
+from database.models.admin import Admin, UserRole
+from database.models.facebook_account import FacebookAccount
 from database.models.stripe_account import StripeAccount
+from database.models.transaction import Transaction, TransactionStatus
+from database.models.webhook_endpoint import WebhookEndpoint
 from integrations.stripe.subscriptions import (
     compute_subscription_metrics,
     fetch_stripe_products,
@@ -11,6 +17,58 @@ from integrations.stripe.mrr_history import compute_mrr_history
 from api.auth.deps import get_current_user
 
 router = APIRouter(prefix="/subscriptions", tags=["subscriptions"])
+
+LOMUS_PLANS = {
+    "free": {"name": "Gratuito", "monthly_price": 0, "sales_limit": 80, "ad_account_limit": 1, "webhook_limit": 1},
+    "premium": {"name": "Premium", "monthly_price": 29, "sales_limit": 1000, "ad_account_limit": 3, "webhook_limit": 3},
+    "monster": {"name": "Monster", "monthly_price": 79, "sales_limit": 5000, "ad_account_limit": None, "webhook_limit": None},
+}
+
+
+@router.get("/current")
+def get_current_company_subscription(
+    db: Session = Depends(get_db),
+    current_user: Admin = Depends(get_current_user),
+):
+    """Return the current company's plan and usage counters."""
+    if current_user.company_id is None:
+        raise HTTPException(status_code=403, detail="Super admin não possui assinatura de empresa.")
+
+    owner = db.query(Admin).filter(
+        Admin.company_id == current_user.company_id,
+        Admin.role == UserRole.owner,
+    ).first()
+    account = owner or current_user
+    plan_id = account.subscription_plan if account.subscription_plan in LOMUS_PLANS else "free"
+    month_start = datetime.utcnow().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+    approved_sales = db.query(func.count(Transaction.id)).filter(
+        Transaction.company_id == current_user.company_id,
+        Transaction.status == TransactionStatus.APPROVED,
+        Transaction.created_at >= month_start,
+    ).scalar() or 0
+    ad_accounts = db.query(func.count(FacebookAccount.id)).filter(
+        FacebookAccount.company_id == current_user.company_id,
+    ).scalar() or 0
+    webhooks = db.query(func.count(WebhookEndpoint.id)).filter(
+        WebhookEndpoint.company_id == current_user.company_id,
+    ).scalar() or 0
+
+    return {
+        "plan_id": plan_id,
+        "plan": LOMUS_PLANS[plan_id],
+        "started_at": account.subscription_started_at,
+        "expires_at": account.subscription_expires_at,
+        "usage": {
+            "approved_sales_this_month": int(approved_sales),
+            "ad_accounts": int(ad_accounts),
+            "webhooks": int(webhooks),
+        },
+        "available_plans": [
+            {"id": plan_id, **plan}
+            for plan_id, plan in LOMUS_PLANS.items()
+        ],
+    }
 
 
 def _get_first_stripe_account(db: Session) -> StripeAccount:
