@@ -19,6 +19,7 @@ import {
 } from "@remixicon/react";
 import {
   loadSubscriptions,
+  LOMUS_PLANS,
   SUBSCRIPTIONS_KEY,
   type Subscription,
   type SubscriptionStatus,
@@ -32,7 +33,11 @@ const statusLabels: Record<SubscriptionStatus, string> = {
 };
 
 function money(value: number) {
-  return `MT ${value.toLocaleString("pt-MZ", { minimumFractionDigits: 2 })}`;
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+  }).format(value);
 }
 
 export default function AdminBillingPage() {
@@ -46,7 +51,8 @@ export default function AdminBillingPage() {
   };
 
   const filtered = subscriptions.filter((item) => {
-    const matchesSearch = `${item.user} ${item.email} ${item.plan}`
+    const planName = LOMUS_PLANS.find((plan) => plan.id === item.plan)?.name ?? item.plan;
+    const matchesSearch = `${item.user} ${item.email} ${planName}`
       .toLowerCase()
       .includes(search.toLowerCase());
     return matchesSearch && (status === "all" || item.status === status);
@@ -55,8 +61,14 @@ export default function AdminBillingPage() {
   const metrics = useMemo(() => {
     const active = subscriptions.filter((item) => item.status === "active");
     const revenue = active.reduce((sum, item) => sum + item.amount, 0);
-    const costs = active.reduce((sum, item) => sum + item.cost, 0);
-    return { active: active.length, revenue, costs, profit: revenue - costs };
+    const costsKnown = active.length > 0 && active.every((item) => item.cost !== null);
+    const costs = costsKnown ? active.reduce((sum, item) => sum + (item.cost ?? 0), 0) : null;
+    return {
+      active: active.length,
+      revenue,
+      costs,
+      profit: costs === null ? null : revenue - costs,
+    };
   }, [subscriptions]);
 
   const toggleStatus = (id: string) => {
@@ -85,9 +97,61 @@ export default function AdminBillingPage() {
           value={money(metrics.revenue)}
           icon={RiMoneyDollarCircleLine}
         />
-        <Metric title="Custos estimados" value={money(metrics.costs)} icon={RiPauseCircleLine} />
-        <Metric title="Lucro mensal" value={money(metrics.profit)} icon={RiCheckLine} positive />
+        <Metric
+          title="Custos operacionais"
+          value={metrics.costs === null ? "Não configurados" : money(metrics.costs)}
+          icon={RiPauseCircleLine}
+        />
+        <Metric
+          title="Lucro mensal"
+          value={metrics.profit === null ? "—" : money(metrics.profit)}
+          icon={RiCheckLine}
+          positive
+        />
       </div>
+
+      <section className="space-y-4" aria-labelledby="lomus-plans-title">
+        <div>
+          <h2 id="lomus-plans-title" className="text-lg font-semibold">
+            Planos disponíveis
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Limites e preços mensais da assinatura Lomus.
+          </p>
+        </div>
+        <div className="grid gap-4 lg:grid-cols-3">
+          {LOMUS_PLANS.map((plan) => (
+            <Card key={plan.id}>
+              <CardHeader>
+                <CardTitle>{plan.name}</CardTitle>
+                <p className="min-h-10 text-sm text-muted-foreground">{plan.description}</p>
+                <p className="text-2xl font-bold">
+                  {money(plan.monthlyPrice)}
+                  <span className="ml-1 text-sm font-normal text-muted-foreground">/mês</span>
+                </p>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm">
+                  {plan.features.map((feature) => (
+                    <li key={feature} className="flex gap-2">
+                      <RiCheckLine className="mt-0.5 size-4 shrink-0 text-primary" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <p className="text-xs text-muted-foreground">
+          * Nos planos pagos, cada venda aprovada acima do limite custa US$ 0,02. O plano Gratuito
+          não tem cobranças adicionais.
+        </p>
+        <p className="text-xs text-muted-foreground">
+          O checkout recorrente ainda precisa ser conectado ao provedor de cobrança para ativar
+          pagamentos e excedentes automaticamente.
+        </p>
+      </section>
 
       <Card>
         <CardHeader>
@@ -141,7 +205,9 @@ export default function AdminBillingPage() {
                       <div className="text-xs text-muted-foreground">{item.email}</div>
                     </td>
                     <td className="px-4 py-3">
-                      <Badge variant="outline">{item.plan}</Badge>
+                      <Badge variant="outline">
+                        {LOMUS_PLANS.find((plan) => plan.id === item.plan)?.name ?? item.plan}
+                      </Badge>
                     </td>
                     <td className="px-4 py-3 font-medium">{money(item.amount)}</td>
                     <td className="px-4 py-3 text-muted-foreground">

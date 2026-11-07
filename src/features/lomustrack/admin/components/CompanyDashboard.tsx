@@ -11,10 +11,14 @@ import {
   RiTeamLine,
 } from "@remixicon/react";
 import { useUsers } from "@/hooks/useUsers";
-import { loadSubscriptions } from "@/features/lomustrack/admin-billing/data";
+import { loadSubscriptions, LOMUS_PLANS } from "@/features/lomustrack/admin-billing/data";
 
 function money(value: number) {
-  return `MT ${value.toLocaleString("pt-MZ", { minimumFractionDigits: 2 })}`;
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+  }).format(value);
 }
 
 function Metric({
@@ -48,7 +52,8 @@ export function CompanyDashboard() {
   const metrics = useMemo(() => {
     const active = subscriptions.filter((item) => item.status === "active");
     const revenue = active.reduce((sum, item) => sum + item.amount, 0);
-    const costs = active.reduce((sum, item) => sum + item.cost, 0);
+    const costsKnown = active.length > 0 && active.every((item) => item.cost !== null);
+    const costs = costsKnown ? active.reduce((sum, item) => sum + (item.cost ?? 0), 0) : null;
     const plans = active.reduce<Record<string, number>>((result, item) => {
       result[item.plan] = (result[item.plan] || 0) + 1;
       return result;
@@ -57,8 +62,8 @@ export function CompanyDashboard() {
       active,
       revenue,
       costs,
-      profit: revenue - costs,
-      margin: revenue ? ((revenue - costs) / revenue) * 100 : 0,
+      profit: costs === null ? null : revenue - costs,
+      margin: costs === null ? null : revenue ? ((revenue - costs) / revenue) * 100 : 0,
       plans,
     };
   }, [subscriptions]);
@@ -84,13 +89,13 @@ export function CompanyDashboard() {
         />
         <Metric
           title="Lucro estimado"
-          value={money(metrics.profit)}
+          value={metrics.profit === null ? "—" : money(metrics.profit)}
           icon={RiMoneyDollarCircleLine}
           positive
         />
         <Metric
           title="Margem de lucro"
-          value={`${metrics.margin.toFixed(1)}%`}
+          value={metrics.margin === null ? "—" : `${metrics.margin.toFixed(1)}%`}
           icon={RiPercentLine}
           positive
         />
@@ -106,15 +111,17 @@ export function CompanyDashboard() {
                 key={plan}
                 className="flex items-center justify-between rounded-lg border border-border p-3"
               >
-                <span className="font-medium">{plan}</span>
+                <span className="font-medium">
+                  {LOMUS_PLANS.find((item) => item.id === plan)?.name ?? plan}
+                </span>
                 <Badge variant="secondary">
                   {count} ativa{count === 1 ? "" : "s"}
                 </Badge>
               </div>
             ))}
             <div className="flex items-center justify-between border-t pt-3 text-sm text-muted-foreground">
-              <span>Custos estimados</span>
-              <span>{money(metrics.costs)}</span>
+              <span>Custos operacionais</span>
+              <span>{metrics.costs === null ? "Não configurados" : money(metrics.costs)}</span>
             </div>
           </CardContent>
         </Card>
