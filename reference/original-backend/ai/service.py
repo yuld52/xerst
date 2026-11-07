@@ -162,7 +162,7 @@ async def _run_with_tools(
     learning_data: str = "",
 ) -> str:
     """Executa: LLM decide tool calls → executa tool → LLM responde."""
-    from langchain_core.messages import HumanMessage, SystemMessage
+    from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
     from ai.tools.query_tool import query_business_data
 
     llm = build_llm(api_key, model)
@@ -181,13 +181,15 @@ async def _run_with_tools(
     if not response.tool_calls:
         return _extract_text(response.content) or "Não consegui processar."
 
-    # Executar a tool universal com os args
-    tool_call = response.tool_calls[0]
-    tool_result = query_business_data.invoke(tool_call["args"])
-
-    # Call 2: LLM analisa resultado e responde
     messages.append(response)
-    messages.append(HumanMessage(content=f"Resultado da consulta:\n{tool_result}"))
+    for tool_call in response.tool_calls:
+        tool_result = query_business_data.invoke(tool_call["args"])
+        messages.append(
+            ToolMessage(
+                content=str(tool_result),
+                tool_call_id=tool_call["id"],
+            )
+        )
 
     final = await llm.ainvoke(messages)
     return _extract_text(final.content) or "Não consegui processar."
