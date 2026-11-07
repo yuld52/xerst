@@ -1,6 +1,7 @@
 import os
 import mimetypes
 from fastapi import FastAPI, Request
+from sqlalchemy import text
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -69,15 +70,24 @@ from api.debug.database_status import router as debug_router
 
 from database.core.migrate_sql import run_sql_migrations
 
-# Ensure all ENUM values (including HOTMART, API) exist (idempotent, runs on boot)
-run_enum_migrations(engine)
+# Vercel can start several function instances at once. A PostgreSQL advisory lock
+# serializes schema initialization so simultaneous cold starts do not race migrations.
+def initialize_database() -> None:
+    lock_id = 741903260
+    with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as lock_connection:
+        lock_connection.execute(text("SELECT pg_advisory_lock(:lock_id)"), {"lock_id": lock_id})
+        try:
+            # Ensure enum values exist before models/tables and SQL migrations use them.
+            run_enum_migrations(engine)
+            Base.metadata.create_all(bind=engine)
+            run_sql_migrations()
+        finally:
+            lock_connection.execute(
+                text("SELECT pg_advisory_unlock(:lock_id)"), {"lock_id": lock_id}
+            )
 
-# Create tables (must run before SQL migrations so tables exist)
-Base.metadata.create_all(bind=engine)
 
-# Run SQL migrations from database/migrations/
-# (ALTER TABLE / ADD COLUMN statements that depend on existing tables)
-run_sql_migrations()
+initialize_database()
 
 app = FastAPI(title="LomusTrack API")
 
@@ -87,10 +97,19 @@ def health_check():
     """Health check endpoint for Render and other cloud platforms."""
     return {"status": "healthy"}
 
-# CORS for development
+# Vercel serves the frontend and API from one origin, so production does not
+# require cross-origin access. Set CORS_ALLOWED_ORIGINS only for trusted clients.
+cors_origins = [
+    origin.strip()
+    for origin in os.getenv(
+        "CORS_ALLOWED_ORIGINS",
+        "http://localhost:8080,http://localhost:5173",
+    ).split(",")
+    if origin.strip()
+]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

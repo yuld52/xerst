@@ -6,10 +6,11 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 # Carregar variáveis de ambiente do arquivo .env
 load_dotenv()
 
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql://postgres:postgres@localhost:5433/logpose"
-)
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    if os.getenv("VERCEL"):
+        raise RuntimeError("DATABASE_URL must be configured in the Vercel project environment.")
+    DATABASE_URL = "postgresql://postgres:postgres@localhost:5433/logpose"
 # Normalizar protocolo para SQLAlchemy com o driver psycopg2 instalado
 if DATABASE_URL:
     if DATABASE_URL.startswith("postgres://"):
@@ -24,12 +25,14 @@ if "postgresql" in DATABASE_URL:
         "options": "-c statement_timeout=30000"
     }
 
+is_vercel_runtime = bool(os.getenv("VERCEL"))
+
 engine = create_engine(
-    DATABASE_URL, 
+    DATABASE_URL,
     pool_pre_ping=True,
-    pool_size=5,
-    max_overflow=10,
-    pool_recycle=3600,
+    pool_size=1 if is_vercel_runtime else 5,
+    max_overflow=0 if is_vercel_runtime else 10,
+    pool_recycle=300 if is_vercel_runtime else 3600,
     connect_args=connect_args
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

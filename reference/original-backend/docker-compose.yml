@@ -9,7 +9,7 @@ services:
       - "8000:8000"
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/logpose
-      - SECRET_KEY=convergeai-secret-key-change-in-production
+      - SECRET_KEY=${SECRET_KEY:?Set SECRET_KEY in the environment or .env file}
       - META_GRAPH_API_VERSION=v25.0
     depends_on:
       db:

@@ -2,14 +2,15 @@ import os
 from datetime import datetime, timedelta, timezone
 from jose import jwt
 
-SECRET_KEY = os.getenv("SECRET_KEY", "lomustrack-secret-key-change-in-production")
-LEGACY_SECRET_KEY = "lomustrack-secret-key-change-in-production"
+SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    raise RuntimeError("SECRET_KEY must be configured before starting the backend.")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 30  # 30 days
 
 
 def _secret_candidates() -> list[str]:
-    candidates = [SECRET_KEY, LEGACY_SECRET_KEY]
+    candidates = [SECRET_KEY]
     seen = set()
     ordered = []
     for secret in candidates:
