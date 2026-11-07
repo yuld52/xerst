@@ -13,6 +13,7 @@ export interface User {
 export interface InviteInfo {
   name: string;
   role: string;
+  email?: string | null;
 }
 
 export async function fetchUsers(): Promise<User[]> {

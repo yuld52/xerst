@@ -12,7 +12,7 @@ export default function SetupPage() {
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [inviteInfo, setInviteInfo] = useState<{ name: string; role: string } | null>(null);
+  const [inviteInfo, setInviteInfo] = useState<{ name: string; role: string; email?: string | null } | null>(null);
   const [inviteLoading, setInviteLoading] = useState(!!inviteToken);
   const [inviteError, setInviteError] = useState("");
   const [redirectCountdown, setRedirectCountdown] = useState(5);
@@ -113,6 +113,7 @@ export default function SetupPage() {
         <InviteSetupForm
           name={inviteInfo?.name ?? ""}
           role={inviteInfo?.role ?? ""}
+          lockedEmail={inviteInfo?.email ?? undefined}
           onSubmit={handleInvite}
           error={error}
           loading={loading}

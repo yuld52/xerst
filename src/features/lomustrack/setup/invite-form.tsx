@@ -8,6 +8,7 @@ import { RiEyeLine, RiEyeOffLine } from "@remixicon/react";
 interface InviteSetupFormProps {
   name: string;
   role: string;
+  lockedEmail?: string;
   onSubmit: (data: { email: string; password: string; confirmPassword: string }) => void;
   error: string;
   loading: boolean;
@@ -16,10 +17,11 @@ interface InviteSetupFormProps {
 const roleLabels: Record<string, string> = {
   admin: "Administrador",
   viewer: "Visualizador",
+  superadmin: "Administrador da plataforma",
 };
 
-export function InviteSetupForm({ name, role, onSubmit, error, loading }: InviteSetupFormProps) {
-  const [email, setEmail] = useState("");
+export function InviteSetupForm({ name, role, lockedEmail, onSubmit, error, loading }: InviteSetupFormProps) {
+  const [email, setEmail] = useState(lockedEmail ?? "");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -55,6 +57,7 @@ export function InviteSetupForm({ name, role, onSubmit, error, loading }: Invite
             placeholder="seu@email.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            readOnly={!!lockedEmail}
             required
             className="border-gray-300 bg-white text-gray-900 placeholder:text-gray-400 focus:border-primary"
           />

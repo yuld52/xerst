@@ -37,6 +37,9 @@ export function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const user = getStoredUser();
+  const isSuperAdmin = user?.role === "superadmin";
+  const companyAdminPaths = ["/admin/dashboard", "/admin/users"];
+  const canAccessCurrentPath = isSuperAdmin || companyAdminPaths.includes(location.pathname);
 
   useEffect(() => {
     // The management area serves company admins and the Lomus superadmin.
@@ -47,8 +50,14 @@ export function AdminLayout() {
 
     if (user.role !== "owner" && user.role !== "admin" && user.role !== "superadmin") {
       navigate("/login");
+      return;
     }
-  }, [user, navigate]);
+
+    // Tenant admins can manage their own team only; Lomus-wide tools require superadmin.
+    if (user.role !== "superadmin" && !companyAdminPaths.includes(location.pathname)) {
+      navigate("/admin/dashboard", { replace: true });
+    }
+  }, [user, navigate, location.pathname]);
 
   const handleLogout = () => {
     logout();
@@ -59,7 +68,7 @@ export function AdminLayout() {
     navigate("/dashboard");
   };
 
-  if (!user || (user.role !== "owner" && user.role !== "admin" && user.role !== "superadmin")) {
+  if (!user || (user.role !== "owner" && user.role !== "admin" && user.role !== "superadmin") || !canAccessCurrentPath) {
     return null;
   }
 
@@ -80,7 +89,7 @@ export function AdminLayout() {
         </div>
 
         <nav className="flex-1 p-4 space-y-1">
-          {NAV_ITEMS.map((item) => {
+          {NAV_ITEMS.filter((item) => isSuperAdmin || companyAdminPaths.includes(item.path)).map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
 

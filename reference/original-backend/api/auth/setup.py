@@ -29,6 +29,7 @@ class SetupStatusResponse(BaseModel):
 class InviteInfoResponse(BaseModel):
     name: str
     role: str
+    email: EmailStr | None = None
 
 
 @router.get("/setup/status", response_model=SetupStatusResponse)
@@ -46,7 +47,7 @@ def get_invite_info(token: str, db: Session = Depends(get_db)):
     invite = db.query(Admin).filter(Admin.invite_token == token).first()
     if not invite:
         raise HTTPException(status_code=404, detail="Convite inválido ou expirado")
-    return {"name": invite.name, "role": invite.role.value}
+    return {"name": invite.name, "role": invite.role.value, "email": invite.email}
 
 
 @router.post("/setup")
@@ -108,6 +109,10 @@ def complete_invite(token: str, data: InviteSetupRequest, db: Session = Depends(
 
     if data.password != data.confirm_password:
         raise HTTPException(status_code=400, detail="As senhas não coincidem")
+
+    # When an invite is bound to an email, the holder cannot redirect it to another account.
+    if invite.email and invite.email.casefold() != str(data.email).casefold():
+        raise HTTPException(status_code=400, detail="Este convite foi emitido para outro e-mail")
 
     if len(data.password) < 6:
         raise HTTPException(status_code=400, detail="Senha deve ter pelo menos 6 caracteres")
