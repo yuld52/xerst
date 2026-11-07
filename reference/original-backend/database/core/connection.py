@@ -34,7 +34,9 @@ is_vercel_runtime = bool(os.getenv("VERCEL"))
 engine = create_engine(
     DATABASE_URL,
     pool_pre_ping=True,
-    pool_size=1 if is_vercel_runtime else 5,
+    # A single connection serializes simultaneous FastAPI requests in a warm
+    # Vercel instance and can time out while another request calls an LLM.
+    pool_size=4 if is_vercel_runtime else 5,
     max_overflow=0 if is_vercel_runtime else 10,
     pool_recycle=300 if is_vercel_runtime else 3600,
     connect_args=connect_args

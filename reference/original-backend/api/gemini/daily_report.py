@@ -48,6 +48,9 @@ async def generate_daily_report(
     ai_instructions = settings.ai_instructions if settings else None
     user_block = _build_user_instructions_block(ai_instructions)
 
+    # Release the serverless connection before waiting on OpenRouter.
+    db.close()
+
     # Montar prompt e chamar AI
     llm = build_llm_no_tools(api_key, model)
 

@@ -52,6 +52,9 @@ async def chat_with_ai(
     # Buscar dados de aprendizado (ações do CEO)
     learning_data = fetch_learning_data(db, company_id=company_id)
 
+    # Do not hold a pooled database connection during the external LLM call.
+    db.close()
+
     try:
         response = await run_agent(
             api_key=api_key,
