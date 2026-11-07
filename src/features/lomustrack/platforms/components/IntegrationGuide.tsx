@@ -17,6 +17,8 @@ const HOTMART_STEPS = [
   'Clique em "Cadastrar Webhook" ou "+"',
   'Coloque um nome para a configuração (ex: "LomusTrack")',
   'Cole a URL criada aqui no campo "URL para envio de dados"',
+  'Defina um Hottok e informe o mesmo valor ao criar o endpoint no LomusTrack',
+  'Confirme que a Hotmart enviará o cabeçalho X-HOTMART-HOTTOK',
   'Em versão, selecione "Versão 2.0 (Recomendada)"',
   'Em eventos, selecione "Todos os eventos" (ou Compra Aprovada, Cancelada, etc.)',
   'Clique em "Salvar"',

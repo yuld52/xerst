@@ -1,4 +1,5 @@
 import uuid
+import hashlib
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -15,6 +16,7 @@ router = APIRouter(prefix="/platforms", tags=["platforms"])
 class WebhookCreate(BaseModel):
     platform: str  # "hotmart" or "api"
     name: str
+    security_token: str | None = None
 
 
 class WebhookResponse(BaseModel):
@@ -57,6 +59,11 @@ def create_webhook(
     platform_value = payload.platform.lower()
     if platform_value not in [p.value for p in WebhookPlatform]:
         raise HTTPException(status_code=400, detail="Plataforma inválida")
+    security_token = (payload.security_token or "").strip()
+    if platform_value == WebhookPlatform.HOTMART.value and not security_token:
+        raise HTTPException(status_code=422, detail="O Hottok da Hotmart é obrigatório")
+    if len(security_token) > 255:
+        raise HTTPException(status_code=422, detail="O Hottok deve ter no máximo 255 caracteres")
 
     slug = uuid.uuid4().hex[:8]
 
@@ -65,6 +72,8 @@ def create_webhook(
         slug=slug,
         platform=WebhookPlatform(platform_value),
         name=payload.name,
+        security_token_hash=(hashlib.sha256(security_token.encode("utf-8")).hexdigest()
+                             if platform_value == WebhookPlatform.HOTMART.value else None),
     )
     db.add(endpoint)
     db.add(AuditLog(company_id=company_id, action="webhook.create", resource_type="webhook_endpoint", resource_id=slug, details={"platform": platform_value, "name": payload.name}))

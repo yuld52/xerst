@@ -1,4 +1,6 @@
 import logging
+import hashlib
+import hmac
 from fastapi import APIRouter, Request, HTTPException, Depends
 from sqlalchemy.orm import Session
 from datetime import datetime
@@ -65,6 +67,15 @@ async def receive_webhook(
 
     # A integração API direta exige a credencial criada na conta correta.
     credential = None
+    if platform_enum == WebhookPlatform.HOTMART:
+        supplied_hottok = request.headers.get("x-hotmart-hottok", "").strip()
+        expected_hottok_hash = endpoint.security_token_hash
+        supplied_hottok_hash = hashlib.sha256(supplied_hottok.encode("utf-8")).hexdigest()
+        if not expected_hottok_hash or not supplied_hottok or not hmac.compare_digest(
+            supplied_hottok_hash, expected_hottok_hash
+        ):
+            raise HTTPException(status_code=401, detail="Hottok da Hotmart inválido ou não configurado")
+
     if platform_enum == WebhookPlatform.API:
         authorization = request.headers.get("authorization", "")
         supplied_token = authorization.removeprefix("Bearer ").strip() if authorization else request.headers.get("x-api-key", "").strip()

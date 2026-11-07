@@ -16,13 +16,14 @@ export default function PlatformsPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
 
-  const handleCreate = async (platform: string, name: string) => {
+  const handleCreate = async (platform: string, name: string, securityToken?: string) => {
     try {
       setIsCreating(true);
-      await addWebhook(platform, name);
+      await addWebhook(platform, name, securityToken);
       setModalOpen(false);
     } catch {
       alert("Erro ao criar webhook");
+      throw new Error("Erro ao criar webhook");
     } finally {
       setIsCreating(false);
     }

@@ -108,10 +108,10 @@ export async function fetchWebhooks(): Promise<WebhookEndpointAPI[]> {
   return apiRequest<WebhookEndpointAPI[]>("/platforms/webhooks");
 }
 
-export async function createWebhook(platform: string, name: string): Promise<WebhookEndpointAPI> {
+export async function createWebhook(platform: string, name: string, securityToken?: string): Promise<WebhookEndpointAPI> {
   return apiRequest<WebhookEndpointAPI>("/platforms/webhooks", {
     method: "POST",
-    body: { platform, name },
+    body: { platform, name, security_token: securityToken },
   });
 }
 

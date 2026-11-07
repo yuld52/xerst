@@ -27,4 +27,6 @@ class WebhookEndpoint(Base):
     slug = Column(String(50), unique=True, nullable=False)
     platform = Column(Enum(WebhookPlatform), nullable=False)
     name = Column(String(255), nullable=False)
+    # Store only a digest: the Hotmart Hottok is never needed in plaintext after setup.
+    security_token_hash = Column(String(64), nullable=True)
     created_at = Column(DateTime, server_default=CREATED_AT_DEFAULT)

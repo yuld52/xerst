@@ -16,7 +16,7 @@ import { PlatformLogo } from "@/components/PlatformLogo";
 interface CreateWebhookModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreate: (platform: "hotmart" | "api", name: string) => void;
+  onCreate: (platform: "hotmart" | "api", name: string, securityToken?: string) => Promise<void>;
   isLoading?: boolean;
 }
 
@@ -28,19 +28,26 @@ export function CreateWebhookModal({
 }: CreateWebhookModalProps) {
   const [platform, setPlatform] = useState<"hotmart" | "api" | null>(null);
   const [name, setName] = useState("");
+  const [securityToken, setSecurityToken] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!platform || !name.trim()) return;
-    onCreate(platform, name.trim());
-    setPlatform(null);
-    setName("");
+    try {
+      await onCreate(platform, name.trim(), platform === "hotmart" ? securityToken.trim() : undefined);
+      setPlatform(null);
+      setName("");
+      setSecurityToken("");
+    } catch {
+      // Keep the entered values so the user can retry after a failed request.
+    }
   };
 
   const handleClose = (v: boolean) => {
     if (!v) {
       setPlatform(null);
       setName("");
+      setSecurityToken("");
     }
     onOpenChange(v);
   };
@@ -83,6 +90,25 @@ export function CreateWebhookModal({
             </div>
           </div>
 
+          {platform === "hotmart" && (
+            <div className="space-y-2">
+              <Label htmlFor="hotmart-hottok">Hottok da Hotmart</Label>
+              <Input
+                id="hotmart-hottok"
+                type="password"
+                placeholder="Cole o token de segurança da Hotmart"
+                value={securityToken}
+                onChange={(e) => setSecurityToken(e.target.value)}
+                disabled={isLoading}
+                required
+                autoComplete="new-password"
+              />
+              <p className="text-xs text-muted-foreground">
+                Use o mesmo Hottok na configuração do webhook da Hotmart. O LomusTrack guarda apenas uma impressão protegida do token.
+              </p>
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="webhook-name">Nome de Identificação</Label>
             <Input
@@ -116,7 +142,7 @@ export function CreateWebhookModal({
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={!platform || !name.trim() || isLoading}>
+            <Button type="submit" disabled={!platform || !name.trim() || (platform === "hotmart" && !securityToken.trim()) || isLoading}>
               {isLoading ? "Criando..." : "Criar"}
             </Button>
           </DialogFooter>

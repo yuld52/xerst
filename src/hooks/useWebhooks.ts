@@ -13,8 +13,8 @@ export function useWebhooks() {
     queryFn: fetchWebhooks,
   });
 
-  const addWebhook = async (platform: string, name: string) => {
-    const newEndpoint = await createWebhook(platform, name);
+  const addWebhook = async (platform: string, name: string, securityToken?: string) => {
+    const newEndpoint = await createWebhook(platform, name, securityToken);
     invalidateCacheByPrefix("webhooks");
     await reload();
     return newEndpoint;
