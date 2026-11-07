@@ -8,7 +8,7 @@ from pydantic import BaseModel
 
 from database.core.connection import get_db
 from database.models.company import CompanySettings
-from api.auth.deps import get_current_user
+from api.auth.deps import get_company_id
 from ai.daily_report_data import collect_daily_data, format_daily_context
 from ai.service import build_llm_no_tools, _extract_text, _build_user_instructions_block
 from ai.prompt import DAILY_REPORT_PROMPT
@@ -27,7 +27,7 @@ class DailyReportResponse(BaseModel):
 @router.post("/daily-report", response_model=DailyReportResponse)
 async def generate_daily_report(
     db: Session = Depends(get_db),
-    _=Depends(get_current_user),
+    company_id: int = Depends(get_company_id),
 ):
     """Gera relatório diário automático com todos os dados do dia."""
     api_key, model = get_openrouter_config()
@@ -38,13 +38,13 @@ async def generate_daily_report(
         )
 
     # Coletar dados
-    data = collect_daily_data(db)
+    data = collect_daily_data(db, company_id=company_id)
 
     # Montar contexto formatado
     context = format_daily_context(data)
 
     # Instruções do usuário
-    settings = db.query(CompanySettings).first()
+    settings = db.query(CompanySettings).filter(CompanySettings.company_id == company_id).first()
     ai_instructions = settings.ai_instructions if settings else None
     user_block = _build_user_instructions_block(ai_instructions)
 

@@ -11,6 +11,7 @@ class StripeAccount(Base):
     __tablename__ = "stripe_accounts"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    company_id = Column(Integer, nullable=True, index=True)
     name = Column(String(255), nullable=False)
     api_key = Column(String(500), nullable=False)
     created_at = Column(DateTime, server_default=CREATED_AT_DEFAULT)

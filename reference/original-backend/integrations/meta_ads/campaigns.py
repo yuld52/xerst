@@ -19,6 +19,7 @@ INSIGHT_FIELDS = ",".join([
     "inline_link_click_ctr",
     "cost_per_unique_inline_link_click",
     "actions",
+    "action_values",
 ])
 
 
@@ -49,11 +50,20 @@ async def fetch_campaigns(
     for camp in campaigns_raw:
         insight = _extract_insight(camp)
         actions = insight.get("actions", [])
+        action_values = insight.get("action_values", [])
 
         lpv = safe_int(extract_action_value(actions, "landing_page_view"))
         initiate = safe_int(extract_action_value(actions, "omni_initiated_checkout"))
         clicks = safe_int(insight.get("inline_link_clicks", 0))
         spend = safe_float(insight.get("spend", 0))
+        purchases = max(
+            safe_int(extract_action_value(actions, action_type))
+            for action_type in ("purchase", "omni_purchase", "offsite_conversion.fb_pixel_purchase")
+        )
+        revenue = max(
+            extract_action_value(action_values, action_type)
+            for action_type in ("purchase", "omni_purchase", "offsite_conversion.fb_pixel_purchase")
+        )
         ctr = safe_float(insight.get("inline_link_click_ctr", 0))
         cpc = safe_float(insight.get("cost_per_unique_inline_link_click", 0))
 
@@ -61,6 +71,7 @@ async def fetch_campaigns(
             camp.get("daily_budget", 0)
             or camp.get("lifetime_budget", 0)
         ) / 100  # Meta retorna em centavos
+        budget_type = "daily" if camp.get("daily_budget") else "lifetime"
 
         results.append(CampaignInsights(
             id=camp.get("id", ""),
@@ -69,12 +80,16 @@ async def fetch_campaigns(
             objective=_normalize_objective(camp.get("objective", "")),
             bid_strategy=_normalize_bid_strategy(camp.get("bid_strategy", "")),
             budget=budget,
+            budget_type=budget_type,
             spend=spend,
             clicks=clicks,
             impressions=safe_int(insight.get("impressions", 0)),
             cpc=cpc,
             ctr=ctr,
-            cpa=0.0,
+            cpa=spend / purchases if purchases else 0.0,
+            sales=purchases,
+            revenue=revenue,
+            roas=revenue / spend if spend else 0.0,
             landing_page_views=lpv,
             initiate_checkout=initiate,
             connect_rate=calc_connect_rate(lpv, clicks),

@@ -96,3 +96,22 @@ export async function apiRequest<T>(endpoint: string, options: RequestOptions = 
 
   return response.json();
 }
+
+export async function apiDownload(endpoint: string, filename: string): Promise<void> {
+  if (isImportDemo()) throw new Error("Exportações não estão disponíveis no modo de demonstração.");
+  const token = getCookie("access_token");
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: "Falha ao exportar o arquivo" }));
+    throw new Error(error.detail || "Falha ao exportar o arquivo");
+  }
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.click();
+  URL.revokeObjectURL(url);
+}

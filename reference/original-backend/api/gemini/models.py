@@ -1,8 +1,9 @@
 """Endpoint para listar modelos disponíveis no OpenRouter."""
-from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 import httpx
 
 from api.auth.deps import get_current_user
+from ai.openrouter_config import get_openrouter_config
 
 router = APIRouter(prefix="/gemini", tags=["gemini"])
 
@@ -11,10 +12,12 @@ OPENROUTER_MODELS_URL = "https://openrouter.ai/api/v1/models"
 
 @router.get("/models")
 async def list_gemini_models(
-    api_key: str = Query(...),
     _=Depends(get_current_user),
 ):
-    """Lista modelos disponíveis para a chave OpenRouter fornecida."""
+    """Lista modelos disponíveis usando a chave global do servidor (nunca via URL)."""
+    api_key, _model = get_openrouter_config()
+    if not api_key:
+        raise HTTPException(status_code=503, detail="OpenRouter ainda não foi configurado no servidor.")
     try:
         async with httpx.AsyncClient(timeout=10) as client:
             resp = await client.get(

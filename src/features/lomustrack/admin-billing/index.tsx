@@ -1,263 +1,181 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  RiCheckLine,
-  RiMoneyDollarCircleLine,
-  RiPauseCircleLine,
-  RiSearchLine,
-  RiUserLine,
-} from "@remixicon/react";
-import {
-  loadSubscriptions,
-  LOMUS_PLANS,
-  SUBSCRIPTIONS_KEY,
-  type Subscription,
-  type SubscriptionStatus,
-} from "./data";
-
-const statusLabels: Record<SubscriptionStatus, string> = {
-  active: "Ativa",
-  trial: "Período de teste",
-  past_due: "Pagamento pendente",
-  canceled: "Cancelada",
-};
+  fetchManagedSubscriptions,
+  reviewPlanRequest,
+  type ManagedCompanySubscription,
+} from "@/services/adminSubscriptions";
+import { RiCheckLine, RiMoneyDollarCircleLine, RiRefreshLine, RiSearchLine, RiUserLine } from "@remixicon/react";
+import { LOMUS_PLANS } from "./data";
+import { getStoredUser } from "@/services/auth";
 
 function money(value: number) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 2,
-  }).format(value);
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value);
 }
 
 export default function AdminBillingPage() {
-  const [subscriptions, setSubscriptions] = useState(loadSubscriptions);
+  const [companies, setCompanies] = useState<ManagedCompanySubscription[]>([]);
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState<SubscriptionStatus | "all">("all");
+  const [loading, setLoading] = useState(true);
+  const [busyRequestId, setBusyRequestId] = useState<number | null>(null);
+  const isSuperAdmin = typeof window !== "undefined" && getStoredUser()?.role === "superadmin";
 
-  const persist = (next: Subscription[]) => {
-    setSubscriptions(next);
-    localStorage.setItem(SUBSCRIPTIONS_KEY, JSON.stringify(next));
-  };
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    try {
+      const result = await fetchManagedSubscriptions();
+      setCompanies(result.companies);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não foi possível carregar as assinaturas.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  const filtered = subscriptions.filter((item) => {
-    const planName = LOMUS_PLANS.find((plan) => plan.id === item.plan)?.name ?? item.plan;
-    const matchesSearch = `${item.user} ${item.email} ${planName}`
+  useEffect(() => {
+    if (isSuperAdmin) void refresh();
+  }, [isSuperAdmin, refresh]);
+
+  const pending = companies.filter((company) => company.pending_request);
+  const activeCompanies = companies.filter(
+    (company) => company.is_active && (!company.expires_at || new Date(company.expires_at).getTime() > Date.now()),
+  );
+  const metrics = useMemo(() => ({
+    companies: companies.length,
+    paid: activeCompanies.filter((company) => company.plan_id !== "free").length,
+    monthlyForecast: activeCompanies.reduce((sum, company) => sum + company.monthly_price, 0),
+  }), [activeCompanies, companies.length]);
+
+  const filtered = companies.filter((company) =>
+    `${company.owner_name} ${company.owner_email} ${company.plan_name} ${company.company_id}`
       .toLowerCase()
-      .includes(search.toLowerCase());
-    return matchesSearch && (status === "all" || item.status === status);
-  });
+      .includes(search.toLowerCase()),
+  );
 
-  const metrics = useMemo(() => {
-    const active = subscriptions.filter((item) => item.status === "active");
-    const revenue = active.reduce((sum, item) => sum + item.amount, 0);
-    const costsKnown = active.length > 0 && active.every((item) => item.cost !== null);
-    const costs = costsKnown ? active.reduce((sum, item) => sum + (item.cost ?? 0), 0) : null;
-    return {
-      active: active.length,
-      revenue,
-      costs,
-      profit: costs === null ? null : revenue - costs,
-    };
-  }, [subscriptions]);
-
-  const toggleStatus = (id: string) => {
-    persist(
-      subscriptions.map((item) =>
-        item.id === id
-          ? { ...item, status: item.status === "canceled" ? "active" : "canceled" }
-          : item,
-      ),
-    );
+  const handleReview = async (requestId: number, decision: "approved" | "rejected") => {
+    setBusyRequestId(requestId);
+    try {
+      await reviewPlanRequest(requestId, decision);
+      toast.success(decision === "approved" ? "Pagamento confirmado e plano ativado." : "Solicitação recusada.");
+      await refresh();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não foi possível atualizar a solicitação.");
+    } finally {
+      setBusyRequestId(null);
+    }
   };
+
+  if (!isSuperAdmin) {
+    return (
+      <div className="p-6">
+        <Card><CardContent className="p-6 text-sm text-muted-foreground">
+          Esta área é exclusiva da administração da Lomus. Consulte o seu plano em “Minha assinatura”.
+        </CardContent></Card>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Assinaturas da Lomus</h1>
-        <p className="text-sm text-muted-foreground">
-          Gerencie clientes pagantes, receita e lucro da plataforma.
-        </p>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Metric title="Assinaturas ativas" value={String(metrics.active)} icon={RiUserLine} />
-        <Metric
-          title="Receita mensal"
-          value={money(metrics.revenue)}
-          icon={RiMoneyDollarCircleLine}
-        />
-        <Metric
-          title="Custos operacionais"
-          value={metrics.costs === null ? "Não configurados" : money(metrics.costs)}
-          icon={RiPauseCircleLine}
-        />
-        <Metric
-          title="Lucro mensal"
-          value={metrics.profit === null ? "—" : money(metrics.profit)}
-          icon={RiCheckLine}
-          positive
-        />
-      </div>
-
-      <section className="space-y-4" aria-labelledby="lomus-plans-title">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 id="lomus-plans-title" className="text-lg font-semibold">
-            Planos disponíveis
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Limites e preços mensais da assinatura Lomus.
-          </p>
+          <h1 className="text-2xl font-bold tracking-tight">Assinaturas da Lomus</h1>
+          <p className="text-sm text-muted-foreground">Planos reais das empresas e solicitações de upgrade.</p>
         </div>
-        <div className="grid gap-4 lg:grid-cols-3">
-          {LOMUS_PLANS.map((plan) => (
-            <Card key={plan.id}>
-              <CardHeader>
-                <CardTitle>{plan.name}</CardTitle>
-                <p className="min-h-10 text-sm text-muted-foreground">{plan.description}</p>
-                <p className="text-2xl font-bold">
-                  {money(plan.monthlyPrice)}
-                  <span className="ml-1 text-sm font-normal text-muted-foreground">/mês</span>
-                </p>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2 text-sm">
-                  {plan.features.map((feature) => (
-                    <li key={feature} className="flex gap-2">
-                      <RiCheckLine className="mt-0.5 size-4 shrink-0 text-primary" />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-        <p className="text-xs text-muted-foreground">
-          * Nos planos pagos, cada venda aprovada acima do limite custa US$ 0,02. O plano Gratuito
-          não tem cobranças adicionais.
-        </p>
-        <p className="text-xs text-muted-foreground">
-          O checkout recorrente ainda precisa ser conectado ao provedor de cobrança para ativar
-          pagamentos e excedentes automaticamente.
-        </p>
-      </section>
+        <Button variant="outline" onClick={() => void refresh()} disabled={loading}>
+          <RiRefreshLine className={`mr-2 size-4 ${loading ? "animate-spin" : ""}`} /> Atualizar
+        </Button>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <Metric title="Empresas" value={String(metrics.companies)} icon={RiUserLine} />
+        <Metric title="Planos pagos ativos" value={String(metrics.paid)} icon={RiCheckLine} />
+        <Metric title="Previsão mensal contratada" value={money(metrics.monthlyForecast)} icon={RiMoneyDollarCircleLine} />
+      </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Clientes e planos</CardTitle>
+          <CardTitle>Solicitações de upgrade ({pending.length})</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <div className="relative flex-1">
-              <RiSearchLine className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Buscar cliente, e-mail ou plano"
-                className="pl-9"
-              />
+        <CardContent className="space-y-3">
+          {pending.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nenhuma solicitação pendente.</p>
+          ) : pending.map((company) => (
+            <div key={company.pending_request!.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-4">
+              <div>
+                <p className="font-medium">{company.owner_name} <span className="text-muted-foreground">· {company.owner_email}</span></p>
+                <p className="text-sm text-muted-foreground">
+                  Empresa {company.company_id}: {company.plan_name} → {LOMUS_PLANS.find((plan) => plan.id === company.pending_request?.plan_id)?.name}
+                  {" · "}{new Date(company.pending_request!.created_at).toLocaleDateString("pt-BR")}
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" disabled={busyRequestId === company.pending_request!.id} onClick={() => void handleReview(company.pending_request!.id, "rejected")}>
+                  Recusar
+                </Button>
+                <Button disabled={busyRequestId === company.pending_request!.id} onClick={() => void handleReview(company.pending_request!.id, "approved")}>
+                  {busyRequestId === company.pending_request!.id ? "Salvando..." : "Confirmar pagamento e ativar"}
+                </Button>
+              </div>
             </div>
-            <Select
-              value={status}
-              onValueChange={(value) => setStatus(value as SubscriptionStatus | "all")}
-            >
-              <SelectTrigger className="sm:w-52">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os status</SelectItem>
-                <SelectItem value="active">Ativas</SelectItem>
-                <SelectItem value="trial">Em teste</SelectItem>
-                <SelectItem value="past_due">Pagamento pendente</SelectItem>
-                <SelectItem value="canceled">Canceladas</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          ))}
+          {pending.length > 0 && <p className="text-xs text-muted-foreground">Confirme somente depois de verificar o pagamento fora do app. A ativação vale por 30 dias.</p>}
+        </CardContent>
+      </Card>
 
+      <Card>
+        <CardHeader><CardTitle>Planos disponíveis</CardTitle></CardHeader>
+        <CardContent className="grid gap-4 lg:grid-cols-3">
+          {LOMUS_PLANS.map((plan) => (
+            <div key={plan.id} className="rounded-lg border p-4">
+              <h3 className="font-semibold">{plan.name}</h3>
+              <p className="mt-1 text-2xl font-bold">{money(plan.monthlyPrice)}<span className="ml-1 text-sm font-normal text-muted-foreground">/mês</span></p>
+              <p className="mt-2 text-sm text-muted-foreground">{plan.description}</p>
+              <ul className="mt-4 space-y-1 text-sm">
+                {plan.features.map((feature) => <li key={feature}>✓ {feature}</li>)}
+              </ul>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle>Empresas e planos</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <div className="relative">
+            <RiSearchLine className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar empresa, responsável ou plano" className="pl-9" />
+          </div>
           <div className="overflow-x-auto rounded-lg border border-border">
             <table className="w-full min-w-[760px] text-left text-sm">
-              <thead className="bg-muted/50 text-muted-foreground">
-                <tr>
-                  <th className="px-4 py-3">Cliente</th>
-                  <th className="px-4 py-3">Plano</th>
-                  <th className="px-4 py-3">Valor</th>
-                  <th className="px-4 py-3">Renovação</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3 text-right">Ação</th>
-                </tr>
-              </thead>
+              <thead className="bg-muted/50 text-muted-foreground"><tr>
+                <th className="px-4 py-3">Empresa</th><th className="px-4 py-3">Plano</th><th className="px-4 py-3">Valor mensal</th><th className="px-4 py-3">Início</th><th className="px-4 py-3">Expiração</th><th className="px-4 py-3">Estado</th>
+              </tr></thead>
               <tbody className="divide-y divide-border">
-                {filtered.map((item) => (
-                  <tr key={item.id}>
-                    <td className="px-4 py-3">
-                      <div className="font-medium">{item.user}</div>
-                      <div className="text-xs text-muted-foreground">{item.email}</div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <Badge variant="outline">
-                        {LOMUS_PLANS.find((plan) => plan.id === item.plan)?.name ?? item.plan}
-                      </Badge>
-                    </td>
-                    <td className="px-4 py-3 font-medium">{money(item.amount)}</td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {new Date(item.renewal).toLocaleDateString("pt-BR")}
-                    </td>
-                    <td className="px-4 py-3">
-                      <Badge variant={item.status === "active" ? "default" : "secondary"}>
-                        {statusLabels[item.status]}
-                      </Badge>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <Button variant="outline" size="sm" onClick={() => toggleStatus(item.id)}>
-                        {item.status === "canceled" ? "Reativar" : "Cancelar"}
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
+                {filtered.map((company) => <tr key={company.company_id}>
+                  <td className="px-4 py-3"><div className="font-medium">{company.owner_name}</div><div className="text-xs text-muted-foreground">{company.owner_email} · #{company.company_id}</div></td>
+                  <td className="px-4 py-3"><Badge variant="outline">{company.plan_name}</Badge></td>
+                  <td className="px-4 py-3">{money(company.monthly_price)}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{company.started_at ? new Date(company.started_at).toLocaleDateString("pt-BR") : "—"}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{company.expires_at ? new Date(company.expires_at).toLocaleDateString("pt-BR") : "—"}</td>
+                  <td className="px-4 py-3"><Badge variant={company.is_active ? "default" : "secondary"}>{company.is_active ? "Ativa" : "Suspensa"}</Badge></td>
+                </tr>)}
+                {!loading && filtered.length === 0 && <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">Nenhuma empresa encontrada.</td></tr>}
+                {loading && <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">Carregando empresas...</td></tr>}
               </tbody>
             </table>
           </div>
-          <p className="text-xs text-muted-foreground">
-            Os valores desta tela são demonstrativos até a conexão com o provedor de cobrança da
-            Lomus.
-          </p>
+          <p className="text-xs text-muted-foreground">A previsão mensal soma o valor dos planos ativos; não representa pagamentos recebidos. Lucro líquido e faturas exigem integração com um provedor de cobrança e registro dos custos.</p>
         </CardContent>
       </Card>
     </div>
   );
 }
 
-function Metric({
-  title,
-  value,
-  icon: Icon,
-  positive,
-}: {
-  title: string;
-  value: string;
-  icon: React.ComponentType<{ className?: string }>;
-  positive?: boolean;
-}) {
-  return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <Icon className={positive ? "size-4 text-emerald-500" : "size-4 text-muted-foreground"} />
-      </CardHeader>
-      <CardContent>
-        <p className="text-2xl font-bold">{value}</p>
-      </CardContent>
-    </Card>
-  );
+function Metric({ title, value, icon: Icon }: { title: string; value: string; icon: React.ComponentType<{ className?: string }> }) {
+  return <Card><CardHeader className="flex flex-row items-center justify-between pb-2"><CardTitle className="text-sm font-medium">{title}</CardTitle><Icon className="size-4 text-muted-foreground" /></CardHeader><CardContent><p className="text-2xl font-bold">{value}</p></CardContent></Card>;
 }

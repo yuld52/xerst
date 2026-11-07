@@ -17,13 +17,12 @@ import { fetchGeminiModels, type GeminiModelAPI } from "@/services/integrations"
 interface AddGeminiModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAdd: (name: string, apiKey: string, model: string) => void;
+  onAdd: (name: string, model: string) => void;
   isLoading?: boolean;
 }
 
 export function AddGeminiModal({ open, onOpenChange, onAdd, isLoading }: AddGeminiModalProps) {
   const [name, setName] = useState("");
-  const [apiKey, setApiKey] = useState("");
   const [model, setModel] = useState("openai/gpt-4o-mini");
   const [models, setModels] = useState<GeminiModelAPI[]>([]);
   const [modelSearch, setModelSearch] = useState("");
@@ -31,16 +30,16 @@ export function AddGeminiModal({ open, onOpenChange, onAdd, isLoading }: AddGemi
   const [showModels, setShowModels] = useState(false);
   const [popoverWidth, setPopoverWidth] = useState<number | undefined>(undefined);
 
-  // Ao digitar a API key, busca modelos
+  // Os modelos disponíveis vêm da chave OpenRouter configurada pelo administrador.
   useEffect(() => {
-    if (apiKey.length < 10) {
+    if (!open) {
       setModels([]);
       return;
     }
     const timer = setTimeout(async () => {
       setLoadingModels(true);
       try {
-        const result = await fetchGeminiModels(apiKey);
+        const result = await fetchGeminiModels();
         setModels(result);
       } catch {
         setModels([]);
@@ -49,7 +48,7 @@ export function AddGeminiModal({ open, onOpenChange, onAdd, isLoading }: AddGemi
       }
     }, 800);
     return () => clearTimeout(timer);
-  }, [apiKey]);
+  }, [open]);
 
   const filteredModels = models.filter(
     (m) =>
@@ -59,15 +58,14 @@ export function AddGeminiModal({ open, onOpenChange, onAdd, isLoading }: AddGemi
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !apiKey.trim() || !model.trim()) return;
-    onAdd(name.trim(), apiKey.trim(), model.trim());
+    if (!name.trim() || !model.trim()) return;
+    onAdd(name.trim(), model.trim());
     handleClose(false);
   };
 
   const handleClose = (v: boolean) => {
     if (!v) {
       setName("");
-      setApiKey("");
       setModel("openai/gpt-4o-mini");
       setModelSearch("");
       setModels([]);
@@ -80,9 +78,9 @@ export function AddGeminiModal({ open, onOpenChange, onAdd, isLoading }: AddGemi
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
-          <DialogTitle>Adicionar chave OpenRouter</DialogTitle>
+          <DialogTitle>Adicionar configuração de IA</DialogTitle>
           <DialogDescription>
-            Insira o nome, a API Key e selecione o modelo desejado
+            A conexão usa a chave OpenRouter protegida e configurada pelo administrador.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -93,19 +91,6 @@ export function AddGeminiModal({ open, onOpenChange, onAdd, isLoading }: AddGemi
               placeholder="Ex: Minha Chave Principal"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              disabled={isLoading}
-              required
-              autoComplete="off"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="gemini-apikey">API Key</Label>
-            <Input
-              id="gemini-apikey"
-              type="password"
-              placeholder="Cole a API Key do OpenRouter"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
               disabled={isLoading}
               required
               autoComplete="off"
@@ -169,10 +154,10 @@ export function AddGeminiModal({ open, onOpenChange, onAdd, isLoading }: AddGemi
           </div>
           <div className="rounded-lg bg-muted/50 p-3">
             <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-1">
-              Como obter a API Key
+              Conexão compartilhada
             </p>
             <p className="text-[11px] text-muted-foreground leading-relaxed">
-              Acesse openrouter.ai → Keys → Create Key → Copie e cole a chave acima.
+              A chave não é exibida nem armazenada no navegador. O administrador mantém essa conexão no servidor.
             </p>
           </div>
           <DialogFooter>

@@ -1,5 +1,5 @@
 import { useCachedQuery } from "./useCachedQuery";
-import type { FunnelProduct } from "@/services/funnel";
+import { fetchFunnelData, type FunnelProduct } from "@/services/funnel";
 
 interface UseRecoveryFunnelParams {
   preset: string;
@@ -17,10 +17,7 @@ export function useRecoveryFunnel({
   const { data, isLoading, error, reload } = useCachedQuery<FunnelProduct[]>({
     cachePrefix: "recovery-funnel",
     params: { preset, dateStart, dateEnd },
-    queryFn: async () => {
-      // Mock data for recovery funnel - replace with actual API call
-      return [];
-    },
+    queryFn: () => fetchFunnelData(preset, dateStart, dateEnd),
     enabled,
   });
 

@@ -1,5 +1,9 @@
 import { createContext, useContext, useState } from "react";
+import { useEffect } from "react";
 import type { ReactNode } from "react";
+import { fetchUserPreferences, updateUserPreferences } from "@/services/userPreferences";
+import { getCookie } from "@/lib/cookies";
+import { isImportDemo } from "@/lib/import-demo";
 
 interface ValueDisplayContextType {
   showFull: boolean;
@@ -22,6 +26,16 @@ export function ValueDisplayProvider({ children }: { children: ReactNode }) {
     }
   });
 
+  useEffect(() => {
+    if (!getCookie("access_token") || isImportDemo()) return;
+    fetchUserPreferences().then((preferences) => {
+      if (typeof preferences.showFullValues === "boolean") {
+        setShowFull(preferences.showFullValues);
+        localStorage.setItem(STORAGE_KEY, String(preferences.showFullValues));
+      }
+    }).catch(() => undefined);
+  }, []);
+
   const toggle = () => {
     setShowFull((prev) => {
       const next = !prev;
@@ -29,6 +43,9 @@ export function ValueDisplayProvider({ children }: { children: ReactNode }) {
         localStorage.setItem(STORAGE_KEY, String(next));
       } catch {
         // localStorage indisponível (modo privado ou cota excedida) — ignora
+      }
+      if (getCookie("access_token") && !isImportDemo()) {
+        void updateUserPreferences({ showFullValues: next }).catch(() => undefined);
       }
       return next;
     });

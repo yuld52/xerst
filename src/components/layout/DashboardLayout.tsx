@@ -1,14 +1,26 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Outlet } from "@/lib/import-navigation";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
 import { MobileBottomNav } from "./MobileBottomNav";
 import { MobileAIChat } from "./MobileAIChat";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { fetchDisplayCurrency } from "@/services/company";
+import { setCurrency, CURRENCIES, type CurrencyCode } from "@/lib/currencySettings";
+import { isImportDemo } from "@/lib/import-demo";
 
 export function DashboardLayout() {
   const isMobile = useIsMobile();
   const [aiOpen, setAiOpen] = useState(false);
+
+  useEffect(() => {
+    if (isImportDemo()) return;
+    fetchDisplayCurrency()
+      .then(({ currency }) => {
+        if (currency in CURRENCIES) setCurrency(currency as CurrencyCode);
+      })
+      .catch(() => undefined);
+  }, []);
 
   if (isMobile) {
     return (

@@ -23,5 +23,15 @@
         "service": "app"
       }
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/automation/rules/run",
+      "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/automation/reports/run",
+      "schedule": "0 * * * *"
+    }
   ]
 }

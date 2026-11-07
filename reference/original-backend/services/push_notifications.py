@@ -6,7 +6,9 @@ from pywebpush import webpush, WebPushException
 from sqlalchemy.orm import Session
 from database.models.push_subscription import PushSubscription
 from database.models.notification_delivery import NotificationDelivery
-from datetime import datetime
+from database.models.company import CompanySettings
+from datetime import datetime, timedelta
+from database.models.notification_retry import NotificationRetry
 
 load_dotenv()
 
@@ -94,6 +96,9 @@ class PushNotificationService:
         company_id: int = 1,
         amount_mzn: Optional[float] = None,
         status: str = "approved",
+        original_amount: Optional[float] = None,
+        currency_code: str = "MZN",
+        campaign_value: Optional[str] = None,
     ):
         """
         Envia notificação de venda para todas as subscrições ativas.
@@ -106,16 +111,28 @@ class PushNotificationService:
             company_id: ID da empresa (multi-tenant)
             amount_mzn: Valor exato em Metical (se None, converte amount * 13)
         """
+        settings = db.query(CompanySettings).filter(CompanySettings.company_id == company_id).first()
+        preferences = (settings.notification_preferences if settings else None) or {}
+        pref_key = "pendingSales" if status == "pending" else "approvedSales"
+        if preferences.get(pref_key, "show" if status == "approved" else "hide") != "show":
+            return
+
         # Se não foi fornecido amount_mzn direto, converte amount * 13
         if amount_mzn is None:
             amount_mzn = amount * 13
-        
-        # Formatar valor em Metical (ex: 3.200 MT)
-        formatted_amount = f"{amount_mzn:,.0f}".replace(",", ".") + " MT"
-        
-        # Construir mensagem (sem nome do cliente)
+
+        value = original_amount if original_amount is not None else amount_mzn
+        code = (currency_code or "MZN").upper()
+        formatted_amount = f"{value:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + f" {code}"
         status_label = "Venda Pendente!" if status == "pending" else "Venda Aprovada!"
-        body = f"{status_label}\nValor: {formatted_amount}"
+        lines = [status_label]
+        if preferences.get("saleValue", "show") == "show":
+            lines.append(f"Valor: {formatted_amount}")
+        if preferences.get("productName", "hide") == "show" and product_name:
+            lines.append(f"Produto: {product_name}")
+        if preferences.get("campaignValue", "hide") == "show" and campaign_value:
+            lines.append(f"Campanha: {campaign_value}")
+        body = "\n".join(lines)
         
         # Buscar todas as subscrições ativas DA MESMA EMPRESA
         subscriptions = db.query(PushSubscription).filter(
@@ -132,6 +149,7 @@ class PushNotificationService:
         # Enviar para cada subscrição
         success_count = 0
         failed_count = 0
+        delivered_subscription_ids = []
         
         for sub in subscriptions:
             success = self.send_notification(
@@ -142,25 +160,60 @@ class PushNotificationService:
                     "url": "/sales",
                     "amount": formatted_amount,
                     "product": product_name,
+                    "campaign": campaign_value,
                     "status": status,
                 }
             )
             
             if success:
                 success_count += 1
+                delivered_subscription_ids.append(sub.id)
                 # Atualizar timestamp de último uso
                 sub.last_used_at = datetime.utcnow()
                 db.commit()
             else:
                 failed_count += 1
-                # Desativar subscrição inválida
-                sub.is_active = False
-                db.commit()
         
         print(f"✅ Notificações enviadas: {success_count} sucesso, {failed_count} falhas")
-        db.add(NotificationDelivery(company_id=company_id, title="LomusTrack", body=body, status="sent" if success_count else "failed", sent_count=success_count, failed_count=failed_count, data={"url": "/sales", "status": status}))
+        delivery_data = {
+            "url": "/sales", "status": status, "amount": formatted_amount,
+            "product": product_name, "campaign": campaign_value,
+            "target_subscription_ids": [sub.id for sub in subscriptions],
+            "delivered_subscription_ids": delivered_subscription_ids,
+        }
+        delivery_status = "partial" if success_count and failed_count else ("sent" if success_count else "failed")
+        db.add(NotificationDelivery(company_id=company_id, title="LomusTrack", body=body, status=delivery_status, sent_count=success_count, failed_count=failed_count, data=delivery_data))
+        if failed_count:
+            enqueue_notification_retry(db, company_id, "LomusTrack", body, {
+                "url": "/sales", "amount": formatted_amount, "product": product_name,
+                "campaign": campaign_value, "status": status,
+                "target_subscription_ids": [sub.id for sub in subscriptions],
+            }, delivered_subscription_ids)
         db.commit()
 
 
 # Instância global do serviço
 push_service = PushNotificationService()
+
+
+def enqueue_notification_retry(
+    db: Session,
+    company_id: int,
+    title: str,
+    body: str,
+    data: dict,
+    delivered_subscription_ids: list[int] | None = None,
+) -> NotificationRetry:
+    job = NotificationRetry(
+        company_id=company_id,
+        title=title,
+        body=body,
+        data=data,
+        delivered_subscription_ids=delivered_subscription_ids or [],
+        attempts=0,
+        max_attempts=5,
+        status="pending",
+        next_attempt_at=datetime.utcnow() + timedelta(minutes=5),
+    )
+    db.add(job)
+    return job

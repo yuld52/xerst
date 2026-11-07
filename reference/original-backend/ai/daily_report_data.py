@@ -13,7 +13,7 @@ from api.campaigns.actions import fetch_learning_data
 from ai.tools.universal import _run_meta
 
 
-def collect_daily_data(db: Session) -> dict:
+def collect_daily_data(db: Session, company_id: int) -> dict:
     """Coleta todos os dados necessários para o relatório diário."""
     now = now_sp()
     today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -21,25 +21,25 @@ def collect_daily_data(db: Session) -> dict:
     de = now.strftime("%Y-%m-%d")
 
     # KPIs de hoje
-    today_kpis = _calc_period_kpis(db, today_start, now, ds, de)
+    today_kpis = _calc_period_kpis(db, company_id, today_start, now, ds, de)
 
     # KPIs de ontem (para comparativo)
     yesterday_start = today_start - timedelta(days=1)
     yesterday_end = today_start
     yd_ds = yesterday_start.strftime("%Y-%m-%d")
     yd_de = yesterday_start.strftime("%Y-%m-%d")
-    yesterday_kpis = _calc_period_kpis(db, yesterday_start, yesterday_end, yd_ds, yd_de)
+    yesterday_kpis = _calc_period_kpis(db, company_id, yesterday_start, yesterday_end, yd_ds, yd_de)
 
     # KPIs últimos 7 dias (para média)
     week_start = today_start - timedelta(days=7)
     w_ds = week_start.strftime("%Y-%m-%d")
-    week_kpis = _calc_period_kpis(db, week_start, now, w_ds, de)
+    week_kpis = _calc_period_kpis(db, company_id, week_start, now, w_ds, de)
 
     # Campanhas do Meta Ads hoje
-    campaigns_text = _fetch_campaigns_today(db, ds, de)
+    campaigns_text = _fetch_campaigns_today(db, company_id, ds, de)
 
     # Dados de aprendizado (ações do usuário)
-    learning = fetch_learning_data(db)
+    learning = fetch_learning_data(db, company_id=company_id)
 
     return {
         "today_kpis": today_kpis,
@@ -51,16 +51,18 @@ def collect_daily_data(db: Session) -> dict:
     }
 
 
-def _calc_period_kpis(db: Session, start, end, ds: str, de: str) -> dict:
+def _calc_period_kpis(db: Session, company_id: int, start, end, ds: str, de: str) -> dict:
     """Calcula KPIs para um período."""
     base = db.query(Transaction).filter(
         Transaction.created_at >= start,
         Transaction.created_at <= end,
+        Transaction.company_id == company_id,
     )
 
     meta_summary = None
     account = db.query(FacebookAccount).filter(
-        FacebookAccount.token_valid.is_(True)
+        FacebookAccount.token_valid.is_(True),
+        FacebookAccount.company_id == company_id,
     ).first()
     if account:
         try:
@@ -73,10 +75,11 @@ def _calc_period_kpis(db: Session, start, end, ds: str, de: str) -> dict:
     return calc_kpis(base, meta_summary)
 
 
-def _fetch_campaigns_today(db: Session, ds: str, de: str) -> str:
+def _fetch_campaigns_today(db: Session, company_id: int, ds: str, de: str) -> str:
     """Busca campanhas do Meta Ads com métricas de hoje."""
     account = db.query(FacebookAccount).filter(
-        FacebookAccount.token_valid.is_(True)
+        FacebookAccount.token_valid.is_(True),
+        FacebookAccount.company_id == company_id,
     ).first()
     if not account:
         return "Sem conta Facebook Ads configurada."

@@ -12,6 +12,7 @@ export interface NotificationPreferences {
   campaignValue: Visibility;
   reportHours: Record<string, boolean>;
   template: NotificationTemplate;
+  timezone: string;
 }
 
 export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
@@ -22,6 +23,7 @@ export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   campaignValue: "hide",
   reportHours: { "08:00": false, "12:00": false, "18:00": false, "23:00": false },
   template: "profit",
+  timezone: "Africa/Maputo",
 };
 
 export function readNotificationPreferences(): NotificationPreferences {

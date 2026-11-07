@@ -39,13 +39,13 @@ export function AdminLayout() {
   const user = getStoredUser();
 
   useEffect(() => {
-    // Check if user is logged in and has admin/owner role
+    // The management area serves company admins and the Lomus superadmin.
     if (!user) {
       navigate("/admin-login");
       return;
     }
 
-    if (user.role !== "owner" && user.role !== "admin") {
+    if (user.role !== "owner" && user.role !== "admin" && user.role !== "superadmin") {
       navigate("/login");
     }
   }, [user, navigate]);
@@ -59,7 +59,7 @@ export function AdminLayout() {
     navigate("/dashboard");
   };
 
-  if (!user || (user.role !== "owner" && user.role !== "admin")) {
+  if (!user || (user.role !== "owner" && user.role !== "admin" && user.role !== "superadmin")) {
     return null;
   }
 

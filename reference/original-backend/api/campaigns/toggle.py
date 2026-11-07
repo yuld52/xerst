@@ -31,11 +31,12 @@ class ToggleRequest(BaseModel):
 async def toggle_status(
     payload: ToggleRequest,
     db: Session = Depends(get_db),
-    _=Depends(get_current_user),
+    current_user=Depends(get_current_user),
 ):
     """Liga ou desliga uma campanha, conjunto ou anúncio."""
     fb_account = db.query(FacebookAccount).filter(
-        FacebookAccount.id == payload.account_id
+        FacebookAccount.id == payload.account_id,
+        FacebookAccount.company_id == current_user.company_id,
     ).first()
 
     if not fb_account:
@@ -58,6 +59,7 @@ async def toggle_status(
     try:
         record_campaign_action(
             db=db,
+            company_id=current_user.company_id,
             entity_id=payload.entity_id,
             entity_type=payload.entity_type,
             entity_name=payload.entity_name or payload.entity_id,

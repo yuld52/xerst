@@ -30,11 +30,12 @@ class AiActionRequest(BaseModel):
 async def execute_ai_action(
     payload: AiActionRequest,
     db: Session = Depends(get_db),
-    _=Depends(get_current_user),
+    current_user=Depends(get_current_user),
 ):
     """Executa uma ação sugerida pela AI."""
     fb_account = db.query(FacebookAccount).filter(
-        FacebookAccount.token_valid.is_(True)
+        FacebookAccount.token_valid.is_(True),
+        FacebookAccount.company_id == current_user.company_id,
     ).first()
     if not fb_account:
         raise HTTPException(status_code=404, detail="Nenhuma conta Facebook configurada ou token inválido")
@@ -92,6 +93,7 @@ async def execute_ai_action(
     try:
         record_campaign_action(
             db=db,
+            company_id=current_user.company_id,
             entity_id=payload.entity_id,
             entity_type=payload.entity_type,
             entity_name=payload.entity_name,

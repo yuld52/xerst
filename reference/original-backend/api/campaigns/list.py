@@ -5,6 +5,7 @@ Retorna campanhas com métricas de Ad Spend + Vendas unificadas.
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from typing import Optional
+from datetime import datetime
 
 from database.core.connection import get_db
 from database.models.facebook_account import FacebookAccount
@@ -68,6 +69,8 @@ async def get_campaigns_data(
         await service.close()
 
     # 3. Buscar transações aprovadas no período com utm_source=FB
+    fb_account.last_sync_at = datetime.utcnow()
+    db.commit()
     transactions = _get_fb_transactions(db, date_start, date_end, company_id)
 
     # 4. Fazer o merge

@@ -10,15 +10,32 @@ import { RiMoneyDollarCircleLine } from "@remixicon/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { CURRENCIES, getCurrency, setCurrency, type CurrencyCode } from "@/lib/currencySettings";
+import { fetchDisplayCurrency, updateDisplayCurrency } from "@/services/company";
 
 export function CurrencyCard() {
   const [code, setCode] = useState<CurrencyCode>("MZN");
-  useEffect(() => setCode(getCurrency()), []);
+  useEffect(() => {
+    setCode(getCurrency());
+    fetchDisplayCurrency()
+      .then(({ currency }) => {
+        if (currency in CURRENCIES) {
+          setCode(currency as CurrencyCode);
+          setCurrency(currency as CurrencyCode);
+        }
+      })
+      .catch(() => undefined);
+  }, []);
 
-  const handleChange = (value: string) => {
-    setCurrency(value as CurrencyCode);
-    setCode(value as CurrencyCode);
-    toast.success(`Moeda alterada para ${CURRENCIES[value as CurrencyCode].label}`);
+  const handleChange = async (value: string) => {
+    const next = value as CurrencyCode;
+    try {
+      await updateDisplayCurrency(next);
+      setCurrency(next);
+      setCode(next);
+      toast.success(`Moeda salva para esta empresa: ${CURRENCIES[next].label}`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não foi possível salvar a moeda.");
+    }
   };
 
   return (

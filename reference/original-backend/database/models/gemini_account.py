@@ -12,6 +12,7 @@ class GeminiAccount(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(255), nullable=False)
-    api_key = Column(String(500), nullable=False)
+    company_id = Column(Integer, nullable=True, index=True)
+    api_key = Column(String(500), nullable=True)
     model = Column(String(100), nullable=False, default="inclusionai/ling-3.0-flash-vl:free")
     created_at = Column(DateTime, server_default=CREATED_AT_DEFAULT)

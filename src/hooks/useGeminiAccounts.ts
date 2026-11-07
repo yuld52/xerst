@@ -14,8 +14,8 @@ export function useGeminiAccounts() {
     queryFn: fetchGeminiAccounts,
   });
 
-  const addAccount = async (name: string, apiKey: string, model: string) => {
-    const newAccount = await createGeminiAccount(name, apiKey, model);
+  const addAccount = async (name: string, model: string) => {
+    const newAccount = await createGeminiAccount(name, model);
     invalidateCacheByPrefix("gemini-accounts");
     await reload();
     return newAccount;

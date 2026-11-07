@@ -17,9 +17,9 @@ export default function AdminLoginPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Check if already logged in as admin/owner
+    // Check if already logged in as an organization admin or Lomus superadmin.
     const user = getStoredUser();
-    if (user && (user.role === "owner" || user.role === "admin")) {
+    if (user && (user.role === "owner" || user.role === "admin" || user.role === "superadmin")) {
       navigate("/admin/dashboard");
     }
   }, [navigate]);
@@ -31,8 +31,8 @@ export default function AdminLoginPage() {
     try {
       const response = await loginUser({ email, password, two_factor_code: twoFactorCode || undefined });
 
-      // Only allow owner and admin roles
-      if (response.user.role !== "owner" && response.user.role !== "admin") {
+      // Organization admins manage their company; superadmins manage the Lomus SaaS.
+      if (response.user.role !== "owner" && response.user.role !== "admin" && response.user.role !== "superadmin") {
         toast.error("Acesso negado. Apenas administradores podem acessar este painel.");
         setLoading(false);
         return;

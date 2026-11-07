@@ -19,6 +19,12 @@ from database.models.api_credential import ApiCredential
 from database.models.webhook_delivery import WebhookDelivery
 from database.models.audit_log import AuditLog
 from database.models.notification_delivery import NotificationDelivery
+from database.models.subscription_plan_request import SubscriptionPlanRequest
+from database.models.campaign_rule import CampaignRule
+from database.models.auth_session import AuthSession
+from database.models.notification_retry import NotificationRetry
+from database.models.global_app_settings import GlobalAppSettings
+from database.models.automation_lock import AutomationLock
 
 __all__ = [
     "Admin",
@@ -52,4 +58,10 @@ __all__ = [
     "WebhookDelivery",
     "AuditLog",
     "NotificationDelivery",
+    "SubscriptionPlanRequest",
+    "CampaignRule",
+    "AuthSession",
+    "NotificationRetry",
+    "GlobalAppSettings",
+    "AutomationLock",
 ]

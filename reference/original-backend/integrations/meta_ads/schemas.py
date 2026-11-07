@@ -12,12 +12,16 @@ class CampaignInsights(BaseModel):
     objective: str = ""
     bid_strategy: str = ""
     budget: float = 0.0
+    budget_type: str = "daily"
     spend: float = 0.0
     clicks: int = 0
     impressions: int = 0
     cpc: float = 0.0
     ctr: float = 0.0
     cpa: float = 0.0
+    sales: int = 0
+    revenue: float = 0.0
+    roas: float = 0.0
     landing_page_views: int = 0
     initiate_checkout: int = 0
     connect_rate: float = 0.0

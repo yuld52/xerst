@@ -31,7 +31,7 @@ class BudgetRequest(BaseModel):
 async def update_entity_budget(
     payload: BudgetRequest,
     db: Session = Depends(get_db),
-    _=Depends(get_current_user),
+    current_user=Depends(get_current_user),
 ):
     """Atualiza o orçamento diário. Meta API espera centavos."""
     if payload.entity_type not in ("campaign", "adset"):
@@ -41,7 +41,8 @@ async def update_entity_budget(
         )
 
     fb_account = db.query(FacebookAccount).filter(
-        FacebookAccount.id == payload.account_id
+        FacebookAccount.id == payload.account_id,
+        FacebookAccount.company_id == current_user.company_id,
     ).first()
 
     if not fb_account:
@@ -66,6 +67,7 @@ async def update_entity_budget(
     try:
         record_campaign_action(
             db=db,
+            company_id=current_user.company_id,
             entity_id=payload.entity_id,
             entity_type=payload.entity_type,
             entity_name=payload.entity_name or payload.entity_id,

@@ -4,6 +4,8 @@ from sqlalchemy.orm import Session
 from database.core.connection import get_db
 from api.auth.token import verify_token
 from database.models.admin import Admin, UserRole
+from database.models.auth_session import AuthSession
+from datetime import datetime
 
 security = HTTPBearer()
 
@@ -43,6 +45,19 @@ def get_current_user(
             detail="Sessão encerrada. Faça login novamente.",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+    session_id = payload.get("jti")
+    if session_id:
+        session = db.query(AuthSession).filter(
+            AuthSession.session_id == session_id,
+            AuthSession.admin_id == admin.id,
+            AuthSession.revoked_at.is_(None),
+            AuthSession.expires_at > datetime.utcnow(),
+        ).first()
+        if not session:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Sessão encerrada. Faça login novamente.")
+        session.last_seen_at = datetime.utcnow()
+        db.commit()
     
     # Verificar se a conta está ativa (não suspensa)
     if admin.is_active == 0:

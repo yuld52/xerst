@@ -10,7 +10,7 @@ from database.models.product_items import OrderBump, Upsell
 from database.models.transaction import Transaction, TransactionStatus
 from database.models.facebook_account import FacebookAccount
 from database.models.campaign_marker import CampaignMarker, MarkerType
-from api.auth.deps import get_current_user
+from api.auth.deps import get_company_id
 from api.funnel.date_helpers import resolve_date_range, date_to_meta_format
 from api.funnel.facebook_data import fetch_facebook_aggregated
 from api.products.alias_helper import get_product_names_for_filter
@@ -24,23 +24,23 @@ async def get_funnel_data(
     date_start: str | None = Query(None),
     date_end: str | None = Query(None),
     db: Session = Depends(get_db),
-    _=Depends(get_current_user),
+    company_id: int = Depends(get_company_id),
 ):
     dt_start, dt_end = resolve_date_range(preset, date_start, date_end)
-    products = db.query(Product).order_by(Product.id).all()
+    products = db.query(Product).filter(Product.company_id == company_id).order_by(Product.id).all()
 
     meta_start = date_to_meta_format(dt_start) if dt_start else "2020-01-01"
     meta_end = date_to_meta_format(dt_end) if dt_end else date_to_meta_format(now_sp())
-    accounts = db.query(FacebookAccount).all()
+    accounts = db.query(FacebookAccount).filter(FacebookAccount.company_id == company_id).all()
 
     result = []
     for product in products:
-        campaign_ids = _get_product_campaign_ids(db, str(product.id))
+        campaign_ids = _get_product_campaign_ids(db, str(product.id), company_id)
         fb = await _get_fb_for_product(accounts, meta_start, meta_end, campaign_ids)
 
-        sales_count, sales_revenue = _count_sales(db, product, dt_start, dt_end)
-        ob_count, ob_revenue = _count_order_bumps(db, product, dt_start, dt_end)
-        upsell_stages = _get_upsell_stages(db, product.id, dt_start, dt_end)
+        sales_count, sales_revenue = _count_sales(db, product, company_id, dt_start, dt_end)
+        ob_count, ob_revenue = _count_order_bumps(db, product, company_id, dt_start, dt_end)
+        upsell_stages = _get_upsell_stages(db, product.id, company_id, dt_start, dt_end)
 
         stages = [
             _make_stage("Cliques", fb.get("clicks", 0), meta={
@@ -81,10 +81,11 @@ def _make_stage(
     return stage
 
 
-def _get_product_campaign_ids(db: Session, product_id: str) -> list[str]:
+def _get_product_campaign_ids(db: Session, product_id: str, company_id: int) -> list[str]:
     markers = db.query(CampaignMarker).filter(
         CampaignMarker.marker_type == MarkerType.PRODUCT,
         CampaignMarker.reference_id == product_id,
+        CampaignMarker.company_id == company_id,
     ).all()
     return [m.campaign_id for m in markers]
 
@@ -101,7 +102,7 @@ async def _get_fb_for_product(
 
 
 def _count_sales(
-    db: Session, product: Product,
+    db: Session, product: Product, company_id: int,
     dt_start: datetime | None, dt_end: datetime | None,
 ) -> tuple[int, float]:
     names = get_product_names_for_filter(db, product.id)
@@ -109,6 +110,7 @@ def _count_sales(
         func.count(Transaction.id),
         func.coalesce(func.sum(Transaction.amount), 0),
     ).filter(
+        Transaction.company_id == company_id,
         Transaction.product_name.in_(names) if names else Transaction.product_id == product.id,
         Transaction.status == TransactionStatus.APPROVED,
     )
@@ -121,7 +123,7 @@ def _count_sales(
 
 
 def _count_order_bumps(
-    db: Session, product: Product,
+    db: Session, product: Product, company_id: int,
     dt_start: datetime | None, dt_end: datetime | None,
 ) -> tuple[int, float]:
     ob_ids = db.query(OrderBump.external_id).filter(
@@ -134,6 +136,7 @@ def _count_order_bumps(
 
     names = get_product_names_for_filter(db, product.id)
     q = db.query(Transaction).filter(
+        Transaction.company_id == company_id,
         Transaction.product_name.in_(names) if names else Transaction.product_id == product.id,
         Transaction.status == TransactionStatus.APPROVED,
         Transaction.order_bumps.isnot(None),
@@ -158,7 +161,7 @@ def _count_order_bumps(
 
 
 def _get_upsell_stages(
-    db: Session, product_id: int,
+    db: Session, product_id: int, company_id: int,
     dt_start: datetime | None, dt_end: datetime | None,
 ) -> list[dict]:
     upsells = db.query(Upsell).filter(
@@ -175,6 +178,7 @@ def _get_upsell_stages(
             func.count(Transaction.id),
             func.coalesce(func.sum(Transaction.amount), 0),
         ).filter(
+            Transaction.company_id == company_id,
             Transaction.product_name == up.name,
             Transaction.status == TransactionStatus.APPROVED,
         )

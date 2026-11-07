@@ -5,6 +5,29 @@ import type {
   KpiColorsConfig,
   AiInstructions,
 } from "@/types/company";
+import type { NotificationPreferences } from "@/lib/notificationPreferences";
+
+export function fetchNotificationPreferences(): Promise<NotificationPreferences> {
+  return apiRequest<NotificationPreferences>("/company/notification-preferences");
+}
+
+export function updateNotificationPreferences(preferences: NotificationPreferences): Promise<NotificationPreferences> {
+  return apiRequest<NotificationPreferences>("/company/notification-preferences", {
+    method: "PUT",
+    body: preferences,
+  });
+}
+
+export function fetchDisplayCurrency(): Promise<{ currency: string }> {
+  return apiRequest<{ currency: string }>("/company/currency");
+}
+
+export function updateDisplayCurrency(currency: string): Promise<{ currency: string }> {
+  return apiRequest<{ currency: string }>("/company/currency", {
+    method: "PUT",
+    body: { currency },
+  });
+}
 
 export async function fetchCompanySettings(): Promise<CompanySettings> {
   return apiRequest<CompanySettings>("/company/settings");

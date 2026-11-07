@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 from database.core.connection import get_db
 from database.models.campaign_marker import CampaignMarker, MarkerType
-from api.auth.deps import get_current_user
+from api.auth.deps import get_company_id
 
 router = APIRouter(prefix="/campaigns", tags=["campaign-markers"])
 
@@ -30,9 +30,9 @@ class MarkerResponse(BaseModel):
 @router.get("/markers", response_model=list[MarkerResponse])
 def list_markers(
     db: Session = Depends(get_db),
-    _=Depends(get_current_user),
+    company_id: int = Depends(get_company_id),
 ):
-    rows = db.query(CampaignMarker).all()
+    rows = db.query(CampaignMarker).filter(CampaignMarker.company_id == company_id).all()
     return [
         MarkerResponse(
             id=r.id,
@@ -49,13 +49,14 @@ def list_markers(
 def upsert_marker(
     payload: MarkerPayload,
     db: Session = Depends(get_db),
-    _=Depends(get_current_user),
+    company_id: int = Depends(get_company_id),
 ):
     m_type = MarkerType(payload.marker_type)
 
     row = db.query(CampaignMarker).filter(
         CampaignMarker.campaign_id == payload.campaign_id,
         CampaignMarker.marker_type == m_type,
+        CampaignMarker.company_id == company_id,
     ).first()
 
     if row:
@@ -63,6 +64,7 @@ def upsert_marker(
         row.reference_label = payload.reference_label
     else:
         row = CampaignMarker(
+            company_id=company_id,
             campaign_id=payload.campaign_id,
             marker_type=m_type,
             reference_id=payload.reference_id,
@@ -85,10 +87,11 @@ def upsert_marker(
 def delete_marker(
     marker_id: int,
     db: Session = Depends(get_db),
-    _=Depends(get_current_user),
+    company_id: int = Depends(get_company_id),
 ):
     row = db.query(CampaignMarker).filter(
-        CampaignMarker.id == marker_id
+        CampaignMarker.id == marker_id,
+        CampaignMarker.company_id == company_id,
     ).first()
     if not row:
         raise HTTPException(status_code=404, detail="Marcador não encontrado")

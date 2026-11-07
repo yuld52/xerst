@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from database.core.connection import get_db
 from database.models.admin import Admin, UserRole
+from database.models.audit_log import AuditLog
 from api.auth.deps import require_role
 
 router = APIRouter()
@@ -48,6 +49,7 @@ def create_invite(
         company_id=current_user.company_id,  # Multi-tenant: mesmo company_id
     )
     db.add(user)
+    db.add(AuditLog(company_id=current_user.company_id, actor_id=current_user.id, action="user.invite.create", resource_type="user", details={"name": data.name.strip(), "role": data.role}))
     db.commit()
     db.refresh(user)
 

@@ -9,6 +9,7 @@ from database.models.campaign_action import CampaignAction, ActionType
 
 def record_campaign_action(
     db: Session,
+    company_id: int,
     entity_id: str,
     entity_type: str,
     entity_name: str,
@@ -19,6 +20,7 @@ def record_campaign_action(
 ) -> CampaignAction:
     """Grava snapshot da ação + métricas no banco."""
     action = CampaignAction(
+        company_id=company_id,
         entity_id=entity_id,
         entity_type=entity_type,
         entity_name=entity_name,
@@ -43,7 +45,7 @@ def record_campaign_action(
     return action
 
 
-def fetch_learning_data(db: Session, limit_per_type: int = 30) -> str:
+def fetch_learning_data(db: Session, company_id: int, limit_per_type: int = 30) -> str:
     """
     Busca os registros de ações mais recentes para contexto da AI.
     Retorna as 30 mais recentes de cada tipo de ação.
@@ -59,7 +61,7 @@ def fetch_learning_data(db: Session, limit_per_type: int = 30) -> str:
     for action_type in action_types:
         rows = (
             db.query(CampaignAction)
-            .filter(CampaignAction.action_type == action_type)
+            .filter(CampaignAction.action_type == action_type, CampaignAction.company_id == company_id)
             .order_by(CampaignAction.created_at.desc())
             .limit(limit_per_type)
             .all()

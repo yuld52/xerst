@@ -124,7 +124,6 @@ export async function deleteWebhook(id: number): Promise<void> {
 export interface GeminiAccountAPI {
   id: number;
   name: string;
-  api_key: string;
   model: string;
   created_at: string | null;
 }
@@ -141,12 +140,11 @@ export async function fetchGeminiAccounts(): Promise<GeminiAccountAPI[]> {
 
 export async function createGeminiAccount(
   name: string,
-  apiKey: string,
   model: string,
 ): Promise<GeminiAccountAPI> {
   return apiRequest<GeminiAccountAPI>("/gemini/accounts", {
     method: "POST",
-    body: { name, api_key: apiKey, model },
+    body: { name, model },
   });
 }
 
@@ -164,8 +162,8 @@ export async function deleteGeminiAccount(id: number): Promise<void> {
   await apiRequest(`/gemini/accounts/${id}`, { method: "DELETE" });
 }
 
-export async function fetchGeminiModels(apiKey: string): Promise<GeminiModelAPI[]> {
-  return apiRequest<GeminiModelAPI[]>(`/gemini/models?api_key=${encodeURIComponent(apiKey)}`);
+export async function fetchGeminiModels(): Promise<GeminiModelAPI[]> {
+  return apiRequest<GeminiModelAPI[]>("/gemini/models");
 }
 
 export async function geminiChatStatus(): Promise<{ configured: boolean; count: number }> {

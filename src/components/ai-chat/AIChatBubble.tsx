@@ -6,6 +6,9 @@ import { PageDataToggle } from "./PageDataToggle";
 import { ReportIntervalSettings } from "./ReportIntervalSettings";
 import { geminiChat, executeAiAction, type AiAction } from "@/services/integrations";
 import { usePageDataValue } from "@/contexts/PageDataContext";
+import { fetchUserPreferences, updateUserPreferences } from "@/services/userPreferences";
+import { getCookie } from "@/lib/cookies";
+import { isImportDemo } from "@/lib/import-demo";
 
 const STORAGE_KEY = "lomus-ai-chat";
 
@@ -47,10 +50,42 @@ export function AIChatBubble({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const snapshot = usePageDataValue();
   const hasInjectedReport = useRef(false);
+  const [preferencesReady, setPreferencesReady] = useState(false);
 
   useEffect(() => {
     saveMessages(messages);
-  }, [messages]);
+    if (!preferencesReady || isImportDemo() || !getCookie("access_token")) return;
+    const timer = window.setTimeout(() => {
+      void updateUserPreferences({ chatHistory: messages.slice(-60) }).catch(() => undefined);
+    }, 500);
+    return () => window.clearTimeout(timer);
+  }, [messages, preferencesReady]);
+
+  useEffect(() => {
+    if (!getCookie("access_token") || isImportDemo()) {
+      setPreferencesReady(true);
+      return;
+    }
+    let active = true;
+    fetchUserPreferences()
+      .then((preferences) => {
+        const history = preferences.chatHistory;
+        if (active && Array.isArray(history)) {
+          const valid = history.filter((message): message is ChatMessage =>
+            !!message && typeof message === "object" &&
+            ((message as ChatMessage).role === "user" || (message as ChatMessage).role === "assistant") &&
+            typeof (message as ChatMessage).content === "string",
+          ).slice(-60);
+          if (valid.length) {
+            setMessages(valid);
+            saveMessages(valid);
+          }
+        }
+      })
+      .catch(() => undefined)
+      .finally(() => { if (active) setPreferencesReady(true); });
+    return () => { active = false; };
+  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -117,6 +152,9 @@ export function AIChatBubble({
   const handleClear = () => {
     setMessages([]);
     localStorage.removeItem(STORAGE_KEY);
+    if (getCookie("access_token") && !isImportDemo()) {
+      void updateUserPreferences({ chatHistory: [] }).catch(() => undefined);
+    }
   };
 
   return (

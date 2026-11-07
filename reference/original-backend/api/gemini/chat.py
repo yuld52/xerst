@@ -10,7 +10,7 @@ import asyncio
 
 from database.core.connection import get_db
 from database.models.company import CompanySettings
-from api.auth.deps import get_current_user
+from api.auth.deps import get_company_id
 from api.campaigns.actions import fetch_learning_data
 from ai.service import run_agent
 from ai.openrouter_config import get_openrouter_config
@@ -33,7 +33,7 @@ class ChatResponse(BaseModel):
 async def chat_with_ai(
     payload: ChatRequest,
     db: Session = Depends(get_db),
-    _=Depends(get_current_user),
+    company_id: int = Depends(get_company_id),
 ):
     """Envia mensagem para a AI e retorna resposta."""
     api_key, model = get_openrouter_config()
@@ -44,11 +44,13 @@ async def chat_with_ai(
         )
 
     # Buscar instruções personalizadas do usuário
-    settings = db.query(CompanySettings).first()
+    settings = db.query(CompanySettings).filter(
+        CompanySettings.company_id == company_id,
+    ).first()
     ai_instructions = settings.ai_instructions if settings else None
 
     # Buscar dados de aprendizado (ações do CEO)
-    learning_data = fetch_learning_data(db)
+    learning_data = fetch_learning_data(db, company_id=company_id)
 
     try:
         response = await run_agent(
@@ -63,13 +65,3 @@ async def chat_with_ai(
         return ChatResponse(response=response)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro na AI: {str(e)}")
-
-
-@router.get("/status")
-def gemini_status(
-    db: Session = Depends(get_db),
-    _=Depends(get_current_user),
-):
-    """Verifica se há pelo menos uma conta Gemini configurada."""
-    count = db.query(GeminiAccount).count()
-    return {"configured": count > 0, "count": count}

@@ -20,6 +20,7 @@ class CampaignAction(Base):
     __tablename__ = "campaign_actions"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    company_id = Column(Integer, nullable=True, index=True)
 
     # Identificação
     entity_id = Column(String, nullable=False, index=True)

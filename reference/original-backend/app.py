@@ -65,8 +65,10 @@ from api.advanced_settings.features import router as advanced_settings_router
 from api.advanced_settings.reset_sales import router as reset_sales_router
 from api.notifications.subscriptions import router as notifications_router
 from api.superadmin.companies import router as superadmin_router
+from api.superadmin.settings import router as superadmin_settings_router
 from api.utm.tracking import router as utm_tracking_router
 from api.debug.database_status import router as debug_router
+from api.automation import router as automation_router
 
 from database.core.migrate_sql import run_sql_migrations
 
@@ -87,7 +89,11 @@ def initialize_database() -> None:
             )
 
 
-initialize_database()
+# Supabase Transaction pooler does not support session advisory locks. In
+# serverless production, the complete schema is applied from supabase/migrations
+# before deploy; local and persistent environments can keep automatic migrations.
+if not os.getenv("VERCEL"):
+    initialize_database()
 
 app = FastAPI(title="LomusTrack API")
 
@@ -168,8 +174,10 @@ ROUTERS = [
     reset_sales_router,
     notifications_router,
     superadmin_router,
+    superadmin_settings_router,
     utm_tracking_router,
     debug_router,
+    automation_router,
 ]
 
 for router in ROUTERS:

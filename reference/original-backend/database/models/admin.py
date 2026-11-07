@@ -1,5 +1,5 @@
 import enum
-from sqlalchemy import Column, Integer, String, DateTime, Enum, Boolean
+from sqlalchemy import Column, Integer, String, DateTime, Enum, Boolean, JSON
 from database.core.connection import Base
 from database.core.timezone import CREATED_AT_DEFAULT
 
@@ -31,3 +31,4 @@ class Admin(Base):
     token_version = Column(Integer, default=1, nullable=False)
     two_factor_secret = Column(String(64), nullable=True)
     two_factor_enabled = Column(Boolean, default=False, nullable=False)
+    preferences = Column(JSON, nullable=False, default=dict)

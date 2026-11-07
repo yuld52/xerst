@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { useNavigate } from "@/lib/import-navigation";
 import {
   RiArrowLeftLine,
@@ -25,6 +26,8 @@ import {
   writeNotificationPreferences,
 } from "@/lib/notificationPreferences";
 import { getCreativeReportMessage } from "@/lib/creativeReportMessages";
+import { fetchNotificationPreferences, updateNotificationPreferences } from "@/services/company";
+import { isImportDemo } from "@/lib/import-demo";
 
 function VisibilitySelect({
   id,
@@ -106,15 +109,40 @@ function TemplateOption({
 export default function NotificationSettingsPage() {
   const navigate = useNavigate();
   const [preferences, setPreferences] = useState<NotificationPreferences>(
-    readNotificationPreferences,
+    () => ({ ...readNotificationPreferences(), timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Africa/Maputo" }),
   );
+  const [preferencesLoaded, setPreferencesLoaded] = useState(false);
+  const demo = isImportDemo();
   const [creativePreview, setCreativePreview] = useState(() =>
     getCreativeReportMessage({ profit: 8250, roi: 66.3 }),
   );
 
   useEffect(() => {
+    let mounted = true;
+    if (demo) {
+      setPreferencesLoaded(true);
+      return () => { mounted = false; };
+    }
+    fetchNotificationPreferences()
+      .then((saved) => { if (mounted) setPreferences({ ...saved, timezone: saved.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || "Africa/Maputo" }); })
+      .catch((error) => {
+        if (mounted) toast.error(error instanceof Error ? error.message : "Não foi possível carregar as preferências.");
+      })
+      .finally(() => { if (mounted) setPreferencesLoaded(true); });
+    return () => { mounted = false; };
+  }, [demo]);
+
+  useEffect(() => {
+    if (!preferencesLoaded) return;
     writeNotificationPreferences(preferences);
-  }, [preferences]);
+    if (demo) return;
+    const timer = window.setTimeout(() => {
+      updateNotificationPreferences(preferences).catch((error) => {
+        toast.error(error instanceof Error ? error.message : "Não foi possível salvar as preferências.");
+      });
+    }, 350);
+    return () => window.clearTimeout(timer);
+  }, [preferences, preferencesLoaded, demo]);
 
   useEffect(() => {
     if (preferences.template === "creative") {
@@ -132,7 +160,7 @@ export default function NotificationSettingsPage() {
     preferences.template === "profit"
       ? "Seu resumo de lucro de hoje está pronto!\nFaturamento Líquido: MT 0,00\nGastos com Anúncios: MT 0,00\nROAS: 0,00\nLucro Líquido: MT 0,00"
       : preferences.template === "summary"
-        ? "RESUMO DETALHADO DA OPERAÇÃO\n\nFaturamento Líquido: MT 0,00\n(Já descontadas as taxas de checkout)\nGasto com Anúncios: MT 0,00\n(Meta + Google Ads)\nROI Geral: 0,00\nROAS Médio: 0,00\n\nCampanha com melhor performance: sem dados - ROI: 0,00\nAlerta: nenhuma campanha abaixo do esperado."
+        ? "RESUMO DETALHADO DA OPERAÇÃO\n\nFaturamento Líquido: MT 0,00\n(Já descontadas as taxas de checkout)\nGasto com Anúncios: MT 0,00\n(Meta Ads)\nROI Geral: 0,00\nROAS Médio: 0,00\n\nCampanha com melhor performance: sem dados - ROI: 0,00\nAlerta: nenhuma campanha abaixo do esperado."
         : `Notificações Criativas\n${creativePreview}`;
 
   return (
@@ -224,6 +252,7 @@ export default function NotificationSettingsPage() {
             </p>
             <div className="space-y-4">
               <h2 className="font-semibold text-muted-foreground">Horários</h2>
+              <p className="text-xs text-muted-foreground">Fuso horário deste dispositivo: {preferences.timezone}</p>
               {Object.keys(preferences.reportHours).map((hour) => (
                 <div key={hour} className="flex items-center justify-between gap-4">
                   <Label htmlFor={`report-${hour}`} className="text-sm text-muted-foreground">

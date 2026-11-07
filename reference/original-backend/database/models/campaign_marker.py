@@ -19,6 +19,7 @@ class CampaignMarker(Base):
     __tablename__ = "campaign_markers"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    company_id = Column(Integer, nullable=True, index=True)
     campaign_id = Column(String(100), nullable=False, index=True)
     marker_type = Column(Enum(MarkerType), nullable=False)
     # Para VIDEO: player_id do VTurb. Para CHECKOUT: id do checkout.

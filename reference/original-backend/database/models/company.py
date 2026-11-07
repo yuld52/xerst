@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Float, JSON, Text, DateTime, Boolean
+from sqlalchemy import Column, Integer, Float, JSON, Text, DateTime, Boolean, String
 from database.core.connection import Base
 from database.core.timezone import UPDATED_AT_DEFAULT
 
@@ -34,6 +34,8 @@ class CompanySettings(Base):
     operational_costs = Column(JSON, default=list)
     kpi_colors = Column(JSON, default=lambda: DEFAULT_KPI_COLORS.copy())
     ai_instructions = Column(JSON, default=lambda: DEFAULT_AI_INSTRUCTIONS.copy())
+    notification_preferences = Column(JSON, nullable=True, default=dict)
+    display_currency = Column(String(3), nullable=False, default="MZN", server_default="MZN")
     stripe_enabled = Column(Boolean, default=False, nullable=False, server_default="false")
     updated_at = Column(
         DateTime,

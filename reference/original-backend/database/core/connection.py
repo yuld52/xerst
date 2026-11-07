@@ -1,4 +1,5 @@
 import os
+from urllib.parse import urlparse
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
@@ -24,6 +25,9 @@ if "postgresql" in DATABASE_URL:
         "connect_timeout": 10,
         "options": "-c statement_timeout=30000"
     }
+    db_host = (urlparse(DATABASE_URL).hostname or "").lower()
+    if db_host.endswith(".supabase.co") or db_host.endswith(".pooler.supabase.com"):
+        connect_args["sslmode"] = "require"
 
 is_vercel_runtime = bool(os.getenv("VERCEL"))
 

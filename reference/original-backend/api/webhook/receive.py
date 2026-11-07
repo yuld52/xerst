@@ -8,6 +8,8 @@ from database.models.webhook_endpoint import WebhookEndpoint, WebhookPlatform
 from database.models.api_credential import ApiCredential
 from database.models.webhook_delivery import WebhookDelivery
 from integrations.webhook.hotmart import parse_hotmart_webhook
+from integrations.webhook.kiwify import parse_kiwify_webhook
+from integrations.webhook.payt import parse_payt_webhook
 from integrations.webhook.api_direct import parse_api_webhook
 from integrations.webhook.processor import process_webhook_event
 from integrations.webhook.test_emails import is_test_email
@@ -18,6 +20,8 @@ router = APIRouter(prefix="/webhook", tags=["webhook-receiver"])
 
 PARSERS = {
     WebhookPlatform.HOTMART: parse_hotmart_webhook,
+    WebhookPlatform.KIWIFY: parse_kiwify_webhook,
+    WebhookPlatform.PAYT: parse_payt_webhook,
     WebhookPlatform.API: parse_api_webhook,
 }
 
@@ -56,6 +60,8 @@ async def receive_webhook(
             status_code=404,
             detail=f"Webhook endpoint '{slug}' não encontrado para '{platform}'",
         )
+    if endpoint.company_id is None:
+        raise HTTPException(status_code=409, detail="Este webhook não está vinculado a uma conta válida.")
 
     # A integração API direta exige a credencial criada na conta correta.
     credential = None
@@ -121,7 +127,7 @@ async def receive_webhook(
     event.webhook_slug = slug
 
     # Obter company_id do webhook endpoint (multi-tenant)
-    company_id = endpoint.company_id if endpoint.company_id else 1
+    company_id = endpoint.company_id
 
     # Processar o evento (salvar transação, customer, etc.)
     try:

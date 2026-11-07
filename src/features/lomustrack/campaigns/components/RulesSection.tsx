@@ -19,6 +19,8 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { createCampaignRule, deleteCampaignRule, fetchCampaignRules, setCampaignRuleEnabled, type CampaignRule } from "@/services/campaignRules";
 
 type RuleAction = "activate" | "pause" | "increase_budget" | "decrease_budget";
 type ConditionField = "spend" | "roas" | "cpa" | "ctr" | "sales";
@@ -29,24 +31,6 @@ interface RuleCondition {
   operator: ConditionOperator;
   value: string;
 }
-
-interface CampaignRule {
-  id: string;
-  name: string;
-  product: string;
-  account: string;
-  scope: string;
-  nameFilter: string;
-  action: RuleAction;
-  conditions: RuleCondition[];
-  period: string;
-  frequency: string;
-  interval: string;
-  dailyLimit: string;
-  enabled: boolean;
-}
-
-const STORAGE_KEY = "lomustrack-campaign-rules";
 
 const actionLabels: Record<RuleAction, string> = {
   activate: "Ativar",
@@ -72,15 +56,6 @@ const operatorLabels: Record<ConditionOperator, string> = {
 };
 
 const emptyCondition = (): RuleCondition => ({ field: "spend", operator: "gt", value: "0" });
-
-function readRules(): CampaignRule[] {
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as CampaignRule[]) : [];
-  } catch {
-    return [];
-  }
-}
 
 function RuleSelect({
   value,
@@ -116,7 +91,7 @@ function RuleForm({
   const [scope, setScope] = useState("active");
   const [nameFilter, setNameFilter] = useState("any");
   const [action, setAction] = useState<RuleAction>("activate");
-  const [level, setLevel] = useState("object");
+  const [actionValue, setActionValue] = useState("10");
   const [conditions, setConditions] = useState<RuleCondition[]>([]);
   const [period, setPeriod] = useState("today");
   const [frequency, setFrequency] = useState("15m");
@@ -131,7 +106,7 @@ function RuleForm({
       setScope("active");
       setNameFilter("any");
       setAction("activate");
-      setLevel("object");
+      setActionValue("10");
       setConditions([]);
       setPeriod("today");
       setFrequency("15m");
@@ -143,7 +118,8 @@ function RuleForm({
   const canSave =
     name.trim().length > 1 &&
     conditions.length > 0 &&
-    conditions.every((condition) => condition.value.trim() !== "");
+    conditions.every((condition) => condition.value.trim() !== "" && Number.isFinite(Number(condition.value))) &&
+    ((action !== "increase_budget" && action !== "decrease_budget") || (Number(actionValue) >= 1 && Number(actionValue) <= 90));
 
   const save = () => {
     if (!canSave) return;
@@ -160,6 +136,7 @@ function RuleForm({
       frequency,
       interval,
       dailyLimit,
+      actionValue: Number(actionValue),
       enabled: true,
     });
     onOpenChange(false);
@@ -188,16 +165,12 @@ function RuleForm({
               <span className="text-xs font-medium text-muted-foreground">Produto</span>
               <RuleSelect value={product} onChange={setProduct}>
                 <SelectItem value="any">Qualquer</SelectItem>
-                <SelectItem value="course">Curso de Marketing</SelectItem>
-                <SelectItem value="mentoring">Mentoria Premium</SelectItem>
               </RuleSelect>
             </label>
             <label className="space-y-2">
               <span className="text-xs font-medium text-muted-foreground">Contas de anúncio</span>
               <RuleSelect value={account} onChange={setAccount}>
                 <SelectItem value="all">Todas</SelectItem>
-                <SelectItem value="main">Lomus - Oficial</SelectItem>
-                <SelectItem value="secondary">Lomus - Secundária</SelectItem>
               </RuleSelect>
             </label>
           </div>
@@ -206,8 +179,6 @@ function RuleForm({
             <RuleSelect value={scope} onChange={setScope}>
               <SelectItem value="active">Campanhas Ativas</SelectItem>
               <SelectItem value="all">Todas as campanhas</SelectItem>
-              <SelectItem value="sets">Conjuntos de anúncios</SelectItem>
-              <SelectItem value="ads">Anúncios</SelectItem>
             </RuleSelect>
           </label>
           <label className="block space-y-2">
@@ -237,24 +208,13 @@ function RuleForm({
               ))}
             </RuleSelect>
           </label>
-          <label className="block space-y-2">
-            <span
-              className="text-xs font-medium text-muted-foreground"
-              title="Define se a regra será aplicada à campanha, conjunto ou anúncio."
-            >
-              Nível das condições{" "}
-              <RiInformationLine
-                className="inline size-3 cursor-help"
-                aria-label="Define se a regra será aplicada à campanha, conjunto ou anúncio"
-              />
-            </span>
-            <RuleSelect value={level} onChange={setLevel}>
-              <SelectItem value="object">Nível do Objeto (campanha/conjunto/anúncio)</SelectItem>
-              <SelectItem value="campaign">Campanha</SelectItem>
-              <SelectItem value="adset">Conjunto</SelectItem>
-              <SelectItem value="ad">Anúncio</SelectItem>
-            </RuleSelect>
-          </label>
+          {(action === "increase_budget" || action === "decrease_budget") && (
+            <label className="block space-y-2">
+              <span className="text-xs font-medium text-muted-foreground">Alteração do orçamento (%)</span>
+              <Input type="number" min="1" max="90" value={actionValue} onChange={(event) => setActionValue(event.target.value)} />
+              <span className="text-xs text-muted-foreground">A alteração será aplicada apenas a campanhas com orçamento diário.</span>
+            </label>
+          )}
           <div className="space-y-2">
             <div
               className="flex items-center gap-1 text-xs font-medium text-muted-foreground"
@@ -432,18 +392,47 @@ export function RulesSection() {
   const [selectedRuleIds, setSelectedRuleIds] = useState<string[]>([]);
   const [open, setOpen] = useState(false);
 
-  useEffect(() => setRules(readRules()), []);
-  const persist = (next: CampaignRule[]) => {
-    setRules(next);
+  useEffect(() => {
+    fetchCampaignRules().then(setRules).catch(() => toast.error("Não foi possível carregar as regras do servidor."));
+  }, []);
+  const saveRule = async (rule: CampaignRule) => {
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      const saved = await createCampaignRule(rule);
+      setRules((current) => [...current, saved]);
+      toast.success("Regra salva e sincronizada.");
     } catch {
-      /* storage unavailable */
+      toast.error("Não foi possível salvar a regra.");
     }
   };
-  const deleteRule = (id: string) => persist(rules.filter((rule) => rule.id !== id));
-  const toggleRule = (id: string) =>
-    persist(rules.map((rule) => (rule.id === id ? { ...rule, enabled: !rule.enabled } : rule)));
+  const deleteRule = async (id: string) => {
+    try {
+      await deleteCampaignRule(id);
+      setRules((current) => current.filter((rule) => rule.id !== id));
+    } catch {
+      toast.error("Não foi possível excluir a regra.");
+    }
+  };
+  const toggleRule = async (id: string) => {
+    const rule = rules.find((item) => item.id === id);
+    if (!rule) return;
+    const enabled = !rule.enabled;
+    try {
+      await setCampaignRuleEnabled(id, enabled);
+      setRules((current) => current.map((item) => item.id === id ? { ...item, enabled } : item));
+    } catch {
+      toast.error("Não foi possível atualizar a regra.");
+    }
+  };
+  const deleteSelectedRules = async () => {
+    try {
+      await Promise.all(selectedRuleIds.map((id) => deleteCampaignRule(id)));
+      setRules((current) => current.filter((rule) => !selectedRuleIds.includes(rule.id)));
+      setSelectedRuleIds([]);
+      toast.success("Regras selecionadas excluídas.");
+    } catch {
+      toast.error("Não foi possível excluir todas as regras selecionadas.");
+    }
+  };
   const allRulesSelected = rules.length > 0 && selectedRuleIds.length === rules.length;
 
   return (
@@ -469,6 +458,7 @@ export function RulesSection() {
             />
           </div>
           <div className="flex gap-2">
+            {selectedRuleIds.length > 0 && <Button size="sm" variant="outline" className="gap-1.5 text-destructive" onClick={() => void deleteSelectedRules()}><RiDeleteBinLine className="size-4" />Excluir selecionadas ({selectedRuleIds.length})</Button>}
             <Button size="sm" className="gap-1.5" onClick={() => setOpen(true)}>
               <RiAddLine className="size-4" />
               Criar regra
@@ -573,7 +563,7 @@ export function RulesSection() {
           </div>
         )}
       </div>
-      <RuleForm open={open} onOpenChange={setOpen} onSave={(rule) => persist([...rules, rule])} />
+      <RuleForm open={open} onOpenChange={setOpen} onSave={saveRule} />
     </section>
   );
 }

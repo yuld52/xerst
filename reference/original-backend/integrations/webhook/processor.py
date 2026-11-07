@@ -107,7 +107,10 @@ def process_webhook_event(db: Session, event: StandardizedWebhookEvent, company_
                     product_name=event.product_name or "Produto",
                     customer_name=event.customer_name,
                     company_id=company_id,
-                    amount_mzn=existing_tx.amount_mzn or amount_mzn
+                    amount_mzn=existing_tx.amount_mzn or amount_mzn,
+                    original_amount=getattr(event, "amount", None),
+                    currency_code=currency_code,
+                    campaign_value=event.utm_campaign,
                 )
             except Exception as e:
                 logger.error("Erro ao enviar notificação push: %s", repr(e))
@@ -122,6 +125,9 @@ def process_webhook_event(db: Session, event: StandardizedWebhookEvent, company_
                     company_id=company_id,
                     amount_mzn=existing_tx.amount_mzn or amount_mzn,
                     status="pending",
+                    original_amount=getattr(event, "amount", None),
+                    currency_code=currency_code,
+                    campaign_value=event.utm_campaign,
                 )
             except Exception as e:
                 logger.error("Erro ao enviar notificação push de venda pendente: %s", repr(e))
@@ -222,8 +228,11 @@ def process_webhook_event(db: Session, event: StandardizedWebhookEvent, company_
                 product_name=event.product_name or "Produto",
                 customer_name=event.customer_name,
                 company_id=company_id,
-                    amount_mzn=amount_mzn,
-                    status="pending" if event.status == TransactionStatus.PENDING else "approved",
+                amount_mzn=amount_mzn,
+                status="pending" if event.status == TransactionStatus.PENDING else "approved",
+                original_amount=getattr(event, "amount", None),
+                currency_code=currency_code,
+                campaign_value=event.utm_campaign,
             )
         except Exception as e:
             logger.error("Erro ao enviar notificação push de venda: %s", repr(e))

@@ -11,7 +11,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
-import { fetchCompanySubscription, type CompanySubscription } from "@/services/companySubscription";
+import {
+  fetchCompanySubscription,
+  requestCompanyPlan,
+  type CompanySubscription,
+} from "@/services/companySubscription";
 import { RiBankCardLine, RiCheckLine, RiRefreshLine, RiTimeLine } from "@remixicon/react";
 
 function currency(value: number) {
@@ -41,6 +45,7 @@ export default function MySubscriptionPage() {
   const [subscription, setSubscription] = useState<CompanySubscription | null>(null);
   const [loading, setLoading] = useState(true);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const [requestingPlan, setRequestingPlan] = useState<"premium" | "monster" | null>(null);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -54,6 +59,22 @@ export default function MySubscriptionPage() {
       setLoading(false);
     }
   }, []);
+
+  const requestUpgrade = async (planId: "premium" | "monster") => {
+    setRequestingPlan(planId);
+    try {
+      await requestCompanyPlan(planId);
+      toast.success("Solicitação enviada", {
+        description: "A equipe Lomus vai revisar seu pedido. O plano só muda após a confirmação.",
+      });
+      setUpgradeOpen(false);
+      await refresh();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não foi possível enviar a solicitação.");
+    } finally {
+      setRequestingPlan(null);
+    }
+  };
 
   useEffect(() => {
     void refresh();
@@ -132,12 +153,17 @@ export default function MySubscriptionPage() {
                     Plano {subscription.plan.name} — {currency(subscription.plan.monthly_price)}/mês
                   </span>
                 </div>
-                <Button className="w-full" onClick={() => setUpgradeOpen(true)}>
-                  Fazer upgrade
+                <Button
+                  className="w-full"
+                  onClick={() => setUpgradeOpen(true)}
+                  disabled={Boolean(subscription.pending_plan_request)}
+                >
+                  {subscription.pending_plan_request ? "Upgrade solicitado" : "Ver planos e solicitar upgrade"}
                 </Button>
                 <p className="text-xs text-muted-foreground">
-                  O checkout online ainda não está conectado. Nenhum plano será alterado ou cobrado
-                  por este botão.
+                  {subscription.pending_plan_request
+                    ? `Solicitação do plano ${subscription.available_plans.find((plan) => plan.id === subscription.pending_plan_request?.plan_id)?.name ?? "pago"} em análise.`
+                    : "O pedido será analisado pela equipe. A mudança de plano ocorre após a confirmação do pagamento."}
                 </p>
               </CardContent>
             </Card>
@@ -182,8 +208,8 @@ export default function MySubscriptionPage() {
               <DialogHeader>
                 <DialogTitle>Planos Lomus</DialogTitle>
                 <DialogDescription>
-                  Compare as opções. A troca e a cobrança só poderão ser feitas depois da integração
-                  do checkout.
+                  Escolha um plano para enviar uma solicitação à equipe Lomus. A ativação depende da
+                  confirmação do pagamento.
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 md:grid-cols-3">
@@ -211,9 +237,29 @@ export default function MySubscriptionPage() {
                       <Button
                         className="w-full"
                         variant={plan.id === subscription.plan_id ? "secondary" : "outline"}
-                        disabled
+                        disabled={
+                          plan.id === subscription.plan_id ||
+                          plan.id === "free" ||
+                          Boolean(subscription.pending_plan_request) ||
+                          requestingPlan !== null
+                        }
+                        onClick={() => {
+                          if (plan.id === "premium" || plan.id === "monster") {
+                            void requestUpgrade(plan.id);
+                          }
+                        }}
                       >
-                        {plan.id === subscription.plan_id ? "Plano atual" : "Checkout indisponível"}
+                        {plan.id === subscription.plan_id
+                          ? "Plano atual"
+                          : subscription.pending_plan_request?.plan_id === plan.id
+                            ? "Solicitação enviada"
+                            : plan.id === "free"
+                              ? "Disponível ao criar conta"
+                              : requestingPlan === plan.id
+                                ? "Enviando..."
+                                : subscription.pending_plan_request
+                                  ? "Há uma solicitação em análise"
+                                  : "Solicitar este plano"}
                       </Button>
                     </CardContent>
                   </Card>
@@ -221,7 +267,7 @@ export default function MySubscriptionPage() {
               </div>
               <p className="text-xs text-muted-foreground">
                 Nos planos pagos, cada venda aprovada que exceder a franquia custa US$ 0,02. O plano
-                Gratuito não tem cobrança adicional.
+                Gratuito não tem cobrança adicional. A cobrança automática ainda não está configurada.
               </p>
             </DialogContent>
           </Dialog>

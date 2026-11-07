@@ -10,7 +10,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { RiEyeOffLine, RiDeleteBinLine } from "@remixicon/react";
+import { RiDeleteBinLine } from "@remixicon/react";
 import type { GeminiAccountAPI } from "@/services/integrations";
 
 interface GeminiTableProps {
@@ -57,7 +57,6 @@ export function GeminiTable({ accounts, isLoading, onDelete }: GeminiTableProps)
             <TableHeader>
               <TableRow>
                 <TableHead>Nome</TableHead>
-                <TableHead>API Key</TableHead>
                 <TableHead>Modelo</TableHead>
                 <TableHead>Adicionada em</TableHead>
                 <TableHead>Status</TableHead>
@@ -68,14 +67,6 @@ export function GeminiTable({ accounts, isLoading, onDelete }: GeminiTableProps)
               {accounts.map((account) => (
                 <TableRow key={account.id}>
                   <TableCell className="font-medium">{account.name}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1.5 text-muted-foreground">
-                      <RiEyeOffLine className="size-3.5" />
-                      <code className="font-mono bg-muted/50 px-1.5 py-0.5 rounded text-xs">
-                        ••••••{account.api_key.slice(-6)}
-                      </code>
-                    </div>
-                  </TableCell>
                   <TableCell>
                     <Badge variant="outline" className="text-[10px] font-mono">
                       {account.model}

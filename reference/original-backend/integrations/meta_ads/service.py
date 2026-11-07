@@ -66,6 +66,9 @@ class MetaAdsService:
             for c in result:
                 c.spend = convert_spend_to_system_base(c.spend, self.currency)
                 c.cpc = convert_spend_to_system_base(c.cpc, self.currency)
+                c.cpa = convert_spend_to_system_base(c.cpa, self.currency)
+                c.revenue = convert_spend_to_system_base(c.revenue, self.currency)
+                c.roas = c.revenue / c.spend if c.spend else 0.0
         set_cached(key, result, CACHE_TTL)
         return result
 

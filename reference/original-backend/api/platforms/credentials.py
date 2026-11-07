@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from database.core.connection import get_db
 from database.models.admin import Admin
 from database.models.api_credential import ApiCredential
+from database.models.audit_log import AuditLog
 from api.auth.deps import get_company_id, get_current_user
 
 router = APIRouter(prefix="/platforms", tags=["api-credentials"])
@@ -27,15 +28,17 @@ def create_credential(payload: CredentialCreate, db: Session = Depends(get_db), 
     token = ApiCredential.generate_token()
     row = ApiCredential(company_id=current_user.company_id, name=payload.name.strip(), token_hash=ApiCredential.hash_token(token), token_prefix=token[:12], is_active=True)
     db.add(row)
+    db.add(AuditLog(company_id=current_user.company_id, actor_id=current_user.id, action="api_credential.create", resource_type="api_credential", details={"name": payload.name.strip()}))
     db.commit()
     db.refresh(row)
     return {"id": row.id, "name": row.name, "token": token, "token_prefix": row.token_prefix, "active": row.is_active, "created_at": row.created_at.isoformat() if row.created_at else None}
 
 
 @router.delete("/credentials/{credential_id}", status_code=204)
-def delete_credential(credential_id: int, db: Session = Depends(get_db), company_id: int = Depends(get_company_id)):
+def delete_credential(credential_id: int, db: Session = Depends(get_db), company_id: int = Depends(get_company_id), current_user: Admin = Depends(get_current_user)):
     row = db.query(ApiCredential).filter(ApiCredential.id == credential_id, ApiCredential.company_id == company_id).first()
     if not row:
         raise HTTPException(status_code=404, detail="Credencial não encontrada")
     row.is_active = False
+    db.add(AuditLog(company_id=company_id, actor_id=current_user.id, action="api_credential.revoke", resource_type="api_credential", resource_id=str(row.id), details={"name": row.name}))
     db.commit()

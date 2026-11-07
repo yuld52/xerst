@@ -1,9 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { RiSettings3Line } from "@remixicon/react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { fetchUserPreferences, updateUserPreferences } from "@/services/userPreferences";
+import { getCookie } from "@/lib/cookies";
+import { isImportDemo } from "@/lib/import-demo";
+import { toast } from "sonner";
 
 const INTERVAL_KEY = "lomus-report-interval";
 const DEFAULT_INTERVAL = 60; // minutes
@@ -35,10 +39,36 @@ interface ReportIntervalSettingsProps {
 export function ReportIntervalSettings({ onIntervalChange }: ReportIntervalSettingsProps) {
   const [open, setOpen] = useState(false);
   const [minutes, setMinutes] = useState(() => String(getReportIntervalMinutes()));
+  const [saving, setSaving] = useState(false);
 
-  const handleSave = () => {
+  useEffect(() => {
+    if (!getCookie("access_token") || isImportDemo()) return;
+    fetchUserPreferences()
+      .then((preferences) => {
+        const saved = preferences.reportIntervalMinutes;
+        if (typeof saved === "number" && saved > 0) {
+          localStorage.setItem(INTERVAL_KEY, String(saved));
+          setMinutes(String(saved));
+          onIntervalChange?.(saved);
+        }
+      })
+      .catch(() => undefined);
+  }, [onIntervalChange]);
+
+  const handleSave = async () => {
     const parsed = parseInt(minutes, 10);
     const value = parsed > 0 ? parsed : DEFAULT_INTERVAL;
+    if (getCookie("access_token") && !isImportDemo()) {
+      setSaving(true);
+      try {
+        await updateUserPreferences({ reportIntervalMinutes: value });
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Não foi possível salvar o intervalo no banco.");
+        setSaving(false);
+        return;
+      }
+      setSaving(false);
+    }
     localStorage.setItem(INTERVAL_KEY, String(value));
     setMinutes(String(value));
     onIntervalChange?.(value);
@@ -80,8 +110,8 @@ export function ReportIntervalSettings({ onIntervalChange }: ReportIntervalSetti
             }}
           />
         </div>
-        <Button size="sm" onClick={handleSave} className="w-full h-8 text-xs">
-          Salvar
+        <Button size="sm" onClick={() => void handleSave()} disabled={saving} className="w-full h-8 text-xs">
+          {saving ? "Salvando..." : "Salvar"}
         </Button>
       </PopoverContent>
     </Popover>

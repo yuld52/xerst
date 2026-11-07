@@ -5,8 +5,11 @@ from datetime import datetime
 
 from database.core.connection import get_db
 from database.models.stripe_account import StripeAccount
-from integrations.stripe.client import validate_stripe_key
+from database.models.audit_log import AuditLog
+from database.models.admin import Admin
 from api.auth.deps import get_current_user
+from integrations.stripe.client import validate_stripe_key
+from api.auth.deps import get_current_user, get_company_id
 
 router = APIRouter(prefix="/stripe", tags=["stripe"])
 
@@ -43,9 +46,9 @@ def _serialize_account(account: StripeAccount) -> dict:
 @router.get("/accounts", response_model=list[StripeAccountResponse])
 def list_accounts(
     db: Session = Depends(get_db),
-    _=Depends(get_current_user),
+    company_id: int = Depends(get_company_id),
 ):
-    accounts = db.query(StripeAccount).order_by(StripeAccount.id.desc()).all()
+    accounts = db.query(StripeAccount).filter(StripeAccount.company_id == company_id).order_by(StripeAccount.id.desc()).all()
     return [_serialize_account(account) for account in accounts]
 
 
@@ -53,7 +56,8 @@ def list_accounts(
 def create_account(
     payload: StripeAccountCreate,
     db: Session = Depends(get_db),
-    _=Depends(get_current_user),
+    company_id: int = Depends(get_company_id),
+    current_user: Admin = Depends(get_current_user),
 ):
     if not validate_stripe_key(payload.api_key):
         raise HTTPException(
@@ -62,10 +66,12 @@ def create_account(
         )
 
     account = StripeAccount(
+        company_id=company_id,
         name=payload.name,
         api_key=payload.api_key,
     )
     db.add(account)
+    db.add(AuditLog(company_id=company_id, actor_id=current_user.id, action="stripe_account.create", resource_type="stripe_account", details={"name": payload.name}))
     db.commit()
     db.refresh(account)
     return _serialize_account(account)
@@ -75,14 +81,16 @@ def create_account(
 def delete_account(
     account_id: int,
     db: Session = Depends(get_db),
-    _=Depends(get_current_user),
+    company_id: int = Depends(get_company_id),
+    current_user: Admin = Depends(get_current_user),
 ):
     account = (
         db.query(StripeAccount)
-        .filter(StripeAccount.id == account_id)
+        .filter(StripeAccount.id == account_id, StripeAccount.company_id == company_id)
         .first()
     )
     if not account:
         raise HTTPException(status_code=404, detail="Conta Stripe não encontrada")
     db.delete(account)
+    db.add(AuditLog(company_id=company_id, actor_id=current_user.id, action="stripe_account.delete", resource_type="stripe_account", resource_id=str(account_id), details={}))
     db.commit()

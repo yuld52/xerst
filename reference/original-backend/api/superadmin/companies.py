@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional
 
 from database.core.connection import get_db
@@ -14,9 +14,17 @@ from database.models.admin import Admin, UserRole
 from database.models.transaction import Transaction, TransactionStatus
 from database.models.customer import Customer
 from database.models.product import Product
+from database.models.subscription_plan_request import SubscriptionPlanRequest
+from database.models.audit_log import AuditLog
 from api.auth.deps import get_current_user
 
 router = APIRouter(prefix="/superadmin", tags=["superadmin"])
+
+LOMUS_PLANS = {
+    "free": {"name": "Gratuito", "monthly_price": 0},
+    "premium": {"name": "Premium", "monthly_price": 29},
+    "monster": {"name": "Monster", "monthly_price": 79},
+}
 
 
 def require_superadmin(current_user: Admin = Depends(get_current_user)) -> Admin:
@@ -49,6 +57,10 @@ class CompanyStats(BaseModel):
 
 class CompanySuspendRequest(BaseModel):
     is_active: bool  # True=ativar, False=suspender
+
+
+class PlanRequestReview(BaseModel):
+    decision: str  # approved or rejected
 
 
 @router.get("/companies", response_model=list[CompanyStats])
@@ -134,7 +146,7 @@ def toggle_company_status(
     
     for user in users:
         user.is_active = 1 if payload.is_active else 0
-    
+    db.add(AuditLog(company_id=company_id, actor_id=_.id, action="company.status.update", resource_type="company", resource_id=str(company_id), details={"is_active": payload.is_active}))
     db.commit()
     
     status_text = "ativada" if payload.is_active else "suspensa"
@@ -179,3 +191,80 @@ def get_global_stats(
         "total_transactions": int(total_transactions),
         "avg_revenue_per_company": float(total_revenue) / max(int(total_companies), 1),
     }
+
+
+@router.get("/subscriptions")
+def list_company_subscriptions(
+    db: Session = Depends(get_db),
+    _: Admin = Depends(require_superadmin),
+):
+    owners = db.query(Admin).filter(
+        Admin.role == UserRole.owner,
+        Admin.company_id.isnot(None),
+    ).order_by(Admin.created_at.desc()).all()
+    requests = db.query(SubscriptionPlanRequest).filter(
+        SubscriptionPlanRequest.status == "pending",
+    ).order_by(SubscriptionPlanRequest.created_at.asc()).all()
+    request_by_company = {item.company_id: item for item in requests}
+
+    companies = []
+    for owner in owners:
+        plan_id = owner.subscription_plan if owner.subscription_plan in LOMUS_PLANS else "free"
+        user_count = db.query(func.count(Admin.id)).filter(Admin.company_id == owner.company_id).scalar() or 0
+        companies.append({
+            "company_id": owner.company_id,
+            "owner_name": owner.name,
+            "owner_email": owner.email or "",
+            "plan_id": plan_id,
+            "plan_name": LOMUS_PLANS[plan_id]["name"],
+            "monthly_price": LOMUS_PLANS[plan_id]["monthly_price"],
+            "user_count": int(user_count),
+            "is_active": owner.is_active == 1,
+            "started_at": owner.subscription_started_at,
+            "expires_at": owner.subscription_expires_at,
+            "pending_request": ({
+                "id": request_by_company[owner.company_id].id,
+                "plan_id": request_by_company[owner.company_id].requested_plan,
+                "created_at": request_by_company[owner.company_id].created_at,
+            } if owner.company_id in request_by_company else None),
+        })
+    return {"companies": companies}
+
+
+@router.patch("/subscription-requests/{request_id}")
+def review_subscription_request(
+    request_id: int,
+    payload: PlanRequestReview,
+    db: Session = Depends(get_db),
+    reviewer: Admin = Depends(require_superadmin),
+):
+    if payload.decision not in ("approved", "rejected"):
+        raise HTTPException(status_code=422, detail="A decisão precisa ser approved ou rejected.")
+
+    request = db.query(SubscriptionPlanRequest).filter(
+        SubscriptionPlanRequest.id == request_id,
+        SubscriptionPlanRequest.status == "pending",
+    ).first()
+    if not request:
+        raise HTTPException(status_code=404, detail="Solicitação não encontrada ou já revisada.")
+
+    now = datetime.utcnow()
+    request.status = payload.decision
+    request.reviewed_at = now
+    request.reviewed_by_admin_id = reviewer.id
+
+    if payload.decision == "approved":
+        owner = db.query(Admin).filter(
+            Admin.company_id == request.company_id,
+            Admin.role == UserRole.owner,
+        ).first()
+        if not owner:
+            raise HTTPException(status_code=404, detail="Responsável da empresa não encontrado.")
+        owner.subscription_plan = request.requested_plan
+        owner.subscription_started_at = now
+        owner.subscription_expires_at = now + timedelta(days=30)
+
+    db.add(AuditLog(company_id=request.company_id, actor_id=reviewer.id, action="subscription.request.review", resource_type="subscription_request", resource_id=str(request.id), details={"decision": payload.decision, "plan": request.requested_plan}))
+
+    db.commit()
+    return {"id": request.id, "status": request.status, "message": "Solicitação atualizada."}
