@@ -81,7 +81,7 @@ export default function SetupPage() {
         password: data.password,
         confirm_password: data.confirmPassword,
       });
-      navigate("/login", { replace: true });
+      navigate(inviteInfo?.role === "superadmin" ? "/admin-login" : "/login", { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao criar conta");
     } finally {
