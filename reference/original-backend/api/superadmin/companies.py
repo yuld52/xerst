@@ -38,6 +38,46 @@ def require_superadmin(current_user: Admin = Depends(get_current_user)) -> Admin
     return current_user
 
 
+@router.get("/awards/progress")
+def superadmin_awards_progress(
+    db: Session = Depends(get_db),
+    _: Admin = Depends(require_superadmin),
+):
+    """Return approved, company-attributed sales for each activated account."""
+    users = db.query(Admin).filter(
+        Admin.company_id.isnot(None),
+        Admin.email.isnot(None),
+    ).order_by(Admin.company_id, Admin.id).all()
+
+    mzn_totals = dict(db.query(
+        Transaction.company_id,
+        func.coalesce(func.sum(Transaction.amount_mzn), 0),
+    ).filter(
+        Transaction.company_id.isnot(None),
+        Transaction.status == TransactionStatus.APPROVED,
+    ).group_by(Transaction.company_id).all())
+    raw_totals = dict(db.query(
+        Transaction.company_id,
+        func.coalesce(func.sum(Transaction.amount), 0),
+    ).filter(
+        Transaction.company_id.isnot(None),
+        Transaction.status == TransactionStatus.APPROVED,
+    ).group_by(Transaction.company_id).all())
+
+    return {
+        "currency": "MT",
+        "attribution": "company",
+        "users": [{
+            "id": user.id,
+            "name": user.name,
+            "email": user.email,
+            "company_id": user.company_id,
+            "role": user.role.value,
+            "revenue": float(mzn_totals.get(user.company_id) or raw_totals.get(user.company_id) or 0),
+        } for user in users],
+    }
+
+
 class CompanyStats(BaseModel):
     company_id: int
     owner_name: str

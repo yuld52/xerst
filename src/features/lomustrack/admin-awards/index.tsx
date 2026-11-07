@@ -3,8 +3,14 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { RiAwardLine, RiTrophyLine } from "@remixicon/react";
-import { useUsers } from "@/hooks/useUsers";
 import { apiRequest } from "@/services/api";
+
+interface AwardUser {
+  id: number;
+  name: string;
+  email: string | null;
+  revenue: number;
+}
 
 const MILESTONES = [10_000, 100_000, 1_000_000, 5_000_000, 10_000_000];
 function money(value: number) {
@@ -16,18 +22,23 @@ function milestoneLabel(value: number) {
 }
 
 export default function AdminAwardsPage() {
-  const { users, loading } = useUsers();
-  const [realRevenue, setRealRevenue] = useState<Record<string, number>>({});
+  const [users, setUsers] = useState<AwardUser[]>([]);
+  const [loading, setLoading] = useState(true);
   const [revenueError, setRevenueError] = useState<string | null>(null);
   useEffect(() => {
-    apiRequest<{ users: Array<{ email: string | null; revenue: number }> }>("/awards/progress")
-      .then((data) => setRealRevenue(Object.fromEntries(data.users.map((user) => [user.email ?? "", user.revenue]))))
-      .catch((error) => setRevenueError(error instanceof Error ? error.message : "Não foi possível buscar o faturamento real."));
+    let active = true;
+    apiRequest<{ users: AwardUser[] }>("/superadmin/awards/progress")
+      .then((data) => { if (active) setUsers(data.users); })
+      .catch((error) => {
+        if (active) setRevenueError(error instanceof Error ? error.message : "Não foi possível buscar o faturamento real.");
+      })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
   }, []);
   const rows = useMemo(
     () =>
       users.map((user) => {
-        const revenue = realRevenue[user.email ?? ""] ?? 0;
+        const revenue = user.revenue;
         const achieved = MILESTONES.filter((milestone) => revenue >= milestone);
         const next =
           MILESTONES.find((milestone) => revenue < milestone) ?? MILESTONES[MILESTONES.length - 1];
@@ -38,7 +49,7 @@ export default function AdminAwardsPage() {
             : Math.min(100, ((revenue - previous) / (next - previous)) * 100);
         return { user, revenue, achieved, next, progress };
       }),
-    [users, realRevenue],
+    [users],
   );
 
   const achievedCount = rows.reduce((sum, row) => sum + row.achieved.length, 0);
@@ -62,7 +73,7 @@ export default function AdminAwardsPage() {
             <CardTitle className="text-sm">Usuários acompanhados</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{loading ? "—" : rows.length}</p>
+            <p className="text-2xl font-bold">{loading || revenueError ? "—" : rows.length}</p>
           </CardContent>
         </Card>
         <Card>
@@ -70,7 +81,7 @@ export default function AdminAwardsPage() {
             <CardTitle className="text-sm">Prêmios atingidos</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{achievedCount}</p>
+            <p className="text-2xl font-bold">{loading || revenueError ? "—" : achievedCount}</p>
           </CardContent>
         </Card>
         <Card>
