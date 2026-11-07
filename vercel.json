@@ -24,14 +24,16 @@
       }
     }
   ],
-  "crons": [
-    {
+  "schedules": {
+    "campaign-rules": {
       "path": "/api/automation/rules/run",
-      "schedule": "*/15 * * * *"
+      "schedule": "*/15 * * * *",
+      "requestMethod": "GET"
     },
-    {
+    "scheduled-reports": {
       "path": "/api/automation/reports/run",
-      "schedule": "0 * * * *"
+      "schedule": "0 * * * *",
+      "requestMethod": "GET"
     }
-  ]
+  }
 }

@@ -8,6 +8,7 @@ The repository is configured as a Vercel Services project:
 - The API rewrite preserves the original `/api/...` path expected by FastAPI.
 - The frontend uses the same-origin `/api` URL by default. Leave `VITE_API_URL` unset on Vercel.
 - The backend uses Python 3.12. Apply the Supabase schema SQL before deployment; Vercel does not run schema migrations at function startup.
+- Scheduled automation uses Vercel Schedules (the replacement for legacy Cron Jobs): campaign rules run every 15 minutes and scheduled reports every hour. The Hobby plan includes 5,000 schedule runs per month; this configuration uses about 3,720 runs in a 31-day month. Schedules have a 1–15 minute jitter window, so they are not guaranteed to start on the exact minute.
 
 ## Vercel project setup
 
