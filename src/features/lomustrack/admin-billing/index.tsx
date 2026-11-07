@@ -83,8 +83,8 @@ export default function AdminBillingPage() {
     <div className="flex flex-col gap-6 p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Assinaturas da Lomus</h1>
-          <p className="text-sm text-muted-foreground">Planos reais das empresas e solicitações de upgrade.</p>
+          <h1 className="text-2xl font-bold tracking-tight">Gerenciar assinantes</h1>
+          <p className="text-sm text-muted-foreground">Consulte os planos das empresas e analise solicitações de upgrade.</p>
         </div>
         <Button variant="outline" onClick={() => void refresh()} disabled={loading}>
           <RiRefreshLine className={`mr-2 size-4 ${loading ? "animate-spin" : ""}`} /> Atualizar
@@ -92,9 +92,9 @@ export default function AdminBillingPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
-        <Metric title="Empresas" value={String(metrics.companies)} icon={RiUserLine} />
-        <Metric title="Planos pagos ativos" value={String(metrics.paid)} icon={RiCheckLine} />
-        <Metric title="Previsão mensal contratada" value={money(metrics.monthlyForecast)} icon={RiMoneyDollarCircleLine} />
+        <Metric title="Assinantes" value={String(metrics.companies)} icon={RiUserLine} />
+        <Metric title="Assinantes pagos ativos" value={String(metrics.paid)} icon={RiCheckLine} />
+        <Metric title="Receita recorrente prevista" value={money(metrics.monthlyForecast)} icon={RiMoneyDollarCircleLine} />
       </div>
 
       <Card>
@@ -144,7 +144,7 @@ export default function AdminBillingPage() {
       </Card>
 
       <Card>
-        <CardHeader><CardTitle>Empresas e planos</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Assinantes e planos</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div className="relative">
             <RiSearchLine className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />

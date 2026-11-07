@@ -5,7 +5,7 @@ Apenas usuários com role=superadmin podem acessar.
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime, timedelta
 from typing import Optional
 
@@ -16,6 +16,7 @@ from database.models.customer import Customer
 from database.models.product import Product
 from database.models.subscription_plan_request import SubscriptionPlanRequest
 from database.models.audit_log import AuditLog
+from database.models.global_app_settings import GlobalAppSettings
 from api.auth.deps import get_current_user
 
 router = APIRouter(prefix="/superadmin", tags=["superadmin"])
@@ -61,6 +62,10 @@ class CompanySuspendRequest(BaseModel):
 
 class PlanRequestReview(BaseModel):
     decision: str  # approved or rejected
+
+
+class LomusOperatingCosts(BaseModel):
+    monthly_costs: float = Field(ge=0, le=100000000)
 
 
 @router.get("/companies", response_model=list[CompanyStats])
@@ -229,6 +234,65 @@ def list_company_subscriptions(
             } if owner.company_id in request_by_company else None),
         })
     return {"companies": companies}
+
+
+@router.get("/financials")
+def get_lomus_financials(
+    db: Session = Depends(get_db),
+    _: Admin = Depends(require_superadmin),
+):
+    owners = db.query(Admin).filter(
+        Admin.role == UserRole.owner,
+        Admin.company_id.isnot(None),
+        Admin.is_active == 1,
+    ).all()
+    active_owners = [
+        owner for owner in owners
+        if not owner.subscription_expires_at or owner.subscription_expires_at > datetime.utcnow()
+    ]
+    paid_owners = [
+        owner for owner in active_owners
+        if owner.subscription_plan in LOMUS_PLANS
+        and LOMUS_PLANS[owner.subscription_plan]["monthly_price"] > 0
+    ]
+    monthly_revenue = sum(LOMUS_PLANS[owner.subscription_plan]["monthly_price"] for owner in paid_owners)
+
+    settings_row = db.query(GlobalAppSettings).filter(GlobalAppSettings.id == 1).first()
+    settings = settings_row.settings if settings_row and isinstance(settings_row.settings, dict) else {}
+    monthly_costs = float(settings.get("lomusMonthlyOperatingCosts", 0) or 0)
+    return {
+        "currency": "USD",
+        "active_subscribers": len(active_owners),
+        "paid_subscribers": len(paid_owners),
+        "monthly_recurring_revenue_estimate": monthly_revenue,
+        "monthly_operating_costs": monthly_costs,
+        "estimated_monthly_profit": monthly_revenue - monthly_costs,
+        "revenue_is_estimate": True,
+    }
+
+
+@router.put("/financials/costs")
+def update_lomus_operating_costs(
+    payload: LomusOperatingCosts,
+    db: Session = Depends(get_db),
+    actor: Admin = Depends(require_superadmin),
+):
+    row = db.query(GlobalAppSettings).filter(GlobalAppSettings.id == 1).first()
+    if row is None:
+        row = GlobalAppSettings(id=1, settings={})
+        db.add(row)
+    settings = dict(row.settings or {})
+    settings["lomusMonthlyOperatingCosts"] = payload.monthly_costs
+    row.settings = settings
+    db.add(AuditLog(
+        actor_id=actor.id,
+        action="lomus.financial_costs.update",
+        resource_type="global_app_settings",
+        resource_id="1",
+        details={"monthly_operating_costs": payload.monthly_costs},
+    ))
+    db.commit()
+    return get_lomus_financials(db=db, _=actor)
 
 
 @router.patch("/subscription-requests/{request_id}")

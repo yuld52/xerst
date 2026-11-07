@@ -49,7 +49,8 @@ def update_global_settings(
     actor: Admin = Depends(require_superadmin),
 ):
     row = _get_or_create_settings(db)
-    row.settings = payload.model_dump()
+    merged_settings = {**(row.settings or {}), **payload.model_dump()}
+    row.settings = merged_settings
     db.add(AuditLog(
         actor_id=actor.id,
         action="global_settings.update",
@@ -59,4 +60,4 @@ def update_global_settings(
     ))
     db.commit()
     db.refresh(row)
-    return {**DEFAULT_SETTINGS, **(row.settings or {})}
+    return {**DEFAULT_SETTINGS, **merged_settings}

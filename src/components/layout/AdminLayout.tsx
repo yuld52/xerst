@@ -26,7 +26,7 @@ interface AdminNavItem {
 const NAV_ITEMS: AdminNavItem[] = [
   { label: "Dashboard", icon: RiDashboardLine, path: "/admin/dashboard" },
   { label: "Usuários", icon: RiTeamLine, path: "/admin/users" },
-  { label: "Assinaturas", icon: RiBankCardLine, path: "/admin/subscriptions" },
+  { label: "Assinantes", icon: RiBankCardLine, path: "/admin/subscriptions" },
   { label: "Prêmios", icon: RiTrophyLine, path: "/admin/awards" },
   { label: "Operação", icon: RiPulseLine, path: "/admin/operations" },
   { label: "OpenRouter", icon: RiGeminiLine, path: "/admin/gemini" },
