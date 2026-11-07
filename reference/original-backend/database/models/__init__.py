@@ -2,6 +2,8 @@ from database.models.admin import Admin, UserRole
 from database.models.company import CompanySettings
 from database.models.customer import Customer
 from database.models.transaction import Transaction, TransactionStatus, PaymentPlatform
+from database.models.recovery import Recovery, RecoveryType, RecoveryChannel
+from database.models.refund_reason import RefundReason
 from database.models.product import Product
 from database.models.product_items import Checkout, OrderBump, Upsell, CheckoutPlatform
 from database.models.facebook_account import FacebookAccount
@@ -34,6 +36,10 @@ __all__ = [
     "Transaction",
     "TransactionStatus",
     "PaymentPlatform",
+    "Recovery",
+    "RecoveryType",
+    "RecoveryChannel",
+    "RefundReason",
     "Product",
     "CheckoutPlatform",
     "Checkout",

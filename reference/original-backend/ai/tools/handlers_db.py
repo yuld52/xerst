@@ -80,7 +80,7 @@ def _handle_refunds(db, date_start, date_end, **kwargs):
     ).all()
     by_reason: dict[str, int] = defaultdict(int)
     for r in reasons:
-        by_reason[r.reason_text or r.reason_code] += 1
+        by_reason[r.reason] += 1
 
     lines = [
         f"Reembolsos: {ref_c} (R${ref_v:,.2f}) | "
