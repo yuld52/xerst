@@ -57,23 +57,40 @@ async def create_account(
     db: Session = Depends(get_db),
     company_id: int = Depends(get_company_id),
 ):
+    raw_id = payload.account_id.strip()
+    account_id = raw_id if raw_id.startswith("act_") else f"act_{raw_id}"
+
     existing = db.query(FacebookAccount).filter(
-        FacebookAccount.account_id == payload.account_id,
-        FacebookAccount.company_id == company_id
+        FacebookAccount.account_id == account_id
     ).first()
     if existing:
-        raise HTTPException(
-            status_code=400,
-            detail="Essa conta já está cadastrada"
-        )
+        if existing.company_id == company_id or existing.company_id is None:
+            existing.company_id = company_id
+            existing.access_token = payload.access_token
+            if payload.business_id:
+                existing.business_id = payload.business_id
+            existing.token_valid = True
+            real_name, detected_currency = await _fetch_account_info(payload.access_token, account_id)
+            if real_name:
+                existing.label = real_name
+            if detected_currency:
+                existing.currency = detected_currency
+            db.commit()
+            db.refresh(existing)
+            return existing
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail="Essa conta já está cadastrada em outra organização"
+            )
 
-    real_name, detected_currency = await _fetch_account_info(payload.access_token, payload.account_id)
-    label = real_name or payload.label
+    real_name, detected_currency = await _fetch_account_info(payload.access_token, account_id)
+    label = real_name or payload.label or account_id
 
     account = FacebookAccount(
         company_id=company_id,
         label=label,
-        account_id=payload.account_id,
+        account_id=account_id,
         access_token=payload.access_token,
         business_id=payload.business_id,
         currency=detected_currency or payload.currency or "BRL",
@@ -101,18 +118,32 @@ async def create_accounts_bulk(
 ):
     created = []
     for item in payload.accounts:
-        account_id = item.get("account_id", "").strip()
+        raw_id = item.get("account_id", "").strip()
         fallback_label = item.get("label", "").strip()
-        if not account_id:
+        if not raw_id:
             continue
+        account_id = raw_id if raw_id.startswith("act_") else f"act_{raw_id}"
+
         existing = db.query(FacebookAccount).filter(
             FacebookAccount.account_id == account_id,
-            FacebookAccount.company_id == company_id
         ).first()
+
+        real_name, detected_currency = await _fetch_account_info(payload.access_token, account_id)
+
         if existing:
+            if existing.company_id == company_id or existing.company_id is None:
+                existing.company_id = company_id
+                existing.access_token = payload.access_token
+                if payload.business_id:
+                    existing.business_id = payload.business_id
+                if real_name:
+                    existing.label = real_name
+                if detected_currency:
+                    existing.currency = detected_currency
+                existing.token_valid = True
+                created.append(existing)
             continue
 
-        real_name = await _fetch_account_name(payload.access_token, account_id)
         label = real_name or fallback_label or account_id
 
         account = FacebookAccount(
@@ -121,6 +152,7 @@ async def create_accounts_bulk(
             account_id=account_id,
             access_token=payload.access_token,
             business_id=payload.business_id,
+            currency=detected_currency or "BRL",
             token_valid=True,
             status="discovered",
             is_active=False,
@@ -130,6 +162,8 @@ async def create_accounts_bulk(
         created.append(account)
 
     db.commit()
+    for acc in created:
+        db.refresh(acc)
     return created
 
 

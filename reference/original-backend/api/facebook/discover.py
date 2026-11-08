@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from api.auth.deps import get_current_user
+from api.auth.deps import get_current_user, get_company_id
 from database.core.connection import get_db
 from database.models.facebook_account import FacebookAccount
 
@@ -61,7 +61,7 @@ async def discover_accounts(
 async def sync_accounts(
     payload: DiscoverRequest,
     db: Session = Depends(get_db),
-    _=Depends(get_current_user),
+    company_id: int = Depends(get_company_id),
 ):
     """
     Sincroniza contas do BM: busca todas e faz upsert no DB.
@@ -81,19 +81,27 @@ async def sync_accounts(
         ).first()
 
         if existing:
+            if not existing.company_id:
+                existing.company_id = company_id
             if not existing.business_id:
                 existing.business_id = payload.business_id
             if item.currency:
                 existing.currency = item.currency
+            existing.access_token = payload.access_token
+            existing.token_valid = True
             skipped += 1
             continue
 
         db.add(FacebookAccount(
+            company_id=company_id,
             label=item.name,
             account_id=item.account_id,
             access_token=payload.access_token,
             business_id=payload.business_id,
             currency=item.currency or "BRL",
+            token_valid=True,
+            status="discovered",
+            is_active=False,
         ))
         added += 1
 

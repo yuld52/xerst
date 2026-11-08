@@ -18,12 +18,17 @@ import type { DiscoveredAccount } from "@/services/integrations";
 export interface AddAccountModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAdd: (label: string, accountId: string, accessToken: string, businessId?: string) => void;
+  onAdd: (
+    label: string,
+    accountId: string,
+    accessToken: string,
+    businessId?: string,
+  ) => void | Promise<void>;
   onBulkAdd?: (
     items: { label: string; account_id: string }[],
     accessToken: string,
     businessId?: string,
-  ) => void;
+  ) => void | Promise<void>;
   isLoading?: boolean;
   prefillToken?: string;
 }
@@ -59,7 +64,7 @@ export function AddAccountModal({
   }, []);
 
   const handleSubmit = useCallback(
-    (e: React.FormEvent) => {
+    async (e: React.FormEvent) => {
       e.preventDefault();
       if (!accessToken.trim()) return;
       if (accountItems.length === 0) return;
@@ -68,18 +73,16 @@ export function AddAccountModal({
 
       if (accountItems.length === 1) {
         const item = accountItems[0];
-        onAdd(item.label || item.account_id, item.account_id, accessToken.trim(), bmId);
+        await onAdd(item.label || item.account_id, item.account_id, accessToken.trim(), bmId);
       } else if (onBulkAdd) {
         const items = accountItems.map((item) => ({
           label: item.label || item.account_id,
           account_id: item.account_id,
         }));
-        onBulkAdd(items, accessToken.trim(), bmId);
+        await onBulkAdd(items, accessToken.trim(), bmId);
       }
-
-      resetFields();
     },
-    [accessToken, accountItems, businessId, onAdd, onBulkAdd, resetFields],
+    [accessToken, accountItems, businessId, onAdd, onBulkAdd],
   );
 
   const handleClose = (v: boolean) => {

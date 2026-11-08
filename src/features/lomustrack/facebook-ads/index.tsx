@@ -54,8 +54,10 @@ export default function FacebookAdsPage() {
       setIsAdding(true);
       await addAccount(label, accountId, accessToken, businessId);
       setModalOpen(false);
-    } catch {
-      toast.error("Erro ao adicionar conta Facebook");
+      toast.success("Conta Facebook adicionada com sucesso!");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erro ao adicionar conta Facebook";
+      toast.error(msg);
     } finally {
       setIsAdding(false);
     }
@@ -70,8 +72,14 @@ export default function FacebookAdsPage() {
       setIsAdding(true);
       await bulkAddAccounts(items, accessToken, businessId);
       setModalOpen(false);
-    } catch {
-      toast.error("Erro ao adicionar contas Facebook");
+      toast.success(
+        items.length === 1
+          ? "Conta Facebook adicionada com sucesso!"
+          : `${items.length} contas Facebook adicionadas com sucesso!`,
+      );
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erro ao adicionar contas Facebook";
+      toast.error(msg);
     } finally {
       setIsAdding(false);
     }
@@ -90,8 +98,10 @@ export default function FacebookAdsPage() {
         await removeAccounts(deleteTargets.map((a) => a.id));
       }
       setDeleteTargets([]);
-    } catch {
-      toast.error("Erro ao excluir conta(s) Facebook");
+      toast.success("Conta(s) excluída(s) com sucesso!");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erro ao excluir conta(s) Facebook";
+      toast.error(msg);
     } finally {
       setIsDeleting(false);
     }
@@ -112,8 +122,9 @@ export default function FacebookAdsPage() {
       await Promise.all(updateTokenTargets.map((a) => updateToken(a.id, accessToken)));
       setUpdateTokenTargets([]);
       toast.success("Token atualizado com sucesso!");
-    } catch {
-      toast.error("Erro ao atualizar token");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erro ao atualizar token";
+      toast.error(msg);
     } finally {
       setIsUpdatingToken(false);
     }

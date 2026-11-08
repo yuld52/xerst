@@ -31,16 +31,20 @@ if "postgresql" in DATABASE_URL:
 
 is_vercel_runtime = bool(os.getenv("VERCEL"))
 
-engine = create_engine(
-    DATABASE_URL,
-    pool_pre_ping=True,
-    # A single connection serializes simultaneous FastAPI requests in a warm
-    # Vercel instance and can time out while another request calls an LLM.
-    pool_size=4 if is_vercel_runtime else 5,
-    max_overflow=0 if is_vercel_runtime else 10,
-    pool_recycle=300 if is_vercel_runtime else 3600,
-    connect_args=connect_args
-)
+engine_kwargs = {
+    "pool_pre_ping": True,
+}
+if "sqlite" not in DATABASE_URL:
+    engine_kwargs.update({
+        # A single connection serializes simultaneous FastAPI requests in a warm
+        # Vercel instance and can time out while another request calls an LLM.
+        "pool_size": 4 if is_vercel_runtime else 5,
+        "max_overflow": 0 if is_vercel_runtime else 10,
+        "pool_recycle": 300 if is_vercel_runtime else 3600,
+        "connect_args": connect_args,
+    })
+
+engine = create_engine(DATABASE_URL, **engine_kwargs)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
