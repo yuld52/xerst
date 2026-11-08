@@ -119,17 +119,19 @@ export function NotificationBell({ className }: NotificationBellProps) {
             )}
           </div>
 
-          {isSubscribed && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleTest}
-              disabled={testing}
-              className="w-full text-xs h-8"
-            >
-              {testing ? "Enviando teste..." : "🔔 Testar notificação de venda"}
-            </Button>
-          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleTest}
+            disabled={testing || permission === "denied"}
+            className="w-full text-xs h-8"
+          >
+            {testing
+              ? "Enviando teste..."
+              : isSubscribed
+                ? "🔔 Testar notificação de venda"
+                : "🔔 Permitir e testar notificação"}
+          </Button>
         </div>
       </PopoverContent>
     </Popover>

@@ -61,14 +61,18 @@ export function PushNotificationSettings() {
           </div>
         )}
 
-        {isSubscribed && (
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={testNotification} className="gap-2">
-              <BellAlertIcon className="h-4 w-4" />
-              Testar Notificação
-            </Button>
-          </div>
-        )}
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={testNotification}
+            disabled={permission === "denied"}
+            className="gap-2"
+          >
+            <BellAlertIcon className="h-4 w-4" />
+            {isSubscribed ? "Testar Notificação" : "Permitir e testar"}
+          </Button>
+        </div>
 
         {permission === "default" && (
           <div className="rounded-lg bg-muted p-3 text-sm text-muted-foreground">

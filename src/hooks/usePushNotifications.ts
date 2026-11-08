@@ -143,7 +143,7 @@ export function usePushNotifications() {
       }
     } catch (error) {
       console.error("Erro ao solicitar permissão:", error);
-      toast.error("Erro ao ativar notificações");
+      toast.error(error instanceof Error ? error.message : "Erro ao ativar notificações");
       return false;
     }
 
@@ -201,7 +201,7 @@ export function usePushNotifications() {
       return sub;
     } catch (error) {
       console.error("Erro ao criar subscrição push:", error);
-      return null;
+      throw error;
     }
   };
 
@@ -223,7 +223,8 @@ export function usePushNotifications() {
     });
 
     if (!response.ok) {
-      throw new Error("Erro ao enviar subscrição ao servidor");
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.detail || `O servidor recusou a inscrição (${response.status})`);
     }
   };
 
@@ -307,9 +308,26 @@ export function usePushNotifications() {
       return;
     }
 
-    if (permission !== "granted") {
+    if (!("Notification" in window)) {
+      toast.error("Este navegador não oferece suporte a notificações.");
+      return;
+    }
+
+    const currentPermission = Notification.permission;
+    if (currentPermission !== "granted") {
       const granted = await requestPermission();
       if (!granted) return;
+    } else if (!subscription) {
+      // The browser may already have granted permission while this app has no
+      // server-side subscription (for example, after reinstalling or clearing data).
+      try {
+        const sub = await subscribeUser();
+        if (!sub) throw new Error("Não foi possível registrar este dispositivo.");
+      } catch (error) {
+        console.error("Erro ao registrar dispositivo para teste:", error);
+        toast.error(error instanceof Error ? error.message : "Erro ao registrar dispositivo");
+        return;
+      }
     }
 
     try {
@@ -331,7 +349,7 @@ export function usePushNotifications() {
       }
     } catch (error) {
       console.error("Erro ao enviar notificação de teste:", error);
-      toast.error("Erro ao enviar notificação");
+      toast.error(error instanceof Error ? error.message : "Erro ao enviar notificação");
     }
   };
 

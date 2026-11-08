@@ -104,6 +104,12 @@ def send_test_notification(
     company_id: int = Depends(get_company_id)
 ):
     """Envia uma notificação de teste para todas as subscrições ativas."""
+    if not push_service.has_vapid_config():
+        raise HTTPException(
+            status_code=503,
+            detail="Notificações indisponíveis: configure VAPID_PUBLIC_KEY e VAPID_PRIVATE_KEY no servidor.",
+        )
+
     subscriptions = db.query(PushSubscription).filter(
         PushSubscription.is_active == True,
         PushSubscription.company_id == company_id
@@ -129,6 +135,12 @@ def send_test_notification(
             success_count += 1
     
     db.commit()
+
+    if success_count == 0:
+        raise HTTPException(
+            status_code=502,
+            detail="O servidor não conseguiu entregar o push. Reative as notificações neste navegador e tente novamente.",
+        )
     
     return {
         "message": f"Notificação de teste enviada para {success_count} dispositivo(s)",
