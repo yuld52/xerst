@@ -374,7 +374,6 @@ export function SalesByCountryCard({ filters }: SalesByCountryCardProps) {
                   </p>
                 </div>
               </div>
-              <p className="text-[10px] text-muted-foreground">Passe o rato sobre um país</p>
             </div>
           </div>
         )}
