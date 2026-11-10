@@ -25,6 +25,8 @@ class CampaignInsights(BaseModel):
     landing_page_views: int = 0
     initiate_checkout: int = 0
     connect_rate: float = 0.0
+    account_id: str = ""
+    account_name: str = ""
 
 
 class AdSetInsights(BaseModel):
@@ -42,6 +44,8 @@ class AdSetInsights(BaseModel):
     landing_page_views: int = 0
     initiate_checkout: int = 0
     connect_rate: float = 0.0
+    account_id: str = ""
+    account_name: str = ""
 
 
 class AdInsights(BaseModel):
@@ -59,6 +63,8 @@ class AdInsights(BaseModel):
     landing_page_views: int = 0
     initiate_checkout: int = 0
     connect_rate: float = 0.0
+    account_id: str = ""
+    account_name: str = ""
 
 
 class AccountInsightsSummary(BaseModel):

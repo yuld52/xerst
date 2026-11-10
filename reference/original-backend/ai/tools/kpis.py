@@ -31,18 +31,30 @@ def query_kpis(days_back: int = 30) -> str:
         base = db.query(Transaction).filter(Transaction.created_at >= date_start)
 
         meta_summary = None
-        account = db.query(FacebookAccount).filter(
+        accounts = db.query(FacebookAccount).filter(
             FacebookAccount.token_valid.is_(True)
-        ).first()
-        if account:
-            service = MetaAdsService(account.access_token, account.account_id)
+        ).all()
+        if accounts:
             loop = asyncio.new_event_loop()
             try:
-                meta_summary = loop.run_until_complete(
-                    service.get_account_summary(ds, de)
-                )
+                for account in accounts:
+                    service = MetaAdsService(account.access_token, account.account_id, currency=account.currency or "BRL")
+                    try:
+                        s = loop.run_until_complete(service.get_account_summary(ds, de))
+                        if s:
+                            if meta_summary is None:
+                                meta_summary = s
+                            else:
+                                meta_summary.spend += s.spend
+                                meta_summary.clicks += s.clicks
+                                meta_summary.impressions += s.impressions
+                                meta_summary.landing_page_views += s.landing_page_views
+                                meta_summary.initiate_checkout += s.initiate_checkout
+                    except Exception:
+                        pass
+                    finally:
+                        loop.run_until_complete(service.close())
             finally:
-                loop.run_until_complete(service.close())
                 loop.close()
 
         kpis = calc_kpis(base, meta_summary)

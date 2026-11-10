@@ -20,11 +20,20 @@ from api.campaigns.helpers import (
 def _get_fb_credentials(db):
     """Obtém credenciais da primeira conta Facebook com token válido."""
     account = db.query(FacebookAccount).filter(
-        FacebookAccount.token_valid.is_(True)
+        FacebookAccount.token_valid.is_(True),
+        FacebookAccount.is_active != False,
     ).first()
     if not account:
         return None, None
     return account.access_token, account.account_id
+
+
+def _get_all_fb_accounts(db):
+    """Obtém todas as contas ativas do Facebook com token válido."""
+    return db.query(FacebookAccount).filter(
+        FacebookAccount.token_valid.is_(True),
+        FacebookAccount.is_active != False,
+    ).all()
 
 
 async def _fetch_meta_data(access_token, account_id, ds, de, level="campaign"):
@@ -43,6 +52,65 @@ async def _fetch_meta_data(access_token, account_id, ds, de, level="campaign"):
         await service.close()
 
 
+async def _fetch_all_meta_data(accounts, ds, de, level="campaign"):
+    """Busca dados de todas as contas Meta Ads em paralelo."""
+    from integrations.meta_ads.schemas import AccountSummary
+    tasks = []
+    services = []
+    for acc in accounts:
+        svc = MetaAdsService(acc.access_token, acc.account_id, currency=acc.currency or "BRL")
+        services.append(svc)
+        if level == "adset":
+            tasks.append(svc.get_adsets(ds, de))
+        elif level == "ad":
+            tasks.append(svc.get_ads(ds, de))
+        elif level == "account":
+            tasks.append(svc.get_account_summary(ds, de))
+        else:
+            tasks.append(svc.get_campaigns(ds, de))
+
+    try:
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        if level == "account":
+            tot_spend = 0.0
+            tot_impr = 0
+            tot_clicks = 0
+            tot_lpv = 0
+            tot_ic = 0
+            valid = 0
+            for r in results:
+                if isinstance(r, AccountSummary):
+                    tot_spend += r.spend
+                    tot_impr += r.impressions
+                    tot_clicks += r.clicks
+                    tot_lpv += r.landing_page_views
+                    tot_ic += r.initiate_checkout
+                    valid += 1
+            if valid == 0:
+                return None
+            return AccountSummary(
+                spend=tot_spend,
+                impressions=tot_impr,
+                clicks=tot_clicks,
+                cpc=tot_spend / tot_clicks if tot_clicks > 0 else 0.0,
+                cpm=(tot_spend / tot_impr * 1000) if tot_impr > 0 else 0.0,
+                ctr=(tot_clicks / tot_impr * 100) if tot_impr > 0 else 0.0,
+                landing_page_views=tot_lpv,
+                cost_per_landing_page_view=tot_spend / tot_lpv if tot_lpv > 0 else 0.0,
+                initiate_checkout=tot_ic,
+                cost_per_initiate_checkout=tot_spend / tot_ic if tot_ic > 0 else 0.0,
+            )
+        else:
+            combined = []
+            for r in results:
+                if isinstance(r, list):
+                    combined.extend(r)
+            return combined
+    finally:
+        for svc in services:
+            await svc.close()
+
+
 def _run_meta(access_token, account_id, ds, de, level="campaign"):
     """Executa busca Meta Ads de forma sync-safe dentro de FastAPI."""
     try:
@@ -51,6 +119,25 @@ def _run_meta(access_token, account_id, ds, de, level="campaign"):
         loop = None
 
     coro = _fetch_meta_data(access_token, account_id, ds, de, level)
+
+    if loop and loop.is_running():
+        import concurrent.futures
+        with concurrent.futures.ThreadPoolExecutor() as pool:
+            return pool.submit(asyncio.run, coro).result()
+    else:
+        return asyncio.run(coro)
+
+
+def _run_all_meta(accounts, ds, de, level="campaign"):
+    """Executa busca Meta Ads em todas as contas de forma sync-safe."""
+    if not accounts:
+        return None if level == "account" else []
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = None
+
+    coro = _fetch_all_meta_data(accounts, ds, de, level)
 
     if loop and loop.is_running():
         import concurrent.futures
@@ -157,10 +244,10 @@ def _handle_kpis(db, date_start, date_end, **kwargs):
     de = date_end.strftime("%Y-%m-%d")
 
     meta_summary = None
-    token, acct_id = _get_fb_credentials(db)
-    if token:
+    accounts = _get_all_fb_accounts(db)
+    if accounts:
         try:
-            meta_summary = _run_meta(token, acct_id, ds, de, "account")
+            meta_summary = _run_all_meta(accounts, ds, de, "account")
         except Exception:
             pass
 
@@ -179,13 +266,13 @@ def _handle_kpis(db, date_start, date_end, **kwargs):
 def _handle_meta_campaigns(db, date_start, date_end, **kwargs):
     level = kwargs.get("level", "campaign")
     status_filter = kwargs.get("status", "all")
-    token, acct_id = _get_fb_credentials(db)
-    if not token:
+    accounts = _get_all_fb_accounts(db)
+    if not accounts:
         return "Sem conta Facebook Ads."
 
     ds = date_start.strftime("%Y-%m-%d")
     de = date_end.strftime("%Y-%m-%d")
-    data = _run_meta(token, acct_id, ds, de, level)
+    data = _run_all_meta(accounts, ds, de, level) or []
 
     if not data:
         return f"Sem dados de {level}."

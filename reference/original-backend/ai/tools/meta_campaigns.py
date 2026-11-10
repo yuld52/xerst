@@ -11,14 +11,12 @@ from database.core.timezone import now_sp
 from datetime import timedelta
 
 
-def _get_meta_service(db):
-    """Obtém a primeira conta do Facebook válida."""
-    account = db.query(FacebookAccount).filter(
-        FacebookAccount.token_valid.is_(True)
-    ).first()
-    if not account:
-        return None
-    return MetaAdsService(account.access_token, account.account_id, currency=account.currency or "BRL")
+def _get_active_fb_accounts(db):
+    """Obtém todas as contas do Facebook válidas e ativas."""
+    return db.query(FacebookAccount).filter(
+        FacebookAccount.token_valid.is_(True),
+        FacebookAccount.is_active != False,
+    ).all()
 
 
 @tool
@@ -28,6 +26,7 @@ def query_meta_campaigns(
     status: str = "all",
 ) -> str:
     """Busca métricas do Meta Ads: campanhas, conjuntos ou anúncios com spend, CPC, CTR.
+    Agrega dados de todas as contas ativas conectadas.
     Use para responder sobre performance de campanhas, gastos, cliques, impressões.
 
     Args:
@@ -37,24 +36,41 @@ def query_meta_campaigns(
     """
     db = SessionLocal()
     try:
-        service = _get_meta_service(db)
-        if not service:
+        accounts = _get_active_fb_accounts(db)
+        if not accounts:
             return "⚠️ Nenhuma conta do Facebook Ads configurada."
 
         now = now_sp()
         date_end = now.strftime("%Y-%m-%d")
         date_start = (now - timedelta(days=days_back)).strftime("%Y-%m-%d")
 
+        async def _fetch_from_all():
+            tasks = []
+            services = []
+            for acc in accounts:
+                svc = MetaAdsService(acc.access_token, acc.account_id, currency=acc.currency or "BRL")
+                services.append(svc)
+                if level == "adset":
+                    tasks.append(svc.get_adsets(date_start, date_end))
+                elif level == "ad":
+                    tasks.append(svc.get_ads(date_start, date_end))
+                else:
+                    tasks.append(svc.get_campaigns(date_start, date_end))
+            try:
+                results = await asyncio.gather(*tasks, return_exceptions=True)
+                combined = []
+                for res in results:
+                    if isinstance(res, list):
+                        combined.extend(res)
+                return combined
+            finally:
+                for svc in services:
+                    await svc.close()
+
         loop = asyncio.new_event_loop()
         try:
-            if level == "adset":
-                data = loop.run_until_complete(service.get_adsets(date_start, date_end))
-            elif level == "ad":
-                data = loop.run_until_complete(service.get_ads(date_start, date_end))
-            else:
-                data = loop.run_until_complete(service.get_campaigns(date_start, date_end))
+            data = loop.run_until_complete(_fetch_from_all())
         finally:
-            loop.run_until_complete(service.close())
             loop.close()
 
         if not data:

@@ -70,6 +70,8 @@ async def create_account(
             if payload.business_id:
                 existing.business_id = payload.business_id
             existing.token_valid = True
+            existing.is_active = True
+            existing.status = "active"
             real_name, detected_currency = await _fetch_account_info(payload.access_token, account_id)
             if real_name:
                 existing.label = real_name
@@ -95,8 +97,8 @@ async def create_account(
         business_id=payload.business_id,
         currency=detected_currency or payload.currency or "BRL",
         token_valid=True,
-        status="discovered",
-        is_active=False,
+        status="active",
+        is_active=True,
     )
     db.add(account)
     db.commit()
@@ -141,6 +143,8 @@ async def create_accounts_bulk(
                 if detected_currency:
                     existing.currency = detected_currency
                 existing.token_valid = True
+                existing.is_active = True
+                existing.status = "active"
                 created.append(existing)
             continue
 
@@ -154,8 +158,8 @@ async def create_accounts_bulk(
             business_id=payload.business_id,
             currency=detected_currency or "BRL",
             token_valid=True,
-            status="discovered",
-            is_active=False,
+            status="active",
+            is_active=True,
         )
         db.add(account)
         db.flush()

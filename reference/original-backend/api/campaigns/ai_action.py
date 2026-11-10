@@ -24,6 +24,7 @@ class AiActionRequest(BaseModel):
     value: float = 0  # valor do orçamento (para budget actions)
     current_budget: float = 0  # orçamento atual
     metrics: dict = {}
+    account_id: int | None = None
 
 
 @router.post("/ai-action")
@@ -33,29 +34,47 @@ async def execute_ai_action(
     current_user=Depends(get_current_user),
 ):
     """Executa uma ação sugerida pela AI."""
-    fb_account = db.query(FacebookAccount).filter(
-        FacebookAccount.token_valid.is_(True),
-        FacebookAccount.company_id == current_user.company_id,
-    ).first()
-    if not fb_account:
-        raise HTTPException(status_code=404, detail="Nenhuma conta Facebook configurada ou token inválido")
+    fb_account = None
+    if payload.account_id:
+        fb_account = db.query(FacebookAccount).filter(
+            FacebookAccount.id == payload.account_id,
+            FacebookAccount.company_id == current_user.company_id,
+            FacebookAccount.token_valid.is_(True),
+        ).first()
 
+    candidate_accounts = [fb_account] if fb_account else db.query(FacebookAccount).filter(
+        FacebookAccount.company_id == current_user.company_id,
+        FacebookAccount.token_valid.is_(True),
+        FacebookAccount.is_active != False,
+    ).all()
+
+    if not candidate_accounts:
+        raise HTTPException(status_code=404, detail="Nenhuma conta Facebook configurada ou token inválido")
 
     action = payload.action
     result_msg = ""
     new_budget = payload.current_budget
     action_type = ActionType.PAUSE
+    last_error = "Erro desconhecido"
 
     if action in ("pause", "activate"):
         new_status = "ACTIVE" if action == "activate" else "PAUSED"
-        result = await toggle_entity_status(
-            access_token=fb_account.access_token,
-            entity_id=payload.entity_id,
-            entity_type=payload.entity_type,
-            new_status=new_status,
-        )
-        if not result["success"]:
-            raise HTTPException(status_code=400, detail=result.get("error", "Erro"))
+        result = None
+        for acc in candidate_accounts:
+            res = await toggle_entity_status(
+                access_token=acc.access_token,
+                entity_id=payload.entity_id,
+                entity_type=payload.entity_type,
+                new_status=new_status,
+            )
+            if res.get("success"):
+                result = res
+                fb_account = acc
+                break
+            last_error = res.get("error", "Erro ao alterar status")
+
+        if not result or not result.get("success"):
+            raise HTTPException(status_code=400, detail=last_error)
 
         action_type = ActionType.ACTIVATE if action == "activate" else ActionType.PAUSE
         result_msg = f"{'Ativada' if action == 'activate' else 'Pausada'}: {payload.entity_name}"
@@ -68,14 +87,22 @@ async def execute_ai_action(
         else:
             new_budget = payload.value
 
-        result = await update_budget(
-            access_token=fb_account.access_token,
-            entity_id=payload.entity_id,
-            entity_type=payload.entity_type,
-            daily_budget_reais=new_budget,
-        )
-        if not result["success"]:
-            raise HTTPException(status_code=400, detail=result.get("error", "Erro"))
+        result = None
+        for acc in candidate_accounts:
+            res = await update_budget(
+                access_token=acc.access_token,
+                entity_id=payload.entity_id,
+                entity_type=payload.entity_type,
+                daily_budget_reais=new_budget,
+            )
+            if res.get("success"):
+                result = res
+                fb_account = acc
+                break
+            last_error = res.get("error", "Erro ao alterar orçamento")
+
+        if not result or not result.get("success"):
+            raise HTTPException(status_code=400, detail=last_error)
 
         action_type = (
             ActionType.BUDGET_INCREASE if new_budget > payload.current_budget

@@ -121,6 +121,8 @@ def merge_campaigns(
 
         results.append({
             "id": camp.id,
+            "account_id": getattr(camp, "account_id", ""),
+            "account_name": getattr(camp, "account_name", ""),
             "name": camp.name,
             "status": camp.status,
             "objective": camp.objective,

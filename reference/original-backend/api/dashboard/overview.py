@@ -102,9 +102,9 @@ async def dashboard_overview(
     # Datas formatadas para a Meta API
     ds, de = _date_range_strings(preset, start_date, end_date)
 
-    # Buscar dados da Meta Ads em paralelo
-    meta_summary, meta_error = await fetch_meta_account_summary(db, ds, de)
-    meta_campaigns = await fetch_meta_campaigns_for_dashboard(db, ds, de)
+    # Buscar dados da Meta Ads em paralelo (agrega todas as contas da empresa)
+    meta_summary, meta_error = await fetch_meta_account_summary(db, ds, de, company_id)
+    meta_campaigns = await fetch_meta_campaigns_for_dashboard(db, ds, de, company_id)
 
     # KPIs com dados da Meta
     kpis = calc_kpis(base, meta_summary)

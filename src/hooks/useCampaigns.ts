@@ -26,7 +26,7 @@ export function useCampaigns(dateStart: string, dateEnd: string) {
   // Guard against concurrent toggles on the same entity
   const toggleInProgressRef = useRef<Set<string>>(new Set());
 
-  const activeAccountId = selectedAccountId ?? accounts[0]?.id;
+  const activeAccountId = selectedAccountId;
 
   const { data, isLoading, error, reload, silentReload } = useCachedQuery<{
     campaigns: CampaignData[];
@@ -34,7 +34,7 @@ export function useCampaigns(dateStart: string, dateEnd: string) {
     error?: string | null;
   }>({
     cachePrefix: "campaigns",
-    params: { dateStart, dateEnd, activeAccountId },
+    params: { dateStart, dateEnd, activeAccountId: activeAccountId ?? "all" },
     queryFn: () => fetchCampaignsData(dateStart, dateEnd, activeAccountId),
     enabled: !!dateStart && !!dateEnd,
     autoRefreshMs: 30_000,
@@ -83,7 +83,11 @@ export function useCampaigns(dateStart: string, dateEnd: string) {
     metrics?: Record<string, number>,
     budget?: number,
   ) => {
-    if (!activeAccountId) return;
+    const targetAccountId =
+      activeAccountId ??
+      (Number(data?.campaigns?.find((c) => c.id === entityId)?.account_id) ||
+      accounts[0]?.id);
+    if (!targetAccountId) return;
 
     // Prevent concurrent toggles on the same entity
     if (toggleInProgressRef.current.has(entityId)) return;
@@ -96,7 +100,7 @@ export function useCampaigns(dateStart: string, dateEnd: string) {
     }));
     try {
       await toggleCampaignStatus(
-        activeAccountId,
+        targetAccountId,
         entityId,
         entityType,
         active,
@@ -124,14 +128,18 @@ export function useCampaigns(dateStart: string, dateEnd: string) {
     budgetBefore?: number,
     metrics?: Record<string, number>,
   ) => {
-    if (!activeAccountId) return;
+    const targetAccountId =
+      activeAccountId ??
+      (Number(data?.campaigns?.find((c) => c.id === entityId)?.account_id) ||
+      accounts[0]?.id);
+    if (!targetAccountId) return;
     setOptimisticOverrides((prev) => ({
       ...prev,
       [entityId]: { ...prev[entityId], budget: dailyBudget },
     }));
     try {
       await updateBudget(
-        activeAccountId,
+        targetAccountId,
         entityId,
         entityType,
         dailyBudget,

@@ -89,6 +89,8 @@ async def sync_accounts(
                 existing.currency = item.currency
             existing.access_token = payload.access_token
             existing.token_valid = True
+            existing.is_active = True
+            existing.status = "active"
             skipped += 1
             continue
 
@@ -100,8 +102,8 @@ async def sync_accounts(
             business_id=payload.business_id,
             currency=item.currency or "BRL",
             token_valid=True,
-            status="discovered",
-            is_active=False,
+            status="active",
+            is_active=True,
         ))
         added += 1
 

@@ -40,10 +40,18 @@ async def update_entity_budget(
             detail="entity_type deve ser 'campaign' (CBO) ou 'adset' (ABO)",
         )
 
-    fb_account = db.query(FacebookAccount).filter(
-        FacebookAccount.id == payload.account_id,
-        FacebookAccount.company_id == current_user.company_id,
-    ).first()
+    fb_account = None
+    if payload.account_id:
+        fb_account = db.query(FacebookAccount).filter(
+            FacebookAccount.id == payload.account_id,
+            FacebookAccount.company_id == current_user.company_id,
+        ).first()
+
+    if not fb_account:
+        fb_account = db.query(FacebookAccount).filter(
+            FacebookAccount.company_id == current_user.company_id,
+            FacebookAccount.token_valid.is_(True),
+        ).first()
 
     if not fb_account:
         raise HTTPException(status_code=404, detail="Conta Facebook não encontrada")

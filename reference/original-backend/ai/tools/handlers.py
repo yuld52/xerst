@@ -8,20 +8,22 @@ from database.models.recovery import Recovery, RecoveryType
 from api.campaigns.helpers import (
     parse_utm_content, parse_utm_campaign, safe_division,
 )
-from ai.tools.universal import _get_fb_credentials, _run_meta
+from ai.tools.universal import (
+    _get_fb_credentials, _get_all_fb_accounts, _run_meta, _run_all_meta,
+)
 
 
 def _handle_creatives(db, date_start, date_end, **kwargs):
     sort_by = kwargs.get("sort_by", "roas")
     limit = int(kwargs.get("limit", 10))
 
-    token, acct_id = _get_fb_credentials(db)
-    if not token:
+    accounts = _get_all_fb_accounts(db)
+    if not accounts:
         return "Nenhuma conta Facebook Ads configurada."
 
     ds = date_start.strftime("%Y-%m-%d")
     de = date_end.strftime("%Y-%m-%d")
-    ads = _run_meta(token, acct_id, ds, de, "ad")
+    ads = _run_all_meta(accounts, ds, de, "ad") or []
 
     approved = (
         db.query(Transaction)
@@ -114,13 +116,13 @@ def _handle_recovery(db, date_start, date_end, **kwargs):
 
 
 def _handle_funnel(db, date_start, date_end, **kwargs):
-    token, acct_id = _get_fb_credentials(db)
-    if not token:
+    accounts = _get_all_fb_accounts(db)
+    if not accounts:
         return "Nenhuma conta Facebook Ads configurada."
 
     ds = date_start.strftime("%Y-%m-%d")
     de = date_end.strftime("%Y-%m-%d")
-    campaigns = _run_meta(token, acct_id, ds, de, "campaign")
+    campaigns = _run_all_meta(accounts, ds, de, "campaign") or []
 
     approved = (
         db.query(Transaction)

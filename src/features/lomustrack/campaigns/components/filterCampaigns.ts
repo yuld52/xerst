@@ -20,6 +20,8 @@ export function filterCampaigns(
     if (!c.name.toLowerCase().includes(searchLower)) return false;
 
     if (!isUnidentified) {
+      if (filters.account !== "all" && c.account_id && String(c.account_id) !== filters.account)
+        return false;
       if (filters.status !== "all" && c.status !== filters.status) return false;
       if (filters.objective !== "all" && c.objective !== filters.objective) return false;
       if (filters.bidStrategy !== "all" && (c.bid_strategy || "volume") !== filters.bidStrategy)

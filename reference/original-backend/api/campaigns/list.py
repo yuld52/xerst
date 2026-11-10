@@ -1,23 +1,26 @@
 """
 API principal de campanhas: cruza dados Meta Ads com transações do DB.
 Retorna campanhas com métricas de Ad Spend + Vendas unificadas.
+Suporta agregação de múltiplas contas do Facebook Ads da mesma empresa.
 """
+import asyncio
+import logging
+from datetime import datetime
+from typing import Optional
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
-from typing import Optional
-from datetime import datetime
 
+from api.auth.deps import get_company_id
+from api.campaigns.merge import merge_campaigns
 from database.core.connection import get_db
 from database.models.facebook_account import FacebookAccount
 from database.models.transaction import Transaction, TransactionStatus
-from api.auth.deps import get_current_user, get_company_id
-from api.campaigns.helpers import (
-    parse_utm_campaign, parse_utm_medium, parse_utm_content, safe_division,
-)
-from api.campaigns.merge import merge_campaigns, merge_ads
-from integrations.meta_ads.service import MetaAdsService
 from integrations.meta_ads.client import MetaAuthError
+from integrations.meta_ads.schemas import AdInsights, AdSetInsights, CampaignInsights
+from integrations.meta_ads.service import MetaAdsService
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/campaigns", tags=["campaigns"])
 
 
@@ -33,48 +36,77 @@ async def get_campaigns_data(
     """
     Endpoint principal: busca dados do Meta Ads + transações.
     Cruza campanhas com vendas pelo utm_campaign (name|id).
-    Retorna hierarquia: campaigns -> adsets -> ads, cada um com métricas.
+    Se account_id for informado, filtra por essa conta.
+    Se account_id não for informado, agrega os dados de TODAS as contas Meta Ads ativas da empresa.
     """
-    # 1. Selecionar conta Facebook
-    fb_account = _get_fb_account(db, account_id, company_id)
-    if not fb_account:
-        return {"campaigns": [], "unidentified": _build_unidentified(db, date_start, date_end, company_id)}
-
-    # 2. Buscar dados do Meta Ads
-    service = MetaAdsService(fb_account.access_token, fb_account.account_id)
-    try:
-        meta_campaigns, meta_adsets, meta_ads = await service.get_all_levels(
-            date_start, date_end,
-        )
-    except MetaAuthError:
-        # Token inválido: marcar no banco para suprimir futuras chamadas
-        fb_account.token_valid = False
-        db.commit()
-        await service.close()
-        return {
-            "campaigns": [],
-            "unidentified": _build_unidentified(db, date_start, date_end),
-            "error": "token_invalid",
-        }
-    except Exception as e:
-        import logging
-        logging.getLogger(__name__).error(f"Erro ao buscar dados do Meta Ads: {e}")
-        await service.close()
+    fb_accounts = _get_fb_accounts(db, account_id, company_id)
+    if not fb_accounts:
+        # Se nenhuma conta válida existir, verifica se há contas com token inválido
+        has_invalid = db.query(FacebookAccount).filter(
+            FacebookAccount.company_id == company_id,
+            FacebookAccount.token_valid.is_(False),
+        ).first()
+        err_msg = "token_invalid" if has_invalid else None
         return {
             "campaigns": [],
             "unidentified": _build_unidentified(db, date_start, date_end, company_id),
-            "error": str(e),
+            "error": err_msg,
         }
-    finally:
-        await service.close()
+
+    all_meta_campaigns: list[CampaignInsights] = []
+    all_meta_adsets: list[AdSetInsights] = []
+    all_meta_ads: list[AdInsights] = []
+    auth_errors = []
+
+    async def _fetch_one_account(acc: FacebookAccount):
+        service = MetaAdsService(acc.access_token, acc.account_id, currency=acc.currency or "BRL")
+        try:
+            c, a, ads = await service.get_all_levels(date_start, date_end)
+            for item in c:
+                item.account_id = str(acc.id)
+                item.account_name = acc.label
+            for item in a:
+                item.account_id = str(acc.id)
+                item.account_name = acc.label
+            for item in ads:
+                item.account_id = str(acc.id)
+                item.account_name = acc.label
+
+            acc.last_sync_at = datetime.utcnow()
+            return c, a, ads, None
+        except MetaAuthError:
+            acc.token_valid = False
+            return [], [], [], "token_invalid"
+        except Exception as e:
+            logger.error(f"Erro ao buscar dados do Meta Ads para conta {acc.id}: {e}")
+            return [], [], [], str(e)
+        finally:
+            await service.close()
+
+    tasks = [_fetch_one_account(acc) for acc in fb_accounts]
+    results = await asyncio.gather(*tasks)
+    db.commit()
+
+    for c, a, ads, err in results:
+        if err == "token_invalid":
+            auth_errors.append(err)
+        all_meta_campaigns.extend(c)
+        all_meta_adsets.extend(a)
+        all_meta_ads.extend(ads)
+
+    # Se todas as contas retornaram erro de autenticação e nenhuma campanha veio
+    if auth_errors and not all_meta_campaigns and len(auth_errors) == len(fb_accounts):
+        return {
+            "campaigns": [],
+            "unidentified": _build_unidentified(db, date_start, date_end, company_id),
+            "error": "token_invalid",
+        }
 
     # 3. Buscar transações aprovadas no período com utm_source=FB
-    fb_account.last_sync_at = datetime.utcnow()
-    db.commit()
     transactions = _get_fb_transactions(db, date_start, date_end, company_id)
 
     # 4. Fazer o merge
-    campaigns = merge_campaigns(meta_campaigns, meta_adsets, meta_ads, transactions)
+    campaigns = merge_campaigns(all_meta_campaigns, all_meta_adsets, all_meta_ads, transactions)
 
     # 5. Filtrar por status se necessário
     if status_filter and status_filter != "all":
@@ -86,22 +118,24 @@ async def get_campaigns_data(
     return {"campaigns": campaigns, "unidentified": unidentified}
 
 
-def _get_fb_account(db: Session, account_id: Optional[int], company_id: int) -> Optional[FacebookAccount]:
-    """Retorna a conta FB selecionada ou a primeira com token válido."""
+def _get_fb_accounts(db: Session, account_id: Optional[int], company_id: int) -> list[FacebookAccount]:
+    """Retorna a conta FB selecionada ou TODAS ativas com token válido da empresa."""
     if account_id:
-        return db.query(FacebookAccount).filter(
+        acc = db.query(FacebookAccount).filter(
             FacebookAccount.id == account_id,
             FacebookAccount.company_id == company_id,
             FacebookAccount.token_valid.is_(True),
         ).first()
+        return [acc] if acc else []
     return db.query(FacebookAccount).filter(
         FacebookAccount.company_id == company_id,
-        FacebookAccount.token_valid.is_(True)
-    ).first()
+        FacebookAccount.token_valid.is_(True),
+        FacebookAccount.is_active != False,
+    ).all()
 
 
 def _get_fb_transactions(db: Session, date_start: str, date_end: str, company_id: int) -> list[Transaction]:
-    """Busca transações aprovadas com utm_source FB no período."""
+    """Busca transações aprovadas no período."""
     query = db.query(Transaction).filter(
         Transaction.company_id == company_id,
         Transaction.status == TransactionStatus.APPROVED,

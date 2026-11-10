@@ -36,18 +36,35 @@ def query_best_creatives(
         ds = date_start.strftime("%Y-%m-%d")
         de = now.strftime("%Y-%m-%d")
 
-        account = db.query(FacebookAccount).filter(
-            FacebookAccount.token_valid.is_(True)
-        ).first()
-        if not account:
+        accounts = db.query(FacebookAccount).filter(
+            FacebookAccount.token_valid.is_(True),
+            FacebookAccount.is_active != False,
+        ).all()
+        if not accounts:
             return "⚠️ Nenhuma conta do Facebook Ads configurada."
 
-        service = MetaAdsService(account.access_token, account.account_id)
+        async def _fetch_ads():
+            tasks = []
+            services = []
+            for acc in accounts:
+                svc = MetaAdsService(acc.access_token, acc.account_id, currency=acc.currency or "BRL")
+                services.append(svc)
+                tasks.append(svc.get_ads(ds, de))
+            try:
+                results = await asyncio.gather(*tasks, return_exceptions=True)
+                combined = []
+                for res in results:
+                    if isinstance(res, list):
+                        combined.extend(res)
+                return combined
+            finally:
+                for svc in services:
+                    await svc.close()
+
         loop = asyncio.new_event_loop()
         try:
-            ads = loop.run_until_complete(service.get_ads(ds, de))
+            ads = loop.run_until_complete(_fetch_ads())
         finally:
-            loop.run_until_complete(service.close())
             loop.close()
 
         # Buscar transações aprovadas do período

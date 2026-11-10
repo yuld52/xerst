@@ -60,15 +60,24 @@ def _calc_period_kpis(db: Session, company_id: int, start, end, ds: str, de: str
     )
 
     meta_summary = None
-    account = db.query(FacebookAccount).filter(
+    accounts = db.query(FacebookAccount).filter(
         FacebookAccount.token_valid.is_(True),
         FacebookAccount.company_id == company_id,
-    ).first()
-    if account:
+    ).all()
+    for account in accounts:
         try:
-            meta_summary = _run_meta(
+            s = _run_meta(
                 account.access_token, account.account_id, ds, de, "account"
             )
+            if s:
+                if meta_summary is None:
+                    meta_summary = s
+                else:
+                    meta_summary.spend += getattr(s, "spend", 0)
+                    meta_summary.clicks += getattr(s, "clicks", 0)
+                    meta_summary.impressions += getattr(s, "impressions", 0)
+                    meta_summary.landing_page_views += getattr(s, "landing_page_views", 0)
+                    meta_summary.initiate_checkout += getattr(s, "initiate_checkout", 0)
         except Exception:
             pass
 
@@ -76,20 +85,24 @@ def _calc_period_kpis(db: Session, company_id: int, start, end, ds: str, de: str
 
 
 def _fetch_campaigns_today(db: Session, company_id: int, ds: str, de: str) -> str:
-    """Busca campanhas do Meta Ads com métricas de hoje."""
-    account = db.query(FacebookAccount).filter(
+    """Busca campanhas de TODAS as contas do Meta Ads com métricas de hoje."""
+    accounts = db.query(FacebookAccount).filter(
         FacebookAccount.token_valid.is_(True),
         FacebookAccount.company_id == company_id,
-    ).first()
-    if not account:
+    ).all()
+    if not accounts:
         return "Sem conta Facebook Ads configurada."
 
-    try:
-        data = _run_meta(
-            account.access_token, account.account_id, ds, de, "campaign"
-        )
-    except Exception as e:
-        return f"Erro ao buscar campanhas: {str(e)}"
+    data = []
+    for account in accounts:
+        try:
+            items = _run_meta(
+                account.access_token, account.account_id, ds, de, "campaign"
+            )
+            if items:
+                data.extend(items)
+        except Exception:
+            pass
 
     if not data:
         return "Sem dados de campanhas hoje."
