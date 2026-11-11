@@ -44,16 +44,41 @@ CREATIVE_FIELDS = "id,name,body,title,url_tags,object_story_spec"
 @router.get("/export-details")
 async def get_campaign_export_details(
     campaign_id: str = Query(...),
-    account_id: int = Query(...),
+    account_id: int | None = Query(None),
     db: Session = Depends(get_db),
-    _=Depends(get_current_user),
+    current_user=Depends(get_current_user),
 ):
     """Busca detalhes completos de uma campanha para exportação."""
-    fb_account = db.query(FacebookAccount).filter(
-        FacebookAccount.id == account_id
-    ).first()
+    fb_account = None
+    if account_id:
+        fb_account = db.query(FacebookAccount).filter(
+            FacebookAccount.id == account_id,
+            FacebookAccount.company_id == current_user.company_id,
+            FacebookAccount.token_valid.is_(True),
+        ).first()
+
     if not fb_account:
-        raise HTTPException(status_code=404, detail="Conta não encontrada")
+        fb_accounts = db.query(FacebookAccount).filter(
+            FacebookAccount.company_id == current_user.company_id,
+            FacebookAccount.token_valid.is_(True),
+            FacebookAccount.is_active != False,
+        ).all()
+        for candidate in fb_accounts:
+            candidate_client = MetaAdsClient(candidate.access_token, candidate.account_id)
+            try:
+                res = await candidate_client._get(campaign_id, params={"fields": CAMPAIGN_FIELDS})
+                if res and "id" in res:
+                    fb_account = candidate
+                    try:
+                        return await _export_campaign(candidate_client, campaign_id)
+                    finally:
+                        await candidate_client.close()
+            except Exception:
+                await candidate_client.close()
+                continue
+
+        if not fb_account:
+            raise HTTPException(status_code=404, detail="Conta ou campanha não encontrada")
 
     client = MetaAdsClient(fb_account.access_token, fb_account.account_id)
 

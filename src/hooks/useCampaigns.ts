@@ -16,6 +16,34 @@ import {
 import { useFacebookAccounts } from "./useFacebookAccounts";
 import { invalidateCacheByPrefix } from "@/lib/queryCache";
 
+function findAccountIdForEntity(
+  campaigns: CampaignData[] | undefined,
+  entityId: string,
+  entityType: "campaign" | "adset" | "ad",
+): number | undefined {
+  if (!campaigns) return undefined;
+  for (const c of campaigns) {
+    if (entityType === "campaign" && c.id === entityId) {
+      return c.account_id ? Number(c.account_id) : undefined;
+    }
+    if (c.adsets) {
+      for (const a of c.adsets) {
+        if (entityType === "adset" && a.id === entityId) {
+          return c.account_id ? Number(c.account_id) : undefined;
+        }
+        if (entityType === "ad" && a.ads) {
+          for (const ad of a.ads) {
+            if (ad.id === entityId) {
+              return c.account_id ? Number(c.account_id) : undefined;
+            }
+          }
+        }
+      }
+    }
+  }
+  return undefined;
+}
+
 export function useCampaigns(dateStart: string, dateEnd: string) {
   const { accounts } = useFacebookAccounts();
   const [selectedAccountId, setSelectedAccountId] = useState<number | undefined>();
@@ -85,8 +113,8 @@ export function useCampaigns(dateStart: string, dateEnd: string) {
   ) => {
     const targetAccountId =
       activeAccountId ??
-      (Number(data?.campaigns?.find((c) => c.id === entityId)?.account_id) ||
-      accounts[0]?.id);
+      findAccountIdForEntity(data?.campaigns, entityId, entityType) ??
+      accounts[0]?.id;
     if (!targetAccountId) return;
 
     // Prevent concurrent toggles on the same entity
@@ -130,8 +158,8 @@ export function useCampaigns(dateStart: string, dateEnd: string) {
   ) => {
     const targetAccountId =
       activeAccountId ??
-      (Number(data?.campaigns?.find((c) => c.id === entityId)?.account_id) ||
-      accounts[0]?.id);
+      findAccountIdForEntity(data?.campaigns, entityId, entityType) ??
+      accounts[0]?.id;
     if (!targetAccountId) return;
     setOptimisticOverrides((prev) => ({
       ...prev,

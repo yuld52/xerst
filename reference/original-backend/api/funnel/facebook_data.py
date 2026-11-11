@@ -23,7 +23,7 @@ async def fetch_facebook_aggregated(
 
     for account in accounts:
         try:
-            service = MetaAdsService(account.access_token, account.account_id)
+            service = MetaAdsService(account.access_token, account.account_id, currency=account.currency or "BRL")
 
             if campaign_ids:
                 metrics = await _fetch_filtered_by_campaigns(

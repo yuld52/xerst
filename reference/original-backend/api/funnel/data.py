@@ -31,7 +31,11 @@ async def get_funnel_data(
 
     meta_start = date_to_meta_format(dt_start) if dt_start else "2020-01-01"
     meta_end = date_to_meta_format(dt_end) if dt_end else date_to_meta_format(now_sp())
-    accounts = db.query(FacebookAccount).filter(FacebookAccount.company_id == company_id).all()
+    accounts = db.query(FacebookAccount).filter(
+        FacebookAccount.company_id == company_id,
+        FacebookAccount.token_valid.is_(True),
+        FacebookAccount.is_active != False,
+    ).all()
 
     result = []
     for product in products:

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 import logging
 import httpx
@@ -37,8 +37,7 @@ class FacebookAccountResponse(BaseModel):
     token_valid: bool = True
     created_at: datetime | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 @router.get("/accounts", response_model=list[FacebookAccountResponse])

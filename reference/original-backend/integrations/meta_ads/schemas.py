@@ -76,3 +76,7 @@ class AccountInsightsSummary(BaseModel):
     ctr: float = 0.0
     landing_page_views: int = 0
     initiate_checkout: int = 0
+
+
+# Alias para compatibilidade
+AccountSummary = AccountInsightsSummary
