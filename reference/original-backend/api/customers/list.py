@@ -236,20 +236,14 @@ def customers_summary(
         query = query.filter(Customer.id.in_(db.query(acct_ids)))
 
     total = query.count()
-    total_orders = db.query(func.coalesce(func.sum(Customer.total_orders), 0)).filter(
-        Customer.id.in_([c.id for c in query.all()])
-    ).scalar()
-    total_spent = db.query(func.coalesce(func.sum(Customer.total_spent), 0)).filter(
-        Customer.id.in_([c.id for c in query.all()])
-    ).scalar()
+    total_orders = query.with_entities(func.coalesce(func.sum(Customer.total_orders), 0)).scalar() or 0
+    total_spent = query.with_entities(func.coalesce(func.sum(Customer.total_spent), 0.0)).scalar() or 0.0
 
-    # Unique products across all matching customers
-    customer_ids = [c.id for c in query.all()]
-    unique_products = 0
-    if customer_ids:
-        unique_products = db.query(func.count(func.distinct(CustomerProduct.product_id))).filter(
-            CustomerProduct.customer_id.in_(customer_ids)
-        ).scalar() or 0
+    # Unique products across all matching customers (via subquery)
+    cust_subq = query.with_entities(Customer.id).subquery()
+    unique_products = db.query(func.count(func.distinct(CustomerProduct.product_id))).filter(
+        CustomerProduct.customer_id.in_(cust_subq)
+    ).scalar() or 0
 
     avg_ticket = (float(total_spent) / int(total_orders)) if total_orders and int(total_orders) > 0 else 0
 

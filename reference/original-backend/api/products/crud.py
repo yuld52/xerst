@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 
 from database.core.connection import get_db
@@ -27,8 +27,7 @@ class ProductResponse(BaseModel):
     logo_url: str | None = None
     created_at: datetime | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 @router.get("", response_model=list[ProductResponse])
@@ -88,9 +87,12 @@ def update_product(
 def delete_product(
     product_id: int,
     db: Session = Depends(get_db),
-    _=Depends(get_current_user),
+    company_id: int = Depends(get_company_id),
 ):
-    product = db.query(Product).filter(Product.id == product_id).first()
+    product = db.query(Product).filter(
+        Product.id == product_id,
+        Product.company_id == company_id,
+    ).first()
     if not product:
         raise HTTPException(status_code=404, detail="Produto não encontrado")
     db.query(Checkout).filter(Checkout.product_id == product_id).delete()

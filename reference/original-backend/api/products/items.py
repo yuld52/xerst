@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 
 from database.core.connection import get_db
 from database.models.product import Product
 from database.models.product_items import Checkout, OrderBump, Upsell, CheckoutPlatform
-from api.auth.deps import get_current_user
+from api.auth.deps import get_current_user, get_company_id
 
 router = APIRouter(prefix="/products/{product_id}", tags=["product-items"])
 
@@ -36,8 +36,7 @@ class CheckoutResponse(BaseModel):
     checkout_code: str | None = None
     name: str | None = None
     created_at: datetime | None = None
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class OrderBumpCreate(BaseModel):
     external_id: str | None = None
@@ -56,8 +55,7 @@ class OrderBumpResponse(BaseModel):
     name: str
     price: float
     created_at: datetime | None = None
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class UpsellCreate(BaseModel):
     external_id: str | None = None
@@ -76,14 +74,16 @@ class UpsellResponse(BaseModel):
     name: str
     price: float
     created_at: datetime | None = None
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # ── Helpers ──────────────────────────────────────────────────
 
-def _get_product(product_id: int, db: Session) -> Product:
-    product = db.query(Product).filter(Product.id == product_id).first()
+def _get_product(product_id: int, db: Session, company_id: int) -> Product:
+    product = db.query(Product).filter(
+        Product.id == product_id,
+        Product.company_id == company_id,
+    ).first()
     if not product:
         raise HTTPException(status_code=404, detail="Produto não encontrado")
     return product
@@ -101,15 +101,15 @@ def _checkout_response(c: Checkout) -> CheckoutResponse:
 # ── Checkout routes ──────────────────────────────────────────
 
 @router.get("/checkouts", response_model=list[CheckoutResponse])
-def list_checkouts(product_id: int, db: Session = Depends(get_db), _=Depends(get_current_user)):
-    _get_product(product_id, db)
+def list_checkouts(product_id: int, db: Session = Depends(get_db), company_id: int = Depends(get_company_id)):
+    _get_product(product_id, db, company_id)
     items = db.query(Checkout).filter(Checkout.product_id == product_id).all()
     return [_checkout_response(i) for i in items]
 
 
 @router.post("/checkouts", response_model=CheckoutResponse, status_code=201)
-def create_checkout(product_id: int, payload: CheckoutCreate, db: Session = Depends(get_db), _=Depends(get_current_user)):
-    _get_product(product_id, db)
+def create_checkout(product_id: int, payload: CheckoutCreate, db: Session = Depends(get_db), company_id: int = Depends(get_company_id)):
+    _get_product(product_id, db, company_id)
     platform_val = payload.platform.lower()
     if platform_val not in [p.value for p in CheckoutPlatform]:
         raise HTTPException(status_code=400, detail="Plataforma inválida")
@@ -126,7 +126,8 @@ def create_checkout(product_id: int, payload: CheckoutCreate, db: Session = Depe
 
 
 @router.put("/checkouts/{item_id}", response_model=CheckoutResponse)
-def update_checkout(product_id: int, item_id: int, payload: CheckoutUpdate, db: Session = Depends(get_db), _=Depends(get_current_user)):
+def update_checkout(product_id: int, item_id: int, payload: CheckoutUpdate, db: Session = Depends(get_db), company_id: int = Depends(get_company_id)):
+    _get_product(product_id, db, company_id)
     item = db.query(Checkout).filter(Checkout.id == item_id, Checkout.product_id == product_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Checkout não encontrado")
@@ -150,7 +151,8 @@ def update_checkout(product_id: int, item_id: int, payload: CheckoutUpdate, db: 
 
 
 @router.delete("/checkouts/{item_id}", status_code=204)
-def delete_checkout(product_id: int, item_id: int, db: Session = Depends(get_db), _=Depends(get_current_user)):
+def delete_checkout(product_id: int, item_id: int, db: Session = Depends(get_db), company_id: int = Depends(get_company_id)):
+    _get_product(product_id, db, company_id)
     item = db.query(Checkout).filter(Checkout.id == item_id, Checkout.product_id == product_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Checkout não encontrado")
@@ -161,14 +163,14 @@ def delete_checkout(product_id: int, item_id: int, db: Session = Depends(get_db)
 # ── Order Bump routes ────────────────────────────────────────
 
 @router.get("/order-bumps", response_model=list[OrderBumpResponse])
-def list_order_bumps(product_id: int, db: Session = Depends(get_db), _=Depends(get_current_user)):
-    _get_product(product_id, db)
+def list_order_bumps(product_id: int, db: Session = Depends(get_db), company_id: int = Depends(get_company_id)):
+    _get_product(product_id, db, company_id)
     return db.query(OrderBump).filter(OrderBump.product_id == product_id).all()
 
 
 @router.post("/order-bumps", response_model=OrderBumpResponse, status_code=201)
-def create_order_bump(product_id: int, payload: OrderBumpCreate, db: Session = Depends(get_db), _=Depends(get_current_user)):
-    _get_product(product_id, db)
+def create_order_bump(product_id: int, payload: OrderBumpCreate, db: Session = Depends(get_db), company_id: int = Depends(get_company_id)):
+    _get_product(product_id, db, company_id)
     item = OrderBump(product_id=product_id, external_id=payload.external_id, name=payload.name, price=payload.price)
     db.add(item)
     db.commit()
@@ -177,7 +179,8 @@ def create_order_bump(product_id: int, payload: OrderBumpCreate, db: Session = D
 
 
 @router.put("/order-bumps/{item_id}", response_model=OrderBumpResponse)
-def update_order_bump(product_id: int, item_id: int, payload: OrderBumpUpdate, db: Session = Depends(get_db), _=Depends(get_current_user)):
+def update_order_bump(product_id: int, item_id: int, payload: OrderBumpUpdate, db: Session = Depends(get_db), company_id: int = Depends(get_company_id)):
+    _get_product(product_id, db, company_id)
     item = db.query(OrderBump).filter(OrderBump.id == item_id, OrderBump.product_id == product_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Order bump não encontrado")
@@ -193,7 +196,8 @@ def update_order_bump(product_id: int, item_id: int, payload: OrderBumpUpdate, d
 
 
 @router.delete("/order-bumps/{item_id}", status_code=204)
-def delete_order_bump(product_id: int, item_id: int, db: Session = Depends(get_db), _=Depends(get_current_user)):
+def delete_order_bump(product_id: int, item_id: int, db: Session = Depends(get_db), company_id: int = Depends(get_company_id)):
+    _get_product(product_id, db, company_id)
     item = db.query(OrderBump).filter(OrderBump.id == item_id, OrderBump.product_id == product_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Order bump não encontrado")
@@ -204,14 +208,14 @@ def delete_order_bump(product_id: int, item_id: int, db: Session = Depends(get_d
 # ── Upsell routes ────────────────────────────────────────────
 
 @router.get("/upsells", response_model=list[UpsellResponse])
-def list_upsells(product_id: int, db: Session = Depends(get_db), _=Depends(get_current_user)):
-    _get_product(product_id, db)
+def list_upsells(product_id: int, db: Session = Depends(get_db), company_id: int = Depends(get_company_id)):
+    _get_product(product_id, db, company_id)
     return db.query(Upsell).filter(Upsell.product_id == product_id).all()
 
 
 @router.post("/upsells", response_model=UpsellResponse, status_code=201)
-def create_upsell(product_id: int, payload: UpsellCreate, db: Session = Depends(get_db), _=Depends(get_current_user)):
-    _get_product(product_id, db)
+def create_upsell(product_id: int, payload: UpsellCreate, db: Session = Depends(get_db), company_id: int = Depends(get_company_id)):
+    _get_product(product_id, db, company_id)
     item = Upsell(product_id=product_id, external_id=payload.external_id, name=payload.name, price=payload.price)
     db.add(item)
     db.commit()
@@ -220,7 +224,8 @@ def create_upsell(product_id: int, payload: UpsellCreate, db: Session = Depends(
 
 
 @router.put("/upsells/{item_id}", response_model=UpsellResponse)
-def update_upsell(product_id: int, item_id: int, payload: UpsellUpdate, db: Session = Depends(get_db), _=Depends(get_current_user)):
+def update_upsell(product_id: int, item_id: int, payload: UpsellUpdate, db: Session = Depends(get_db), company_id: int = Depends(get_company_id)):
+    _get_product(product_id, db, company_id)
     item = db.query(Upsell).filter(Upsell.id == item_id, Upsell.product_id == product_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Upsell não encontrado")
@@ -236,7 +241,8 @@ def update_upsell(product_id: int, item_id: int, payload: UpsellUpdate, db: Sess
 
 
 @router.delete("/upsells/{item_id}", status_code=204)
-def delete_upsell(product_id: int, item_id: int, db: Session = Depends(get_db), _=Depends(get_current_user)):
+def delete_upsell(product_id: int, item_id: int, db: Session = Depends(get_db), company_id: int = Depends(get_company_id)):
+    _get_product(product_id, db, company_id)
     item = db.query(Upsell).filter(Upsell.id == item_id, Upsell.product_id == product_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Upsell não encontrado")

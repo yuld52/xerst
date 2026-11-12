@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from datetime import datetime, timedelta
 from typing import Optional
 
@@ -78,7 +78,14 @@ def _apply_filters(
     if campaign and campaign != "all":
         query = query.filter(Transaction.utm_campaign == campaign)
     if search:
-        query = query.filter(Transaction.customer_email.ilike(f"%{search}%"))
+        term = f"%{search}%"
+        query = query.filter(
+            or_(
+                Transaction.customer_email.ilike(term),
+                Transaction.external_id.ilike(term),
+                Transaction.product_name.ilike(term),
+            )
+        )
     if account_slug and account_slug != "all":
         query = query.filter(Transaction.webhook_slug == account_slug)
     return query

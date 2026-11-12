@@ -17,24 +17,51 @@ def reset_sales(
     db: Session = Depends(get_db),
     user=Depends(require_role("owner")),
 ):
+    company_id = user.company_id
+    if not company_id:
+        raise HTTPException(status_code=400, detail="Empresa não identificada")
+
     try:
-        # 1. Filhos de customers
-        db.query(CustomerProduct).delete()
+        # IDs de produtos da empresa
+        product_ids = [p.id for p in db.query(Product.id).filter(Product.company_id == company_id).all()]
+        # IDs de clientes da empresa
+        customer_ids = [c.id for c in db.query(Customer.id).filter(Customer.company_id == company_id).all()]
 
-        # 2. Transactions (FK → customers, products SET NULL)
-        db.query(Transaction).delete()
+        # 1. Filhos de customers da empresa
+        if customer_ids:
+            db.query(CustomerProduct).filter(
+                CustomerProduct.customer_id.in_(customer_ids)
+            ).delete(synchronize_session=False)
 
-        # 3. Customers
-        db.query(Customer).delete()
+        # 2. Transactions da empresa
+        db.query(Transaction).filter(
+            Transaction.company_id == company_id
+        ).delete(synchronize_session=False)
 
-        # 4. Filhos de products
-        db.query(ProductAlias).delete()
-        db.query(Checkout).delete()
-        db.query(OrderBump).delete()
-        db.query(Upsell).delete()
+        # 3. Customers da empresa
+        db.query(Customer).filter(
+            Customer.company_id == company_id
+        ).delete(synchronize_session=False)
 
-        # 5. Products
-        db.query(Product).delete()
+        # 4. Filhos de products da empresa
+        if product_ids:
+            db.query(ProductAlias).filter(
+                ProductAlias.product_id.in_(product_ids)
+            ).delete(synchronize_session=False)
+            db.query(Checkout).filter(
+                Checkout.product_id.in_(product_ids)
+            ).delete(synchronize_session=False)
+            db.query(OrderBump).filter(
+                OrderBump.product_id.in_(product_ids)
+            ).delete(synchronize_session=False)
+            db.query(Upsell).filter(
+                Upsell.product_id.in_(product_ids)
+            ).delete(synchronize_session=False)
+
+        # 5. Products da empresa
+        db.query(Product).filter(
+            Product.company_id == company_id
+        ).delete(synchronize_session=False)
 
         db.commit()
 
