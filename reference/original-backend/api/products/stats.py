@@ -6,7 +6,7 @@ from database.core.connection import get_db
 from database.models.product import Product
 from database.models.product_items import Checkout, OrderBump, Upsell
 from database.models.transaction import Transaction, TransactionStatus
-from api.auth.deps import get_current_user
+from api.auth.deps import get_company_id
 from api.products.alias_helper import get_product_names_for_filter
 
 router = APIRouter(prefix="/products", tags=["product-stats"])
@@ -15,15 +15,15 @@ router = APIRouter(prefix="/products", tags=["product-stats"])
 @router.get("/stats")
 def get_all_product_stats(
     db: Session = Depends(get_db),
-    _=Depends(get_current_user),
+    company_id: int = Depends(get_company_id),
 ):
     """
-    Retorna estatísticas agregadas de cada produto:
+    Retorna estatísticas agregadas de cada produto da empresa:
     - Vendas, faturamento, abandonos por checkout
     - Vendas e faturamento por order bump (calculadas pelo JSON order_bumps na transaction)
     - Vendas e faturamento por upsell (calculadas pelo external_id do produto na transaction)
     """
-    products = db.query(Product).all()
+    products = db.query(Product).filter(Product.company_id == company_id).all()
     result = []
 
     for product in products:
@@ -32,9 +32,9 @@ def get_all_product_stats(
         upsells = db.query(Upsell).filter(Upsell.product_id == product.id).all()
 
         # Main product stats from transactions
-        checkout_stats = _calc_checkout_stats(db, product, checkouts)
-        ob_stats = _calc_order_bump_stats(db, product, order_bumps)
-        upsell_stats = _calc_upsell_stats(db, upsells)
+        checkout_stats = _calc_checkout_stats(db, product, checkouts, company_id)
+        ob_stats = _calc_order_bump_stats(db, product, order_bumps, company_id)
+        upsell_stats = _calc_upsell_stats(db, upsells, company_id)
 
         result.append({
             "product_id": product.id,
@@ -58,7 +58,7 @@ def _build_checkout_match_filter(ck: Checkout):
     return or_(*conditions)
 
 
-def _calc_checkout_stats(db: Session, product: Product, checkouts: list[Checkout]):
+def _calc_checkout_stats(db: Session, product: Product, checkouts: list[Checkout], company_id: int):
     """
     Para cada checkout, conta vendas approved e abandonos (pending)
     pelo product_id da transaction e pelo checkout_url (URL ou code).
@@ -75,6 +75,7 @@ def _calc_checkout_stats(db: Session, product: Product, checkouts: list[Checkout
 
         # Approved sales that match this product and checkout
         sales_q = db.query(func.count(Transaction.id), func.coalesce(func.sum(Transaction.amount), 0)).filter(
+            Transaction.company_id == company_id,
             product_filter,
             Transaction.status == TransactionStatus.APPROVED,
             match_filter,
@@ -82,6 +83,7 @@ def _calc_checkout_stats(db: Session, product: Product, checkouts: list[Checkout
 
         # Pending/abandoned transactions for this checkout
         abandons_q = db.query(func.count(Transaction.id)).filter(
+            Transaction.company_id == company_id,
             product_filter,
             Transaction.status == TransactionStatus.PENDING,
             match_filter,
@@ -105,7 +107,7 @@ def _calc_checkout_stats(db: Session, product: Product, checkouts: list[Checkout
     return stats
 
 
-def _calc_order_bump_stats(db: Session, product: Product, order_bumps: list[OrderBump]):
+def _calc_order_bump_stats(db: Session, product: Product, order_bumps: list[OrderBump], company_id: int):
     """
     Order bumps são armazenados no campo JSON `order_bumps` da transaction.
     Precisamos iterar as transactions approved deste produto e contar quanto
@@ -123,6 +125,7 @@ def _calc_order_bump_stats(db: Session, product: Product, order_bumps: list[Orde
 
     # Get all approved transactions for this product that have order_bumps
     txns = db.query(Transaction).filter(
+        Transaction.company_id == company_id,
         product_filter,
         Transaction.status == TransactionStatus.APPROVED,
         Transaction.order_bumps.isnot(None),
@@ -130,6 +133,7 @@ def _calc_order_bump_stats(db: Session, product: Product, order_bumps: list[Orde
 
     # Total approved sales for this product (for conversion calc)
     total_sales = db.query(func.count(Transaction.id)).filter(
+        Transaction.company_id == company_id,
         product_filter,
         Transaction.status == TransactionStatus.APPROVED,
     ).scalar() or 0
@@ -162,7 +166,7 @@ def _calc_order_bump_stats(db: Session, product: Product, order_bumps: list[Orde
     return stats
 
 
-def _calc_upsell_stats(db: Session, upsells: list[Upsell]):
+def _calc_upsell_stats(db: Session, upsells: list[Upsell], company_id: int):
     """
     Upsells são vendas separadas (row diferente no transactions).
     O upsell é identificado pelo external_id do upsell = product.code na transaction.
@@ -183,6 +187,7 @@ def _calc_upsell_stats(db: Session, upsells: list[Upsell]):
             func.count(Transaction.id),
             func.coalesce(func.sum(Transaction.amount), 0),
         ).filter(
+            Transaction.company_id == company_id,
             Transaction.product_name == up.name,
             Transaction.status == TransactionStatus.APPROVED,
         ).first()

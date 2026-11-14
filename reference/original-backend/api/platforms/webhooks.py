@@ -2,7 +2,7 @@ import uuid
 import hashlib
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 
 from database.core.connection import get_db
@@ -26,8 +26,7 @@ class WebhookResponse(BaseModel):
     name: str
     created_at: datetime | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 @router.get("/webhooks", response_model=list[WebhookResponse])

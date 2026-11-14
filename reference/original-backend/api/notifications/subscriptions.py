@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from database.core.connection import get_db
 from database.models.push_subscription import PushSubscription
 from services.push_notifications import push_service
@@ -28,8 +28,7 @@ class SubscriptionResponse(BaseModel):
     endpoint: str
     is_active: bool
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 @router.post("/subscribe", response_model=SubscriptionResponse)

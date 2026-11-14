@@ -1,13 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 
 from database.core.connection import get_db
 from database.models.stripe_account import StripeAccount
 from database.models.audit_log import AuditLog
 from database.models.admin import Admin
-from api.auth.deps import get_current_user
 from integrations.stripe.client import validate_stripe_key
 from api.auth.deps import get_current_user, get_company_id
 
@@ -25,8 +24,7 @@ class StripeAccountResponse(BaseModel):
     api_key: str
     created_at: datetime | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 def _masked_key(api_key: str) -> str:

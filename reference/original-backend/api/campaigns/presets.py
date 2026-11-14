@@ -4,7 +4,7 @@ O usuário cria, lista e deleta presets de colunas.
 """
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from database.core.connection import get_db
 from database.models.campaign_preset import CampaignPreset
@@ -24,8 +24,7 @@ class PresetResponse(BaseModel):
     columns: list[str]
     created_at: str | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 @router.get("/presets", response_model=list[PresetResponse])
