@@ -14,6 +14,7 @@ from api.auth.deps import get_company_id
 from api.funnel.date_helpers import resolve_date_range, date_to_meta_format
 from api.funnel.facebook_data import fetch_facebook_aggregated
 from api.products.alias_helper import get_product_names_for_filter
+from integrations.meta_ads.helpers import clamp_meta_date
 
 router = APIRouter(prefix="/funnel", tags=["funnel"])
 
@@ -29,7 +30,7 @@ async def get_funnel_data(
     dt_start, dt_end = resolve_date_range(preset, date_start, date_end)
     products = db.query(Product).filter(Product.company_id == company_id).order_by(Product.id).all()
 
-    meta_start = date_to_meta_format(dt_start) if dt_start else "2020-01-01"
+    meta_start = clamp_meta_date(date_to_meta_format(dt_start) if dt_start else "")
     meta_end = date_to_meta_format(dt_end) if dt_end else date_to_meta_format(now_sp())
     accounts = db.query(FacebookAccount).filter(
         FacebookAccount.company_id == company_id,

@@ -6,7 +6,7 @@ Usa asyncio.gather para paralelizar e cache para evitar chamadas duplicadas.
 import asyncio
 import logging
 
-from integrations.meta_ads.client import MetaAdsClient
+from integrations.meta_ads.client import MetaAdsClient, MetaAuthError
 from integrations.meta_ads.campaigns import fetch_campaigns
 from integrations.meta_ads.adsets import fetch_adsets
 from integrations.meta_ads.ads import fetch_ads
@@ -114,11 +114,23 @@ class MetaAdsService:
         Usa cache individual para cada nível.
         Reduz tempo total de resposta significativamente.
         """
-        campaigns, adsets, ads = await asyncio.gather(
+        results = await asyncio.gather(
             self.get_campaigns(date_start, date_end),
             self.get_adsets(date_start, date_end),
             self.get_ads(date_start, date_end),
+            return_exceptions=True,
         )
+        campaigns = results[0] if isinstance(results[0], list) else []
+        adsets = results[1] if isinstance(results[1], list) else []
+        ads = results[2] if isinstance(results[2], list) else []
+        if isinstance(results[0], Exception):
+            logger.error(f"Falha ao buscar campanhas Meta: {results[0]}")
+            if isinstance(results[0], MetaAuthError):
+                raise results[0]
+        if isinstance(results[1], Exception):
+            logger.warning(f"Falha ao buscar adsets Meta: {results[1]}")
+        if isinstance(results[2], Exception):
+            logger.warning(f"Falha ao buscar ads Meta: {results[2]}")
         return campaigns, adsets, ads
 
     async def get_account_summary(

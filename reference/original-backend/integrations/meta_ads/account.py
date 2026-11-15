@@ -5,7 +5,7 @@ Usado nos KPIs do dashboard principal.
 from integrations.meta_ads.client import MetaAdsClient
 from integrations.meta_ads.schemas import AccountInsightsSummary
 from integrations.meta_ads.helpers import (
-    extract_action_value, safe_float, safe_int,
+    extract_action_value, safe_float, safe_int, clamp_meta_date,
 )
 
 ACCOUNT_FIELDS = ",".join([
@@ -27,11 +27,12 @@ async def fetch_account_insights(
     Busca métricas agregadas da conta inteira no período.
     Retorna spend total, clicks, impressions, etc.
     """
+    safe_start = clamp_meta_date(date_start)
     data = await client._get(
         f"{client.account_id}/insights",
         params={
             "fields": ACCOUNT_FIELDS,
-            "time_range": f'{{"since":"{date_start}","until":"{date_end}"}}',
+            "time_range": f'{{"since":"{safe_start}","until":"{date_end}"}}',
         },
     )
 

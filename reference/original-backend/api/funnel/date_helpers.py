@@ -37,6 +37,10 @@ def resolve_date_range(
     if preset == "90d":
         return today - timedelta(days=90), today
 
+    if preset == "all":
+        # Todo o período / Tempo inteiro: até 3 anos
+        return today - timedelta(days=1095), today
+
     if preset == "custom" and date_start and date_end:
         try:
             start = datetime.strptime(date_start, "%Y-%m-%d")

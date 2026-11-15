@@ -38,6 +38,9 @@ def _parse_date_range(preset: str, start: Optional[str], end: Optional[str]):
         return now - timedelta(days=30), now
     elif preset == "90d":
         return now - timedelta(days=90), now
+    elif preset == "all":
+        # Todo o período / Tempo inteiro: até 3 anos (1095 dias), alinhado com o histórico da Meta Ads
+        return now - timedelta(days=1095), now
     elif preset == "custom" and start and end:
         try:
             s = datetime.strptime(start, "%Y-%m-%d")
@@ -76,9 +79,13 @@ def _apply_filters(query, db, preset, start, end, platform, product_id, account_
 
 def _date_range_strings(preset, start, end):
     """Retorna date strings YYYY-MM-DD para a Meta API."""
+    now = now_sp()
+    if preset == "all":
+        d_start = now - timedelta(days=1095)
+        d_end = now
+        return d_start.strftime("%Y-%m-%d"), d_end.strftime("%Y-%m-%d")
     d_start, d_end = _parse_date_range(preset, start, end)
     if not d_start or not d_end:
-        now = now_sp()
         d_start = now - timedelta(days=30)
         d_end = now
     return d_start.strftime("%Y-%m-%d"), d_end.strftime("%Y-%m-%d")

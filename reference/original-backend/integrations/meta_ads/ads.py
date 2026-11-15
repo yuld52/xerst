@@ -5,7 +5,7 @@ Usa nested fields para obter estrutura e métricas em 1 único request.
 from integrations.meta_ads.client import MetaAdsClient
 from integrations.meta_ads.schemas import AdInsights
 from integrations.meta_ads.helpers import (
-    extract_action_value, safe_float, safe_int, calc_connect_rate,
+    extract_action_value, safe_float, safe_int, calc_connect_rate, clamp_meta_date,
 )
 
 # Campos de estrutura do ad
@@ -24,7 +24,8 @@ INSIGHT_FIELDS = ",".join([
 
 def _build_fields(date_start: str, date_end: str) -> str:
     """Monta fields com insights aninhados (1 request ao invés de 2)."""
-    time_range = f'{{"since":"{date_start}","until":"{date_end}"}}'
+    safe_start = clamp_meta_date(date_start)
+    time_range = f'{{"since":"{safe_start}","until":"{date_end}"}}'
     insights = f"insights.time_range({time_range}){{{INSIGHT_FIELDS}}}"
     return f"{STRUCTURE_FIELDS},{insights}"
 

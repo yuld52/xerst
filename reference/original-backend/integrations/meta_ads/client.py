@@ -34,8 +34,8 @@ FATAL_AUTH_CODES = {
 GRAPH_API_VERSION = os.getenv("META_GRAPH_API_VERSION", "v25.0")
 GRAPH_API_BASE = f"https://graph.facebook.com/{GRAPH_API_VERSION}"
 
-# Timeout padrão para requests (em segundos)
-DEFAULT_TIMEOUT = 30.0
+# Timeout padrão para requests (em segundos, aumentado para suportar consultas amplas de tempo inteiro)
+DEFAULT_TIMEOUT = 60.0
 
 # Retry config
 MAX_RETRIES = 3
@@ -66,7 +66,19 @@ class MetaAdsClient:
         A Meta retorna código 400 com error code 17 para rate limit.
         """
         for attempt in range(MAX_RETRIES):
-            response = await self._client.get(url, params=params)
+            try:
+                response = await self._client.get(url, params=params)
+            except httpx.TimeoutException as e:
+                if attempt == MAX_RETRIES - 1:
+                    logger.error(f"Timeout definitivo na Meta API após {MAX_RETRIES} tentativas: {url}")
+                    raise
+                wait_time = INITIAL_BACKOFF * (2 ** attempt)
+                logger.warning(
+                    f"Timeout na Meta API (tentativa {attempt + 1}/{MAX_RETRIES}). "
+                    f"Aguardando {wait_time}s antes de tentar novamente."
+                )
+                await asyncio.sleep(wait_time)
+                continue
 
             # Sucesso
             if response.status_code == 200:
