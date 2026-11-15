@@ -1,5 +1,6 @@
 import os
 import json
+import logging
 from typing import Optional
 from dotenv import load_dotenv
 from pywebpush import webpush, WebPushException
@@ -11,6 +12,7 @@ from datetime import datetime, timedelta
 from database.models.notification_retry import NotificationRetry
 
 load_dotenv()
+logger = logging.getLogger("push_notifications")
 
 class PushNotificationService:
     """Serviço para enviar notificações push usando Web Push Protocol"""
@@ -23,7 +25,7 @@ class PushNotificationService:
         }
         
         if not self.vapid_private_key or not self.vapid_public_key:
-            print("⚠️  VAPID keys não configuradas. Push notifications desabilitadas.")
+            logger.warning("VAPID keys nao configuradas. Push notifications desabilitadas.")
 
     def has_vapid_config(self) -> bool:
         return bool(self.vapid_private_key and self.vapid_public_key)
@@ -51,7 +53,7 @@ class PushNotificationService:
             True se enviado com sucesso, False caso contrário
         """
         if not self.vapid_private_key or not self.vapid_public_key:
-            print("⚠️  VAPID keys não configuradas")
+            logger.warning("VAPID keys nao configuradas")
             return False
         
         try:
@@ -79,12 +81,12 @@ class PushNotificationService:
             return True
             
         except WebPushException as e:
-            print(f"❌ Erro ao enviar push notification: {e}")
+            logger.error(f"Erro ao enviar push notification: {e}")
             if e.response is not None and e.response.status_code in [404, 410]:
                 subscription.is_active = False
             return False
         except Exception as e:
-            print(f"❌ Erro inesperado ao enviar notificação: {e}")
+            logger.error(f"Erro inesperado ao enviar notificacao: {e}")
             return False
     
     def send_sale_notification(
@@ -141,7 +143,7 @@ class PushNotificationService:
         ).all()
         
         if not subscriptions:
-            print("ℹ️  Nenhuma subscrição ativa encontrada")
+            logger.info("Nenhuma subscricao ativa encontrada")
             db.add(NotificationDelivery(company_id=company_id, title="LomusTrack", body=body, status="no_subscribers", data={"status": status}))
             db.commit()
             return
@@ -174,7 +176,7 @@ class PushNotificationService:
             else:
                 failed_count += 1
         
-        print(f"✅ Notificações enviadas: {success_count} sucesso, {failed_count} falhas")
+        logger.info(f"Notificacoes enviadas: {success_count} sucesso, {failed_count} falhas")
         delivery_data = {
             "url": "/sales", "status": status, "amount": formatted_amount,
             "product": product_name, "campaign": campaign_value,
