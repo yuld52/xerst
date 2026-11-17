@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { RiSettings3Line } from "@remixicon/react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { fetchUserPreferences, updateUserPreferences } from "@/services/userPreferences";
@@ -10,26 +9,14 @@ import { isImportDemo } from "@/lib/import-demo";
 import { toast } from "sonner";
 
 const INTERVAL_KEY = "lomus-report-interval";
-const DEFAULT_INTERVAL = 60; // minutes
+const DEFAULT_INTERVAL = 24 * 60;
 
 export function getReportIntervalMs(): number {
-  try {
-    const val = localStorage.getItem(INTERVAL_KEY);
-    const min = val ? parseInt(val, 10) : DEFAULT_INTERVAL;
-    return (min > 0 ? min : DEFAULT_INTERVAL) * 60 * 1000;
-  } catch {
-    return DEFAULT_INTERVAL * 60 * 1000;
-  }
+  return DEFAULT_INTERVAL * 60 * 1000;
 }
 
 export function getReportIntervalMinutes(): number {
-  try {
-    const val = localStorage.getItem(INTERVAL_KEY);
-    const min = val ? parseInt(val, 10) : DEFAULT_INTERVAL;
-    return min > 0 ? min : DEFAULT_INTERVAL;
-  } catch {
-    return DEFAULT_INTERVAL;
-  }
+  return DEFAULT_INTERVAL;
 }
 
 interface ReportIntervalSettingsProps {
@@ -38,7 +25,6 @@ interface ReportIntervalSettingsProps {
 
 export function ReportIntervalSettings({ onIntervalChange }: ReportIntervalSettingsProps) {
   const [open, setOpen] = useState(false);
-  const [minutes, setMinutes] = useState(() => String(getReportIntervalMinutes()));
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -46,18 +32,19 @@ export function ReportIntervalSettings({ onIntervalChange }: ReportIntervalSetti
     fetchUserPreferences()
       .then((preferences) => {
         const saved = preferences.reportIntervalMinutes;
-        if (typeof saved === "number" && saved > 0) {
-          localStorage.setItem(INTERVAL_KEY, String(saved));
-          setMinutes(String(saved));
-          onIntervalChange?.(saved);
+        if (saved !== DEFAULT_INTERVAL) {
+          void updateUserPreferences({ reportIntervalMinutes: DEFAULT_INTERVAL }).catch(
+            () => undefined,
+          );
         }
+        localStorage.setItem(INTERVAL_KEY, String(DEFAULT_INTERVAL));
+        onIntervalChange?.(DEFAULT_INTERVAL);
       })
       .catch(() => undefined);
   }, [onIntervalChange]);
 
   const handleSave = async () => {
-    const parsed = parseInt(minutes, 10);
-    const value = parsed > 0 ? parsed : DEFAULT_INTERVAL;
+    const value = DEFAULT_INTERVAL;
     if (getCookie("access_token") && !isImportDemo()) {
       setSaving(true);
       try {
@@ -72,7 +59,6 @@ export function ReportIntervalSettings({ onIntervalChange }: ReportIntervalSetti
       setSaving(false);
     }
     localStorage.setItem(INTERVAL_KEY, String(value));
-    setMinutes(String(value));
     onIntervalChange?.(value);
     setOpen(false);
   };
@@ -93,24 +79,16 @@ export function ReportIntervalSettings({ onIntervalChange }: ReportIntervalSetti
             Relatório automático
           </p>
           <p className="text-[11px] text-muted-foreground mt-0.5">
-            Intervalo entre os relatórios do dia
+            Frequência máxima no plano Hobby
           </p>
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="report-interval" className="text-xs">
-            Intervalo (minutos)
+            Frequência
           </Label>
-          <Input
-            id="report-interval"
-            type="number"
-            min={1}
-            value={minutes}
-            onChange={(e) => setMinutes(e.target.value)}
-            className="h-8 text-sm"
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleSave();
-            }}
-          />
+          <p id="report-interval" className="text-sm text-muted-foreground">
+            Uma vez por dia
+          </p>
         </div>
         <Button
           size="sm"

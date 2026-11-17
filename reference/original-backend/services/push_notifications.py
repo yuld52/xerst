@@ -213,9 +213,10 @@ def enqueue_notification_retry(
         data=data,
         delivered_subscription_ids=delivered_subscription_ids or [],
         attempts=0,
-        max_attempts=5,
+        max_attempts=3,
         status="pending",
-        next_attempt_at=datetime.utcnow() + timedelta(minutes=5),
+        # Hobby's scheduler runs once per day; retry on the next daily run.
+        next_attempt_at=datetime.utcnow() + timedelta(days=1),
     )
     db.add(job)
     return job

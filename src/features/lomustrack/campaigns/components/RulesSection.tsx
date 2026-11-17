@@ -100,9 +100,7 @@ function RuleForm({
   const [actionValue, setActionValue] = useState("10");
   const [conditions, setConditions] = useState<RuleCondition[]>([]);
   const [period, setPeriod] = useState("today");
-  const [frequency, setFrequency] = useState("15m");
-  const [interval, setInterval] = useState("any");
-  const [dailyLimit, setDailyLimit] = useState("none");
+  const frequency = "daily";
 
   useEffect(() => {
     if (!open) {
@@ -115,9 +113,6 @@ function RuleForm({
       setActionValue("10");
       setConditions([]);
       setPeriod("today");
-      setFrequency("15m");
-      setInterval("any");
-      setDailyLimit("none");
     }
   }, [open]);
 
@@ -143,8 +138,8 @@ function RuleForm({
       conditions,
       period,
       frequency,
-      interval,
-      dailyLimit,
+      interval: "any",
+      dailyLimit: "1",
       actionValue: Number(actionValue),
       enabled: true,
     });
@@ -346,50 +341,12 @@ function RuleForm({
                   aria-label="Define com que frequência a regra será verificada"
                 />
               </span>
-              <RuleSelect value={frequency} onChange={setFrequency}>
-                <SelectItem value="15m">A cada 15 minutos</SelectItem>
-                <SelectItem value="30m">A cada 30 minutos</SelectItem>
-                <SelectItem value="1h">A cada 1 hora</SelectItem>
-                <SelectItem value="daily">Uma vez por dia</SelectItem>
-              </RuleSelect>
-            </label>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-            <label className="space-y-2">
-              <span
-                className="text-xs font-medium text-muted-foreground"
-                title="Limita em quais horários a regra pode ser executada."
-              >
-                Intervalo de Execução{" "}
-                <RiInformationLine
-                  className="inline size-3 cursor-help"
-                  aria-label="Limita em quais horários a regra pode ser executada"
-                />
-              </span>
-              <RuleSelect value={interval} onChange={setInterval}>
-                <SelectItem value="any">Qualquer</SelectItem>
-                <SelectItem value="business">Horário comercial</SelectItem>
-                <SelectItem value="morning">Manhã</SelectItem>
-                <SelectItem value="evening">Noite</SelectItem>
-              </RuleSelect>
-            </label>
-            <label className="space-y-2">
-              <span
-                className="text-xs font-medium text-muted-foreground"
-                title="Limita quantas vezes a regra pode executar no mesmo dia."
-              >
-                Limite de Execuções Diária{" "}
-                <RiInformationLine
-                  className="inline size-3 cursor-help"
-                  aria-label="Limita quantas vezes a regra pode executar no mesmo dia"
-                />
-              </span>
-              <RuleSelect value={dailyLimit} onChange={setDailyLimit}>
-                <SelectItem value="none">Sem limite</SelectItem>
-                <SelectItem value="1">1 execução</SelectItem>
-                <SelectItem value="3">3 execuções</SelectItem>
-                <SelectItem value="5">5 execuções</SelectItem>
-              </RuleSelect>
+              <div className="rounded-md border bg-muted/30 px-3 py-2 text-sm">
+                Uma vez por dia, por volta das 08:00 (horário de Maputo)
+              </div>
+              <p className="text-xs text-muted-foreground">
+                No plano Hobby, a Vercel pode iniciar a rotina com até 59 minutos de variação.
+              </p>
             </label>
           </div>
         </div>
@@ -568,7 +525,7 @@ export function RulesSection() {
                       </div>
                     </td>
                     <td className="px-4 py-4">
-                      {rule.frequency === "15m" ? "A cada 15 minutos" : rule.frequency}
+                      Uma vez por dia, por volta das 08:00 (Maputo)
                       <div className="mt-1 text-muted-foreground">
                         {rule.period === "today" ? "Hoje" : rule.period}
                       </div>

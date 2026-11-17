@@ -21,7 +21,7 @@ export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   saleValue: "show",
   productName: "hide",
   campaignValue: "hide",
-  reportHours: { "08:00": false, "12:00": false, "18:00": false, "23:00": false },
+  reportHours: { "08:00": false },
   template: "profit",
   timezone: "Africa/Maputo",
 };
@@ -37,10 +37,8 @@ export function readNotificationPreferences(): NotificationPreferences {
     return {
       ...DEFAULT_NOTIFICATION_PREFERENCES,
       ...saved,
-      reportHours: {
-        ...DEFAULT_NOTIFICATION_PREFERENCES.reportHours,
-        ...(saved?.reportHours || {}),
-      },
+      // Older settings offered multiple times; Hobby supports one daily report.
+      reportHours: { "08:00": Object.values(saved?.reportHours || {}).some(Boolean) },
     };
   } catch {
     return DEFAULT_NOTIFICATION_PREFERENCES;

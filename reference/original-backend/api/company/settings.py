@@ -8,6 +8,7 @@ from database.models.company import CompanySettings, DEFAULT_KPI_COLORS, DEFAULT
 from database.models.admin import Admin
 from database.models.audit_log import AuditLog
 from api.auth.deps import get_current_user, get_company_id
+from services.hobby_schedule import normalize_report_hours
 
 router = APIRouter(prefix="/company", tags=["company"])
 
@@ -59,7 +60,7 @@ class NotificationPreferencesSchema(BaseModel):
     saleValue: str = "show"
     productName: str = "hide"
     campaignValue: str = "hide"
-    reportHours: dict[str, bool] = Field(default_factory=lambda: {"08:00": False, "12:00": False, "18:00": False, "23:00": False})
+    reportHours: dict[str, bool] = Field(default_factory=lambda: {"08:00": False})
     template: str = "profit"
     timezone: str = "Africa/Maputo"
 
@@ -69,6 +70,7 @@ class NotificationPreferencesSchema(BaseModel):
                 raise ValueError(f"{field_name} deve ser show ou hide")
         if self.template not in ("profit", "summary", "creative"):
             raise ValueError("Modelo de notificação inválido")
+        self.reportHours = normalize_report_hours(self.reportHours)
 
 
 def _get_or_create_settings(db: Session, company_id: int) -> CompanySettings:
@@ -188,7 +190,7 @@ def get_notification_preferences(db: Session = Depends(get_db), company_id: int 
     return settings.notification_preferences or {
         "pendingSales": "hide", "approvedSales": "show", "saleValue": "show",
         "productName": "hide", "campaignValue": "hide",
-        "reportHours": {"08:00": False, "12:00": False, "18:00": False, "23:00": False},
+        "reportHours": {"08:00": False},
         "template": "profit",
         "timezone": "Africa/Maputo",
     }

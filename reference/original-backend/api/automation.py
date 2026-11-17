@@ -2,10 +2,10 @@ import os
 import uuid
 from datetime import datetime, timedelta
 from datetime import timezone as datetime_timezone
-from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, Header, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 
@@ -28,6 +28,7 @@ from database.models.push_subscription import PushSubscription
 from integrations.meta_ads.manage import toggle_entity_status, update_budget
 from integrations.meta_ads.service import MetaAdsService
 from services.push_notifications import enqueue_notification_retry, push_service
+from services.hobby_schedule import normalize_rule_frequency, rule_was_checked_today
 from langchain_core.messages import HumanMessage, SystemMessage
 
 router = APIRouter(tags=["automation"])
@@ -43,11 +44,16 @@ class CampaignRulePayload(BaseModel):
     action: str
     conditions: list[dict]
     period: str = "today"
-    frequency: str = "15m"
+    frequency: str = "daily"
     interval: str = "any"
     dailyLimit: str = "none"
     actionValue: float = Field(default=10, ge=1, le=90)
     enabled: bool = True
+
+    @field_validator("frequency", mode="before")
+    @classmethod
+    def enforce_hobby_daily_frequency(cls, _value: str) -> str:
+        return normalize_rule_frequency(_value)
 
 
 class CampaignRuleUpdate(BaseModel):
@@ -142,23 +148,14 @@ async def _run_campaign_rules(db: Session, now: datetime) -> dict:
     processed = actions_count = errors = 0
     for row in due:
         definition = row.definition or {}
-        frequency = definition.get("frequency", "15m")
-        minutes = {"15m": 15, "30m": 30, "1h": 60, "daily": 1440}.get(frequency, 15)
-        if row.last_checked_at and (now - row.last_checked_at) < timedelta(minutes=minutes):
+        # Hobby executes this endpoint once per day. Treat legacy rule frequencies
+        # as daily too, and use the application's local date to tolerate Vercel's
+        # per-hour scheduling jitter without skipping a day.
+        if rule_was_checked_today(row.last_checked_at, now.date()):
             continue
         if row.execution_date != now.date():
             row.executions_today = 0
             row.execution_date = now.date()
-        interval = definition.get("interval", "any")
-        if interval == "business" and not (9 <= now.hour < 17):
-            row.last_checked_at = now
-            continue
-        if interval == "morning" and not (5 <= now.hour < 12):
-            row.last_checked_at = now
-            continue
-        if interval == "evening" and not (18 <= now.hour < 24):
-            row.last_checked_at = now
-            continue
         limit = definition.get("dailyLimit", "none")
         if limit != "none" and row.executions_today >= int(limit):
             row.last_checked_at = now
@@ -269,14 +266,13 @@ async def _send_scheduled_reports(db: Session, now: datetime) -> dict:
     sent = failed = 0
     for settings in settings_rows:
         prefs = settings.notification_preferences or {}
-        try:
-            local_now = datetime.now(datetime_timezone.utc).astimezone(ZoneInfo(prefs.get("timezone", "Africa/Maputo")))
-        except (ZoneInfoNotFoundError, ValueError):
-            local_now = datetime.now(datetime_timezone.utc).astimezone(ZoneInfo("Africa/Maputo"))
-        hour_key = f"{local_now.hour:02d}:00"
-        if not (prefs.get("reportHours") or {}).get(hour_key, False):
+        if not any((prefs.get("reportHours") or {}).values()):
             continue
-        title = f"Relatório LomusTrack {local_now.date().isoformat()} {hour_key}"
+        # One daily slot is supported on Hobby. Keep the schedule aligned with
+        # the Vercel cron at 06:00 UTC (about 08:00 in Maputo).
+        local_now = datetime.now(datetime_timezone.utc).astimezone(ZoneInfo("Africa/Maputo"))
+        hour_key = "08:00"
+        title = f"Relatório LomusTrack {local_now.date().isoformat()}"
         if db.query(NotificationDelivery.id).filter(
             NotificationDelivery.company_id == settings.company_id,
             NotificationDelivery.title == title,
@@ -364,11 +360,11 @@ def _retry_notifications(db: Session, now: datetime) -> dict:
         if complete:
             job.status = "sent"
             delivered_count += len(sent_now)
-        elif job.attempts >= job.max_attempts:
+        elif job.attempts >= min(job.max_attempts, 3):
             job.status = "failed"
             failed_count += failures or len(expected_targets - set(job.delivered_subscription_ids))
         else:
-            job.next_attempt_at = datetime.utcnow() + timedelta(minutes=min(5 * (2 ** job.attempts), 240))
+            job.next_attempt_at = datetime.utcnow() + timedelta(days=1)
         db.add(NotificationDelivery(
             company_id=job.company_id,
             title=job.title,
