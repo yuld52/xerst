@@ -47,6 +47,7 @@ def process_transactions(
     db: Session, rows: list[ImportRow], config_map: dict,
     product_db: dict[str, Product], platform_enum: PaymentPlatform,
     result: ImportResultResponse, webhook_slug: str | None = None,
+    company_id: int | None = None,
 ):
     """Cria Customers e Transactions para cada linha do CSV/XLSX."""
     # Rastreia IDs já processados neste lote para evitar duplicatas no próprio arquivo
@@ -64,13 +65,14 @@ def process_transactions(
 
         # Duplicata já existente no banco
         existing_tx = db.query(Transaction).filter(
-            Transaction.external_id == row.external_id
+            Transaction.external_id == row.external_id,
+            Transaction.company_id == company_id,
         ).first()
         if existing_tx:
             result.skipped_duplicates += 1
             continue
 
-        customer = _get_or_create_customer(db, row, result)
+        customer = _get_or_create_customer(db, row, result, company_id)
         status_enum = STATUS_MAP.get(row.status, TransactionStatus.PENDING)
 
         config = config_map.get(row.product_name)
@@ -94,7 +96,7 @@ def process_transactions(
         tx_date = tx_date or _get_saopaulo_time()
 
         tx = Transaction(
-            external_id=row.external_id, platform=platform_enum,
+            company_id=company_id, external_id=row.external_id, platform=platform_enum,
             status=status_enum, amount=row.amount,
             customer_id=customer.id, product_id=product_id,
             product_name=row.product_name, customer_email=row.customer_email,
@@ -123,8 +125,12 @@ def process_transactions(
 
 def _get_or_create_customer(
     db: Session, row: ImportRow, result: ImportResultResponse,
+    company_id: int | None = None,
 ) -> Customer:
-    customer = db.query(Customer).filter(Customer.email == row.customer_email).first()
+    customer = db.query(Customer).filter(
+        Customer.email == row.customer_email,
+        Customer.company_id == company_id,
+    ).first()
     if customer:
         if row.customer_name and not customer.name:
             customer.name = row.customer_name
@@ -135,7 +141,7 @@ def _get_or_create_customer(
         return customer
 
     customer = Customer(
-        email=row.customer_email, name=row.customer_name,
+        company_id=company_id, email=row.customer_email, name=row.customer_name,
         cpf=row.customer_cpf, phone=row.customer_phone,
         total_spent=0.0, total_orders=0,
     )

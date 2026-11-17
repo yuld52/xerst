@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime
+from sqlalchemy import Column, Integer, String, Float, DateTime, UniqueConstraint
 from database.core.connection import Base
 from database.core.timezone import CREATED_AT_DEFAULT, UPDATED_AT_DEFAULT
 
@@ -9,11 +9,12 @@ class Customer(Base):
     Dados chegam via webhook das plataformas de pagamento.
     """
     __tablename__ = "customers"
+    __table_args__ = (UniqueConstraint("company_id", "email", name="uq_customers_company_email"),)
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     company_id = Column(Integer, nullable=True, index=True)  # Multi-tenant
     external_id = Column(String(255), nullable=True)
-    email = Column(String(255), unique=True, nullable=False, index=True)
+    email = Column(String(255), nullable=False, index=True)
     name = Column(String(255), nullable=True)
     phone = Column(String(50), nullable=True)
     cpf = Column(String(20), nullable=True)

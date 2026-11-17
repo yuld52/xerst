@@ -108,9 +108,10 @@ function TemplateOption({
 
 export default function NotificationSettingsPage() {
   const navigate = useNavigate();
-  const [preferences, setPreferences] = useState<NotificationPreferences>(
-    () => ({ ...readNotificationPreferences(), timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Africa/Maputo" }),
-  );
+  const [preferences, setPreferences] = useState<NotificationPreferences>(() => ({
+    ...readNotificationPreferences(),
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Africa/Maputo",
+  }));
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
   const demo = isImportDemo();
   const [creativePreview, setCreativePreview] = useState(() =>
@@ -121,15 +122,31 @@ export default function NotificationSettingsPage() {
     let mounted = true;
     if (demo) {
       setPreferencesLoaded(true);
-      return () => { mounted = false; };
+      return () => {
+        mounted = false;
+      };
     }
     fetchNotificationPreferences()
-      .then((saved) => { if (mounted) setPreferences({ ...saved, timezone: saved.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || "Africa/Maputo" }); })
-      .catch((error) => {
-        if (mounted) toast.error(error instanceof Error ? error.message : "Não foi possível carregar as preferências.");
+      .then((saved) => {
+        if (mounted)
+          setPreferences({
+            ...saved,
+            timezone:
+              saved.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || "Africa/Maputo",
+          });
       })
-      .finally(() => { if (mounted) setPreferencesLoaded(true); });
-    return () => { mounted = false; };
+      .catch((error) => {
+        if (mounted)
+          toast.error(
+            error instanceof Error ? error.message : "Não foi possível carregar as preferências.",
+          );
+      })
+      .finally(() => {
+        if (mounted) setPreferencesLoaded(true);
+      });
+    return () => {
+      mounted = false;
+    };
   }, [demo]);
 
   useEffect(() => {
@@ -138,7 +155,9 @@ export default function NotificationSettingsPage() {
     if (demo) return;
     const timer = window.setTimeout(() => {
       updateNotificationPreferences(preferences).catch((error) => {
-        toast.error(error instanceof Error ? error.message : "Não foi possível salvar as preferências.");
+        toast.error(
+          error instanceof Error ? error.message : "Não foi possível salvar as preferências.",
+        );
       });
     }, 350);
     return () => window.clearTimeout(timer);
@@ -252,7 +271,9 @@ export default function NotificationSettingsPage() {
             </p>
             <div className="space-y-4">
               <h2 className="font-semibold text-muted-foreground">Horários</h2>
-              <p className="text-xs text-muted-foreground">Fuso horário deste dispositivo: {preferences.timezone}</p>
+              <p className="text-xs text-muted-foreground">
+                Fuso horário deste dispositivo: {preferences.timezone}
+              </p>
               {Object.keys(preferences.reportHours).map((hour) => (
                 <div key={hour} className="flex items-center justify-between gap-4">
                   <Label htmlFor={`report-${hour}`} className="text-sm text-muted-foreground">

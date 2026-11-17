@@ -10,7 +10,6 @@ const SyntaxHighlighter = lazy(() =>
   import("react-syntax-highlighter").then((m) => ({ default: m.Prism })),
 );
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let draculaStyle: any = null;
 const getDraculaStyle = async () => {
   if (!draculaStyle) {

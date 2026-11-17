@@ -5,12 +5,9 @@ from sqlalchemy import func, extract
 from datetime import datetime, timedelta
 
 from database.models.transaction import Transaction, TransactionStatus
-from integrations.meta_ads.schemas import CampaignInsights
-
-
-def _daily_revenue(base, db, meta_campaigns: list[CampaignInsights] = None,
+def _daily_revenue(base, db, meta_daily_spend: dict[str, float] | None = None,
                    date_start: str = None, date_end: str = None):
-    """Agrupa revenue/profit por dia, incluindo spend da Meta Ads."""
+    """Agrupa vendas e gasto real da Meta por dia no intervalo selecionado."""
     approved = base.filter(Transaction.status == TransactionStatus.APPROVED)
     rows = (
         approved.with_entities(
@@ -23,27 +20,33 @@ def _daily_revenue(base, db, meta_campaigns: list[CampaignInsights] = None,
         .all()
     )
 
-    # Calcular spend total da Meta para distribuir proporcionalmente por dia
-    total_meta_spend = sum(c.spend for c in meta_campaigns) if meta_campaigns else 0
-    total_revenue_all = sum(float(r.revenue or 0) for r in rows)
-
+    revenue_by_day = {str(row.day): row for row in rows}
+    spend_by_day = meta_daily_spend or {}
     result = []
-    for r in rows:
-        rev = float(r.revenue or 0)
-        # Distribuir spend proporcionalmente à receita de cada dia
-        if total_meta_spend > 0 and total_revenue_all > 0:
-            day_spend = total_meta_spend * (rev / total_revenue_all)
-        elif total_meta_spend > 0 and len(rows) > 0:
-            day_spend = total_meta_spend / len(rows)
-        else:
-            day_spend = 0
+    try:
+        first_day = datetime.strptime(date_start, "%Y-%m-%d").date()
+        last_day = datetime.strptime(date_end, "%Y-%m-%d").date()
+    except (TypeError, ValueError):
+        first_day = min((row.day for row in rows), default=None)
+        last_day = max((row.day for row in rows), default=None)
 
+    days = []
+    if first_day and last_day:
+        current = first_day
+        while current <= last_day:
+            days.append(current.isoformat())
+            current += timedelta(days=1)
+
+    for day in days or sorted(revenue_by_day):
+        row = revenue_by_day.get(day)
+        rev = float(row.revenue or 0) if row else 0.0
+        day_spend = float(spend_by_day.get(day, 0) or 0)
         result.append({
-            "date": str(r.day),
+            "date": day,
             "revenue": rev,
             "spend": round(day_spend, 2),
             "profit": round(rev - day_spend, 2),
-            "sales": int(r.sales or 0),
+            "sales": int(row.sales or 0) if row else 0,
         })
 
     return result

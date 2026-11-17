@@ -34,7 +34,11 @@ export function CreateWebhookModal({
     e.preventDefault();
     if (!platform || !name.trim()) return;
     try {
-      await onCreate(platform, name.trim(), platform === "hotmart" ? securityToken.trim() : undefined);
+      await onCreate(
+        platform,
+        name.trim(),
+        platform === "hotmart" ? securityToken.trim() : undefined,
+      );
       setPlatform(null);
       setName("");
       setSecurityToken("");
@@ -104,7 +108,8 @@ export function CreateWebhookModal({
                 autoComplete="new-password"
               />
               <p className="text-xs text-muted-foreground">
-                Use o mesmo Hottok na configuração do webhook da Hotmart. O LomusTrack guarda apenas uma impressão protegida do token.
+                Use o mesmo Hottok na configuração do webhook da Hotmart. O LomusTrack guarda apenas
+                uma impressão protegida do token.
               </p>
             </div>
           )}
@@ -142,7 +147,15 @@ export function CreateWebhookModal({
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={!platform || !name.trim() || (platform === "hotmart" && !securityToken.trim()) || isLoading}>
+            <Button
+              type="submit"
+              disabled={
+                !platform ||
+                !name.trim() ||
+                (platform === "hotmart" && !securityToken.trim()) ||
+                isLoading
+              }
+            >
               {isLoading ? "Criando..." : "Criar"}
             </Button>
           </DialogFooter>

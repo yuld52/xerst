@@ -63,7 +63,9 @@ export function ReportIntervalSettings({ onIntervalChange }: ReportIntervalSetti
       try {
         await updateUserPreferences({ reportIntervalMinutes: value });
       } catch (error) {
-        toast.error(error instanceof Error ? error.message : "Não foi possível salvar o intervalo no banco.");
+        toast.error(
+          error instanceof Error ? error.message : "Não foi possível salvar o intervalo no banco.",
+        );
         setSaving(false);
         return;
       }
@@ -110,7 +112,12 @@ export function ReportIntervalSettings({ onIntervalChange }: ReportIntervalSetti
             }}
           />
         </div>
-        <Button size="sm" onClick={() => void handleSave()} disabled={saving} className="w-full h-8 text-xs">
+        <Button
+          size="sm"
+          onClick={() => void handleSave()}
+          disabled={saving}
+          className="w-full h-8 text-xs"
+        >
           {saving ? "Salvando..." : "Salvar"}
         </Button>
       </PopoverContent>

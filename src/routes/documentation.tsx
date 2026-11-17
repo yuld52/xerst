@@ -108,7 +108,8 @@ function DocumentationPage() {
           </CardHeader>
           <CardContent className="space-y-4 text-sm">
             <p className="text-muted-foreground">
-              Substitua <code>&#123;slug&#125;</code> pelo slug do endpoint criado na conta de destino.
+              Substitua <code>&#123;slug&#125;</code> pelo slug do endpoint criado na conta de
+              destino.
             </p>
             <div className="grid gap-3 sm:grid-cols-2">
               {[
@@ -125,9 +126,9 @@ function DocumentationPage() {
               <p className="font-semibold text-foreground">Autenticação por integração</p>
               <p className="mt-1 text-muted-foreground">
                 Para a API direta, envie uma Credencial de API ativa da mesma conta do slug no
-                cabeçalho abaixo. Para Hotmart, configure um Hottok ao criar o endpoint e informe
-                o mesmo valor na Hotmart; validamos o cabeçalho X-HOTMART-HOTTOK. Não envie tokens
-                no JSON nem na URL.
+                cabeçalho abaixo. Para Hotmart, configure um Hottok ao criar o endpoint e informe o
+                mesmo valor na Hotmart; validamos o cabeçalho X-HOTMART-HOTTOK. Não envie tokens no
+                JSON nem na URL.
               </p>
               <code className="mt-3 block rounded bg-muted px-3 py-2 text-xs">
                 Authorization: Bearer SEU_API_TOKEN

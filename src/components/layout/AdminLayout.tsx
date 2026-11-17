@@ -33,13 +33,14 @@ const NAV_ITEMS: AdminNavItem[] = [
   { label: "Configurações", icon: RiSettings4Line, path: "/admin/settings" },
 ];
 
+const COMPANY_ADMIN_PATHS = ["/admin/dashboard", "/admin/users"];
+
 export function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const user = getStoredUser();
   const isSuperAdmin = user?.role === "superadmin";
-  const companyAdminPaths = ["/admin/dashboard", "/admin/users"];
-  const canAccessCurrentPath = isSuperAdmin || companyAdminPaths.includes(location.pathname);
+  const canAccessCurrentPath = isSuperAdmin || COMPANY_ADMIN_PATHS.includes(location.pathname);
 
   useEffect(() => {
     // The management area serves company admins and the Lomus superadmin.
@@ -54,7 +55,7 @@ export function AdminLayout() {
     }
 
     // Tenant admins can manage their own team only; Lomus-wide tools require superadmin.
-    if (user.role !== "superadmin" && !companyAdminPaths.includes(location.pathname)) {
+    if (user.role !== "superadmin" && !COMPANY_ADMIN_PATHS.includes(location.pathname)) {
       navigate("/admin/dashboard", { replace: true });
     }
   }, [user, navigate, location.pathname]);
@@ -68,7 +69,11 @@ export function AdminLayout() {
     navigate("/dashboard");
   };
 
-  if (!user || (user.role !== "owner" && user.role !== "admin" && user.role !== "superadmin") || !canAccessCurrentPath) {
+  if (
+    !user ||
+    (user.role !== "owner" && user.role !== "admin" && user.role !== "superadmin") ||
+    !canAccessCurrentPath
+  ) {
     return null;
   }
 
@@ -89,26 +94,28 @@ export function AdminLayout() {
         </div>
 
         <nav className="flex-1 p-4 space-y-1">
-          {NAV_ITEMS.filter((item) => isSuperAdmin || companyAdminPaths.includes(item.path)).map((item) => {
-            const Icon = item.icon;
-            const isActive = location.pathname === item.path;
+          {NAV_ITEMS.filter((item) => isSuperAdmin || COMPANY_ADMIN_PATHS.includes(item.path)).map(
+            (item) => {
+              const Icon = item.icon;
+              const isActive = location.pathname === item.path;
 
-            return (
-              <button
-                key={item.path}
-                onClick={() => !item.disabled && navigate(item.path)}
-                disabled={item.disabled}
-                className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                  isActive ? "bg-brand text-white" : "text-foreground hover:bg-muted",
-                  item.disabled && "opacity-50 cursor-not-allowed",
-                )}
-              >
-                <Icon className="h-4 w-4" />
-                {item.label}
-              </button>
-            );
-          })}
+              return (
+                <button
+                  key={item.path}
+                  onClick={() => !item.disabled && navigate(item.path)}
+                  disabled={item.disabled}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                    isActive ? "bg-brand text-white" : "text-foreground hover:bg-muted",
+                    item.disabled && "opacity-50 cursor-not-allowed",
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                  {item.label}
+                </button>
+              );
+            },
+          )}
         </nav>
 
         <div className="p-4 border-t space-y-2">

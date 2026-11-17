@@ -20,7 +20,11 @@ export interface CompanySubscription {
     webhooks: number;
   };
   available_plans: CompanySubscriptionPlan[];
-  pending_plan_request: { id: number; plan_id: CompanySubscriptionPlan["id"]; created_at: string } | null;
+  pending_plan_request: {
+    id: number;
+    plan_id: CompanySubscriptionPlan["id"];
+    created_at: string;
+  } | null;
 }
 
 export function fetchCompanySubscription() {

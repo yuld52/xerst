@@ -1,6 +1,6 @@
 from sqlalchemy import (
     Column, Integer, String, Float, DateTime,
-    Enum, ForeignKey, JSON, Text
+    Enum, ForeignKey, JSON, Text, UniqueConstraint
 )
 from database.core.connection import Base
 from database.core.timezone import CREATED_AT_DEFAULT, UPDATED_AT_DEFAULT
@@ -28,10 +28,11 @@ class Transaction(Base):
     Liga ao customer (FK) e ao product (FK) para rastreamento.
     """
     __tablename__ = "transactions"
+    __table_args__ = (UniqueConstraint("company_id", "external_id", name="uq_transactions_company_external_id"),)
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     company_id = Column(Integer, nullable=True, index=True)  # Multi-tenant
-    external_id = Column(String(255), unique=True, nullable=False)
+    external_id = Column(String(255), nullable=False)
     platform = Column(Enum(PaymentPlatform), nullable=False)
     status = Column(
         Enum(TransactionStatus),

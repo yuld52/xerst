@@ -70,7 +70,9 @@ export default function MySubscriptionPage() {
       setUpgradeOpen(false);
       await refresh();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Não foi possível enviar a solicitação.");
+      toast.error(
+        error instanceof Error ? error.message : "Não foi possível enviar a solicitação.",
+      );
     } finally {
       setRequestingPlan(null);
     }
@@ -158,7 +160,9 @@ export default function MySubscriptionPage() {
                   onClick={() => setUpgradeOpen(true)}
                   disabled={Boolean(subscription.pending_plan_request)}
                 >
-                  {subscription.pending_plan_request ? "Upgrade solicitado" : "Ver planos e solicitar upgrade"}
+                  {subscription.pending_plan_request
+                    ? "Upgrade solicitado"
+                    : "Ver planos e solicitar upgrade"}
                 </Button>
                 <p className="text-xs text-muted-foreground">
                   {subscription.pending_plan_request
@@ -267,7 +271,8 @@ export default function MySubscriptionPage() {
               </div>
               <p className="text-xs text-muted-foreground">
                 Nos planos pagos, cada venda aprovada que exceder a franquia custa US$ 0,02. O plano
-                Gratuito não tem cobrança adicional. A cobrança automática ainda não está configurada.
+                Gratuito não tem cobrança adicional. A cobrança automática ainda não está
+                configurada.
               </p>
             </DialogContent>
           </Dialog>

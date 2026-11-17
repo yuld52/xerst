@@ -29,10 +29,18 @@ export default function AdminLoginPage() {
     setLoading(true);
 
     try {
-      const response = await loginUser({ email, password, two_factor_code: twoFactorCode || undefined });
+      const response = await loginUser({
+        email,
+        password,
+        two_factor_code: twoFactorCode || undefined,
+      });
 
       // Organization admins manage their company; superadmins manage the Lomus SaaS.
-      if (response.user.role !== "owner" && response.user.role !== "admin" && response.user.role !== "superadmin") {
+      if (
+        response.user.role !== "owner" &&
+        response.user.role !== "admin" &&
+        response.user.role !== "superadmin"
+      ) {
         toast.error("Acesso negado. Apenas administradores podem acessar este painel.");
         setLoading(false);
         return;

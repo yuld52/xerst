@@ -71,11 +71,16 @@ export function AIChatBubble({
       .then((preferences) => {
         const history = preferences.chatHistory;
         if (active && Array.isArray(history)) {
-          const valid = history.filter((message): message is ChatMessage =>
-            !!message && typeof message === "object" &&
-            ((message as ChatMessage).role === "user" || (message as ChatMessage).role === "assistant") &&
-            typeof (message as ChatMessage).content === "string",
-          ).slice(-60);
+          const valid = history
+            .filter(
+              (message): message is ChatMessage =>
+                !!message &&
+                typeof message === "object" &&
+                ((message as ChatMessage).role === "user" ||
+                  (message as ChatMessage).role === "assistant") &&
+                typeof (message as ChatMessage).content === "string",
+            )
+            .slice(-60);
           if (valid.length) {
             setMessages(valid);
             saveMessages(valid);
@@ -83,8 +88,12 @@ export function AIChatBubble({
         }
       })
       .catch(() => undefined)
-      .finally(() => { if (active) setPreferencesReady(true); });
-    return () => { active = false; };
+      .finally(() => {
+        if (active) setPreferencesReady(true);
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {

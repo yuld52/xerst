@@ -20,7 +20,14 @@ const roleLabels: Record<string, string> = {
   superadmin: "Administrador da plataforma",
 };
 
-export function InviteSetupForm({ name, role, lockedEmail, onSubmit, error, loading }: InviteSetupFormProps) {
+export function InviteSetupForm({
+  name,
+  role,
+  lockedEmail,
+  onSubmit,
+  error,
+  loading,
+}: InviteSetupFormProps) {
   const [email, setEmail] = useState(lockedEmail ?? "");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");

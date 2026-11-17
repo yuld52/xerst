@@ -13,6 +13,7 @@ from api.dashboard.aggregations import (
 )
 from api.dashboard.meta_data import (
     fetch_meta_account_summary, fetch_meta_campaigns_for_dashboard,
+    fetch_meta_daily_spend,
 )
 from api.dashboard.kpis import calc_kpis
 from api.dashboard.top_campaigns import build_top_campaigns
@@ -112,12 +113,15 @@ async def dashboard_overview(
     # Buscar dados da Meta Ads em paralelo (agrega todas as contas da empresa)
     meta_summary, meta_error = await fetch_meta_account_summary(db, ds, de, company_id)
     meta_campaigns = await fetch_meta_campaigns_for_dashboard(db, ds, de, company_id)
+    meta_daily_spend, daily_meta_error = await fetch_meta_daily_spend(db, ds, de, company_id)
+    if not meta_error and daily_meta_error:
+        meta_error = daily_meta_error
 
     # KPIs com dados da Meta
     kpis = calc_kpis(base, meta_summary)
 
     # Daily revenue com spend diário da Meta
-    daily = _daily_revenue(base, db, meta_campaigns, ds, de)
+    daily = _daily_revenue(base, db, meta_daily_spend, ds, de)
 
     platforms = _platform_dist(base, db)
     payment_methods = _payment_method_dist(base, db)

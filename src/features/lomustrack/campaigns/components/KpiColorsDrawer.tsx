@@ -61,10 +61,13 @@ export function KpiColorsDrawer({ open, onOpenChange, kpiColors, onSave }: KpiCo
   };
 
   const handleSave = async () => {
-    const invalid = Object.entries(draft).some(([, entry]) =>
-      entry && [entry.green, entry.yellow, entry.red].some((threshold) =>
-        threshold.min != null && threshold.max != null && threshold.min > threshold.max,
-      ),
+    const invalid = Object.entries(draft).some(
+      ([, entry]) =>
+        entry &&
+        [entry.green, entry.yellow, entry.red].some(
+          (threshold) =>
+            threshold.min != null && threshold.max != null && threshold.min > threshold.max,
+        ),
     );
     if (invalid) {
       toast.error("Verifique os limites dos KPIs", {

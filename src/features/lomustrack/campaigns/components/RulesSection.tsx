@@ -20,7 +20,13 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { createCampaignRule, deleteCampaignRule, fetchCampaignRules, setCampaignRuleEnabled, type CampaignRule } from "@/services/campaignRules";
+import {
+  createCampaignRule,
+  deleteCampaignRule,
+  fetchCampaignRules,
+  setCampaignRuleEnabled,
+  type CampaignRule,
+} from "@/services/campaignRules";
 
 type RuleAction = "activate" | "pause" | "increase_budget" | "decrease_budget";
 type ConditionField = "spend" | "roas" | "cpa" | "ctr" | "sales";
@@ -118,8 +124,11 @@ function RuleForm({
   const canSave =
     name.trim().length > 1 &&
     conditions.length > 0 &&
-    conditions.every((condition) => condition.value.trim() !== "" && Number.isFinite(Number(condition.value))) &&
-    ((action !== "increase_budget" && action !== "decrease_budget") || (Number(actionValue) >= 1 && Number(actionValue) <= 90));
+    conditions.every(
+      (condition) => condition.value.trim() !== "" && Number.isFinite(Number(condition.value)),
+    ) &&
+    ((action !== "increase_budget" && action !== "decrease_budget") ||
+      (Number(actionValue) >= 1 && Number(actionValue) <= 90));
 
   const save = () => {
     if (!canSave) return;
@@ -210,9 +219,19 @@ function RuleForm({
           </label>
           {(action === "increase_budget" || action === "decrease_budget") && (
             <label className="block space-y-2">
-              <span className="text-xs font-medium text-muted-foreground">Alteração do orçamento (%)</span>
-              <Input type="number" min="1" max="90" value={actionValue} onChange={(event) => setActionValue(event.target.value)} />
-              <span className="text-xs text-muted-foreground">A alteração será aplicada apenas a campanhas com orçamento diário.</span>
+              <span className="text-xs font-medium text-muted-foreground">
+                Alteração do orçamento (%)
+              </span>
+              <Input
+                type="number"
+                min="1"
+                max="90"
+                value={actionValue}
+                onChange={(event) => setActionValue(event.target.value)}
+              />
+              <span className="text-xs text-muted-foreground">
+                A alteração será aplicada apenas a campanhas com orçamento diário.
+              </span>
             </label>
           )}
           <div className="space-y-2">
@@ -393,7 +412,9 @@ export function RulesSection() {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    fetchCampaignRules().then(setRules).catch(() => toast.error("Não foi possível carregar as regras do servidor."));
+    fetchCampaignRules()
+      .then(setRules)
+      .catch(() => toast.error("Não foi possível carregar as regras do servidor."));
   }, []);
   const saveRule = async (rule: CampaignRule) => {
     try {
@@ -418,7 +439,7 @@ export function RulesSection() {
     const enabled = !rule.enabled;
     try {
       await setCampaignRuleEnabled(id, enabled);
-      setRules((current) => current.map((item) => item.id === id ? { ...item, enabled } : item));
+      setRules((current) => current.map((item) => (item.id === id ? { ...item, enabled } : item)));
     } catch {
       toast.error("Não foi possível atualizar a regra.");
     }
@@ -458,7 +479,17 @@ export function RulesSection() {
             />
           </div>
           <div className="flex gap-2">
-            {selectedRuleIds.length > 0 && <Button size="sm" variant="outline" className="gap-1.5 text-destructive" onClick={() => void deleteSelectedRules()}><RiDeleteBinLine className="size-4" />Excluir selecionadas ({selectedRuleIds.length})</Button>}
+            {selectedRuleIds.length > 0 && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1.5 text-destructive"
+                onClick={() => void deleteSelectedRules()}
+              >
+                <RiDeleteBinLine className="size-4" />
+                Excluir selecionadas ({selectedRuleIds.length})
+              </Button>
+            )}
             <Button size="sm" className="gap-1.5" onClick={() => setOpen(true)}>
               <RiAddLine className="size-4" />
               Criar regra

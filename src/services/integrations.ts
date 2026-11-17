@@ -108,7 +108,11 @@ export async function fetchWebhooks(): Promise<WebhookEndpointAPI[]> {
   return apiRequest<WebhookEndpointAPI[]>("/platforms/webhooks");
 }
 
-export async function createWebhook(platform: string, name: string, securityToken?: string): Promise<WebhookEndpointAPI> {
+export async function createWebhook(
+  platform: string,
+  name: string,
+  securityToken?: string,
+): Promise<WebhookEndpointAPI> {
   return apiRequest<WebhookEndpointAPI>("/platforms/webhooks", {
     method: "POST",
     body: { platform, name, security_token: securityToken },
@@ -138,10 +142,7 @@ export async function fetchGeminiAccounts(): Promise<GeminiAccountAPI[]> {
   return apiRequest<GeminiAccountAPI[]>("/gemini/accounts");
 }
 
-export async function createGeminiAccount(
-  name: string,
-  model: string,
-): Promise<GeminiAccountAPI> {
+export async function createGeminiAccount(name: string, model: string): Promise<GeminiAccountAPI> {
   return apiRequest<GeminiAccountAPI>("/gemini/accounts", {
     method: "POST",
     body: { name, model },

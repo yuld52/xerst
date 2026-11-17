@@ -11,7 +11,9 @@ export function fetchNotificationPreferences(): Promise<NotificationPreferences>
   return apiRequest<NotificationPreferences>("/company/notification-preferences");
 }
 
-export function updateNotificationPreferences(preferences: NotificationPreferences): Promise<NotificationPreferences> {
+export function updateNotificationPreferences(
+  preferences: NotificationPreferences,
+): Promise<NotificationPreferences> {
   return apiRequest<NotificationPreferences>("/company/notification-preferences", {
     method: "PUT",
     body: preferences,

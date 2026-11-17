@@ -154,3 +154,44 @@ async def fetch_meta_campaigns_for_dashboard(
         all_campaigns.extend(camps)
 
     return all_campaigns
+
+
+async def fetch_meta_daily_spend(
+    db: Session,
+    date_start: str,
+    date_end: str,
+    company_id: Optional[int] = None,
+) -> tuple[dict[str, float], Optional[str]]:
+    """Agrega o gasto real por dia de todas as contas Meta da empresa."""
+    accounts = get_fb_accounts(db, company_id)
+    if not accounts:
+        return {}, None
+
+    async def _fetch_one(acc: FacebookAccount):
+        service = MetaAdsService(acc.access_token, acc.account_id, currency=acc.currency or "BRL")
+        try:
+            if not acc.currency:
+                detected = await service.detect_currency()
+                if detected:
+                    acc.currency = detected
+                    db.commit()
+            return await service.get_daily_spend(date_start, date_end), None
+        except MetaAuthError:
+            _mark_token_invalid(db, acc)
+            return {}, "token_invalid"
+        except Exception as e:
+            logger.error("Erro ao buscar gasto diário da Meta para conta %s: %s", acc.id, e)
+            return {}, "meta_data_unavailable"
+        finally:
+            await service.close()
+
+    account_results = await asyncio.gather(*[_fetch_one(acc) for acc in accounts])
+    totals: dict[str, float] = {}
+    errors = []
+    for daily, error in account_results:
+        if error:
+            errors.append(error)
+        for day, spend in daily.items():
+            totals[day] = totals.get(day, 0.0) + spend
+    error = "token_invalid" if "token_invalid" in errors else (errors[0] if errors else None)
+    return {day: round(spend, 2) for day, spend in totals.items()}, error

@@ -12,7 +12,11 @@ export default function SetupPage() {
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [inviteInfo, setInviteInfo] = useState<{ name: string; role: string; email?: string | null } | null>(null);
+  const [inviteInfo, setInviteInfo] = useState<{
+    name: string;
+    role: string;
+    email?: string | null;
+  } | null>(null);
   const [inviteLoading, setInviteLoading] = useState(!!inviteToken);
   const [inviteError, setInviteError] = useState("");
   const [redirectCountdown, setRedirectCountdown] = useState(5);

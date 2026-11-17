@@ -28,12 +28,21 @@ export default function AdminAwardsPage() {
   useEffect(() => {
     let active = true;
     apiRequest<{ users: AwardUser[] }>("/superadmin/awards/progress")
-      .then((data) => { if (active) setUsers(data.users); })
-      .catch((error) => {
-        if (active) setRevenueError(error instanceof Error ? error.message : "Não foi possível buscar o faturamento real.");
+      .then((data) => {
+        if (active) setUsers(data.users);
       })
-      .finally(() => { if (active) setLoading(false); });
-    return () => { active = false; };
+      .catch((error) => {
+        if (active)
+          setRevenueError(
+            error instanceof Error ? error.message : "Não foi possível buscar o faturamento real.",
+          );
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, []);
   const rows = useMemo(
     () =>

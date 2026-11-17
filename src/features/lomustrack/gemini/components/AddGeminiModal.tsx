@@ -157,7 +157,8 @@ export function AddGeminiModal({ open, onOpenChange, onAdd, isLoading }: AddGemi
               Conexão compartilhada
             </p>
             <p className="text-[11px] text-muted-foreground leading-relaxed">
-              A chave não é exibida nem armazenada no navegador. O administrador mantém essa conexão no servidor.
+              A chave não é exibida nem armazenada no navegador. O administrador mantém essa conexão
+              no servidor.
             </p>
           </div>
           <DialogFooter>

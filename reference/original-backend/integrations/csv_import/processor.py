@@ -17,6 +17,7 @@ def process_import(
     products_config: list[ProductConfig],
     platform: str,
     webhook_slug: str | None = None,
+    company_id: int | None = None,
 ) -> ImportResultResponse:
     """Processa a importação: cria Products, Customers, Transactions."""
     platform_enum = PaymentPlatform(platform)
@@ -30,7 +31,7 @@ def process_import(
 
     # Fase 1: Criar produtos frontend.
     # product_db é indexado pelo nome CANÔNICO (display_name ou name)
-    product_db = _create_frontend_products(db, rows, config_map, result)
+    product_db = _create_frontend_products(db, rows, config_map, result, company_id)
 
     # Fase 2: Criar upsells e order bumps
     _create_sub_products(db, rows, config_map, product_db, result)
@@ -40,7 +41,7 @@ def process_import(
         _auto_create_payt_checkouts(db, rows, config_map, product_db)
 
     # Fase 3: Processar transações e clientes
-    process_transactions(db, rows, config_map, product_db, platform_enum, result, webhook_slug)
+    process_transactions(db, rows, config_map, product_db, platform_enum, result, webhook_slug, company_id)
 
     db.commit()
     logger.info(
@@ -53,6 +54,7 @@ def process_import(
 def _create_frontend_products(
     db: Session, rows: list[ImportRow], config_map: dict,
     result: ImportResultResponse,
+    company_id: int | None = None,
 ) -> dict[str, Product]:
     """
     Cria ou encontra Products para cada produto marcado como frontend.
@@ -84,19 +86,23 @@ def _create_frontend_products(
         # Se o user selecionou um produto existente (product_id), usar esse
         if config.product_id:
             existing = db.query(Product).filter(
-                Product.id == config.product_id
+                Product.id == config.product_id,
+                Product.company_id == company_id,
             ).first()
             if existing:
                 product_db[canonical] = existing
                 continue
 
         # Buscar pelo nome canônico
-        existing = db.query(Product).filter(Product.name == canonical).first()
+        existing = db.query(Product).filter(
+            Product.name == canonical,
+            Product.company_id == company_id,
+        ).first()
         if existing:
             product_db[canonical] = existing
             continue
 
-        product = Product(name=canonical)
+        product = Product(name=canonical, company_id=company_id)
         db.add(product)
         db.flush()
         product_db[canonical] = product

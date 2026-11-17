@@ -4,7 +4,7 @@ from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from database.core.connection import get_db
-from api.auth.deps import get_current_user
+from api.auth.deps import get_current_user, get_company_id
 from api.csv_import.preview import _parse_files
 from integrations.csv_import.schemas import ProductConfig, ImportResultResponse
 from integrations.csv_import.processor import process_import
@@ -23,7 +23,7 @@ async def execute_import(
     file_vendas: UploadFile = File(None),
     file_origem: UploadFile = File(None),
     db: Session = Depends(get_db),
-    _=Depends(get_current_user),
+    company_id: int = Depends(get_company_id),
 ):
     """
     Executa a importação dos dados.
@@ -60,7 +60,7 @@ async def execute_import(
 
     # Processar importação
     try:
-        result = process_import(db, rows, configs, platform, webhook_slug)
+        result = process_import(db, rows, configs, platform, webhook_slug, company_id)
     except Exception as e:
         logger.error(f"Erro na importação: {e}", exc_info=True)
         db.rollback()

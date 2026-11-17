@@ -56,3 +56,26 @@ async def fetch_account_insights(
             extract_action_value(actions, "omni_initiated_checkout")
         ),
     )
+
+
+async def fetch_daily_spend(
+    client: MetaAdsClient,
+    date_start: str,
+    date_end: str,
+) -> dict[str, float]:
+    """Busca gasto real da conta por dia, sem ratear totais estimados."""
+    safe_start = clamp_meta_date(date_start)
+    rows = await client._get_all_pages(
+        f"{client.account_id}/insights",
+        params={
+            "fields": "spend,date_start",
+            "time_range": f'{{"since":"{safe_start}","until":"{date_end}"}}',
+            "time_increment": 1,
+            "limit": 500,
+        },
+    )
+    return {
+        row["date_start"]: safe_float(row.get("spend", 0))
+        for row in rows
+        if row.get("date_start")
+    }

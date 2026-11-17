@@ -76,9 +76,7 @@ export async function apiRequest<T>(endpoint: string, options: RequestOptions = 
     if (typeof error?.detail === "string") {
       errorMsg = error.detail;
     } else if (Array.isArray(error?.detail)) {
-      errorMsg = error.detail
-        .map((e: any) => e.msg || e.message || JSON.stringify(e))
-        .join(", ");
+      errorMsg = error.detail.map((e: any) => e.msg || e.message || JSON.stringify(e)).join(", ");
     } else if (typeof error?.message === "string") {
       errorMsg = error.message;
     } else if (typeof error === "string") {

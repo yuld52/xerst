@@ -33,6 +33,12 @@ export default function DashboardPage() {
         },
         id: "meta-token-invalid",
       });
+    } else if (data?.meta_error === "meta_data_unavailable") {
+      toast.error("Dados incompletos da Meta Ads", {
+        description:
+          "Não foi possível buscar os gastos diários de uma ou mais contas. Confira a conexão das contas de anúncios.",
+        id: "meta-daily-data-unavailable",
+      });
     }
   }, [data?.meta_error, navigate]);
 

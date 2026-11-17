@@ -28,12 +28,14 @@ export function ValueDisplayProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!getCookie("access_token") || isImportDemo()) return;
-    fetchUserPreferences().then((preferences) => {
-      if (typeof preferences.showFullValues === "boolean") {
-        setShowFull(preferences.showFullValues);
-        localStorage.setItem(STORAGE_KEY, String(preferences.showFullValues));
-      }
-    }).catch(() => undefined);
+    fetchUserPreferences()
+      .then((preferences) => {
+        if (typeof preferences.showFullValues === "boolean") {
+          setShowFull(preferences.showFullValues);
+          localStorage.setItem(STORAGE_KEY, String(preferences.showFullValues));
+        }
+      })
+      .catch(() => undefined);
   }, []);
 
   const toggle = () => {

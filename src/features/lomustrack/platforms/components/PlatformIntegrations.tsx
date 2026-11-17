@@ -180,7 +180,8 @@ export function PlatformIntegrations({
                     <div>
                       <p className="font-medium">{credential.name}</p>
                       <p className="text-sm text-muted-foreground">
-                        Status: {credential.active ? "Ativado" : "Desativado"} · {credential.token_prefix}
+                        Status: {credential.active ? "Ativado" : "Desativado"} ·{" "}
+                        {credential.token_prefix}
                       </p>
                     </div>
                     <Button

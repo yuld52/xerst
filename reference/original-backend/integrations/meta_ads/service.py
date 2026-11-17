@@ -10,7 +10,7 @@ from integrations.meta_ads.client import MetaAdsClient, MetaAuthError
 from integrations.meta_ads.campaigns import fetch_campaigns
 from integrations.meta_ads.adsets import fetch_adsets
 from integrations.meta_ads.ads import fetch_ads
-from integrations.meta_ads.account import fetch_account_insights
+from integrations.meta_ads.account import fetch_account_insights, fetch_daily_spend
 from integrations.meta_ads.cache import (
     get_cached, set_cached, build_cache_key,
 )
@@ -148,6 +148,23 @@ class MetaAdsService:
         if self.currency != "BRL":
             result.spend = convert_spend_to_system_base(result.spend, self.currency)
             result.cpc = convert_spend_to_system_base(result.cpc, self.currency)
+        set_cached(key, result, CACHE_TTL)
+        return result
+
+    async def get_daily_spend(self, date_start: str, date_end: str) -> dict[str, float]:
+        """Obtém gasto diário real e converte cada dia para a base do sistema."""
+        key = build_cache_key(
+            self._account_id, f"daily_spend_{self.currency}", date_start, date_end,
+        )
+        cached = get_cached(key)
+        if cached is not None:
+            return cached
+        result = await fetch_daily_spend(self.client, date_start, date_end)
+        if self.currency != "BRL":
+            result = {
+                day: convert_spend_to_system_base(spend, self.currency)
+                for day, spend in result.items()
+            }
         set_cached(key, result, CACHE_TTL)
         return result
 
