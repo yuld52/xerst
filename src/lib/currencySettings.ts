@@ -8,8 +8,10 @@ export const CURRENCIES: Record<
 > = {
   MZN: { label: "Metical (MZN)", symbol: "MT", rate: 13, prefix: false },
   BRL: { label: "Real (BRL)", symbol: "R$", rate: 1, prefix: true },
-  USD: { label: "Dólar (USD)", symbol: "US$", rate: 0.18, prefix: true },
-  EUR: { label: "Euro (EUR)", symbol: "€", rate: 0.17, prefix: true },
+  // Keep display conversion aligned with backend normalization to MZN:
+  // 1 BRL = 13 MZN, 1 USD = 64 MZN, and 1 EUR = 70 MZN.
+  USD: { label: "Dólar (USD)", symbol: "US$", rate: 13 / 64, prefix: true },
+  EUR: { label: "Euro (EUR)", symbol: "€", rate: 13 / 70, prefix: true },
   ZAR: { label: "Rand (ZAR)", symbol: "R", rate: 3.3, prefix: true },
   AOA: { label: "Kwanza (AOA)", symbol: "Kz", rate: 165, prefix: false },
 };
