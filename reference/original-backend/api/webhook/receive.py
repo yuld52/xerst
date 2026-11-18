@@ -36,8 +36,9 @@ async def receive_webhook(
     db: Session = Depends(get_db),
 ):
     """
-    Endpoint público que recebe os POSTs das plataformas de pagamento.
-    Não requer autenticação — as plataformas enviam direto.
+    Recebe webhooks públicos e determina a empresa pelo endpoint/slug.
+    Hotmart autentica por X-HOTMART-HOTTOK; API direta exige uma credencial ativa
+    pertencente à mesma empresa do endpoint.
     URL: POST /api/webhook/hotmart/{slug} | /api/webhook/api/{slug}
     """
     # Validar plataforma
@@ -78,7 +79,12 @@ async def receive_webhook(
 
     if platform_enum == WebhookPlatform.API:
         authorization = request.headers.get("authorization", "")
-        supplied_token = authorization.removeprefix("Bearer ").strip() if authorization else request.headers.get("x-api-key", "").strip()
+        scheme, _, bearer_token = authorization.partition(" ")
+        supplied_token = (
+            bearer_token.strip()
+            if scheme.lower() == "bearer"
+            else request.headers.get("x-api-key", "").strip()
+        )
         if not supplied_token:
             raise HTTPException(status_code=401, detail="Envie a credencial no header Authorization: Bearer <token>")
         credential = db.query(ApiCredential).filter(

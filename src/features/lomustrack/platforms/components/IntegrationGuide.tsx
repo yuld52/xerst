@@ -19,8 +19,9 @@ const HOTMART_STEPS = [
   'Cole a URL criada aqui no campo "URL para envio de dados"',
   "Defina um Hottok e informe o mesmo valor ao criar o endpoint no LomusTrack",
   "Confirme que a Hotmart enviará o cabeçalho X-HOTMART-HOTTOK",
-  'Em versão, selecione "Versão 2.0 (Recomendada)"',
-  'Em eventos, selecione "Todos os eventos" (ou Compra Aprovada, Cancelada, etc.)',
+  'Em versão, selecione "Versão 2.0.0 (Recomendada)"',
+  "Selecione eventos de pedidos: aprovação, pagamento pendente, cancelamento, reembolso e chargeback",
+  "Não use eventos de abandono de carrinho neste endpoint; eles não são processados como vendas",
   'Clique em "Salvar"',
 ];
 
@@ -29,15 +30,16 @@ const API_FIELDS = [
     field: "external_id",
     type: "string",
     required: true,
-    desc: "ID único da transação no seu sistema",
+    desc: "ID único da venda; não repita dentro da conta LomusTrack, mesmo entre plataformas.",
   },
   {
     field: "status",
     type: "string",
     required: true,
-    desc: '"approved" | "pending" | "refunded" | "chargeback" | "trial"',
+    desc: '"approved" | "pending" | "refunded" | "chargeback" | "trial". Outros valores são rejeitados.',
   },
-  { field: "amount", type: "float", required: true, desc: "Valor em meticais. Ex: 2.561.00" },
+  { field: "amount", type: "number", required: true, desc: "Valor na moeda informada, sem símbolo. Ex: 2561.00" },
+  { field: "currency", type: "string", required: false, desc: "BRL, USD, EUR, MZN/MT, ZAR ou AOA; padrão BRL." },
   {
     field: "product_external_id",
     type: "string",
@@ -48,9 +50,11 @@ const API_FIELDS = [
     field: "product_name",
     type: "string",
     required: true,
-    desc: "Nome do produto (deve coincidir com o cadastrado)",
+    desc: "Nome do produto; se ainda não existir, pode ser criado automaticamente.",
   },
   { field: "customer_email", type: "string", required: true, desc: "E-mail do comprador" },
+  { field: "product_price", type: "number", required: false, desc: "Preço do produto; se omitido, usa amount." },
+  { field: "payment_method", type: "string", required: false, desc: 'Ex: "credit_card" ou "pix".' },
   { field: "customer_name", type: "string", required: false, desc: "Nome completo do comprador" },
   { field: "customer_cpf", type: "string", required: false, desc: "CPF apenas números" },
   { field: "customer_phone", type: "string", required: false, desc: "Telefone com DDD" },
@@ -70,14 +74,17 @@ const API_FIELDS = [
 ];
 
 const EXAMPLE_PAYLOAD = `POST /api/webhook/api/{slug}
+Authorization: Bearer SUA_CREDENCIAL_API
 Content-Type: application/json
 
 {
   "external_id": "ORD-001",
   "status": "approved",
   "amount": 197.00,
+  "currency": "BRL",
   "product_external_id": "PROD-001",
   "product_name": "Curso de Marketing",
+  "product_price": 197.00,
   "customer_email": "joao@exemplo.com",
   "customer_name": "João da Silva",
   "utm_source": "facebook",
@@ -209,7 +216,7 @@ export function IntegrationGuide() {
           <div>
             <h4 className="text-sm font-semibold">Como configurar Webhooks</h4>
             <p className="text-[11px] text-muted-foreground">
-              Siga o tutorial da sua plataforma de pagamento ou use a API direta
+              Crie o endpoint e a credencial na sua conta, depois siga o formato da plataforma
             </p>
           </div>
 
@@ -240,9 +247,9 @@ export function IntegrationGuide() {
 
           <div className="rounded-lg border border-primary/20 bg-primary/5 p-2.5">
             <p className="text-[10px] text-primary/80 leading-relaxed">
-              <strong>Dica:</strong> Após criar o endpoint aqui no LomusTrack, copie a URL gerada e
-              cole na plataforma de pagamento seguindo o tutorial acima. Selecione todos os eventos
-              para capturar vendas, reembolsos e abandonos.
+              <strong>Dica:</strong> O slug define a conta que recebe o evento. Para API Direta, use
+              uma Credencial de API ativa da mesma conta; para Hotmart, use o Hottok do endpoint.
+              Reenvie atualizações da mesma venda com o mesmo ID externo.
             </p>
           </div>
         </div>

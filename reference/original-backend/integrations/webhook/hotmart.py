@@ -38,11 +38,14 @@ def parse_hotmart_webhook(payload: Dict[str, Any]) -> Optional[StandardizedWebho
     quanto versões legadas/planas com campos na raiz do payload.
     """
     try:
+        event_name = str(payload.get("event") or payload.get("type") or payload.get("status") or "")
+        if event_name.upper() == "PURCHASE_OUT_OF_SHOPPING_CART":
+            logger.info("Evento Hotmart de abandono de carrinho não é uma venda processável")
+            return None
+
         data = payload.get("data")
         is_v2 = isinstance(data, dict) and bool(data)
         d = data if is_v2 else payload
-
-        event_name = str(payload.get("event") or payload.get("type") or payload.get("status") or "")
         
         # Sub-objetos (suporta v2 em data.* e v1/legado no root)
         product = d.get("product") or payload.get("product") or {}

@@ -1,6 +1,6 @@
 import os
 
-DEFAULT_OPENROUTER_MODEL = "openai/gpt-4o-mini"
+DEFAULT_OPENROUTER_MODEL = "openrouter/free"
 
 
 def get_openrouter_config() -> tuple[str | None, str]:

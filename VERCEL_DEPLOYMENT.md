@@ -24,7 +24,7 @@ Set these as Vercel environment variables for the backend service:
 | `SECRET_KEY` | Yes | Unique, high-entropy secret used to sign login tokens. Rotating it invalidates existing sessions. |
 | `CRON_SECRET` | Yes | Protects the scheduled automation and report endpoints. Use a unique random value. |
 | `OPENROUTER_API_KEY` | For AI features | Server-side OpenRouter credential. Never expose it through a `VITE_` variable. |
-| `OPENROUTER_MODEL` | Optional | OpenRouter model name. Defaults to `openai/gpt-4o-mini`. |
+| `OPENROUTER_MODEL` | Optional | OpenRouter model name. Defaults to `openrouter/free`, which routes each request to an available free chat model. Free-model availability and rate limits depend on OpenRouter and its providers. |
 | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | For push notifications | A matching VAPID key pair. Keep the private key server-side. |
 | `VAPID_CLAIM_EMAIL` | Optional for push | Contact email used in VAPID claims; defaults to `admin@lomustrack.app`. |
 | `META_GRAPH_API_VERSION` | Optional | Meta Graph API version; defaults to `v25.0`. Meta app ID/secret and redirect URI are not read by the current backend. |
