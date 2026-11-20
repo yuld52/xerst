@@ -52,6 +52,53 @@ export async function getMockData(endpoint: string, _options?: any): Promise<any
         cpa: c.cpa,
       })),
       hourly_sales: hourlyData,
+      buyer_locations: [
+        {
+          city: "São Paulo",
+          state: "SP",
+          country: "Brasil",
+          lat: -23.5505,
+          lng: -46.6333,
+          sales: 1,
+          revenue: 217.19,
+        },
+        {
+          city: "Belo Horizonte",
+          state: "MG",
+          country: "Brasil",
+          lat: -19.9167,
+          lng: -43.9345,
+          sales: 1,
+          revenue: 189.9,
+        },
+        {
+          city: "Rio de Janeiro",
+          state: "RJ",
+          country: "Brasil",
+          lat: -22.9068,
+          lng: -43.1729,
+          sales: 1,
+          revenue: 197.5,
+        },
+        {
+          city: "Curitiba",
+          state: "PR",
+          country: "Brasil",
+          lat: -25.4284,
+          lng: -49.2733,
+          sales: 1,
+          revenue: 154.0,
+        },
+        {
+          city: "Brasília",
+          state: "DF",
+          country: "Brasil",
+          lat: -15.7975,
+          lng: -47.8919,
+          sales: 1,
+          revenue: 178.0,
+        },
+      ],
     };
   }
 

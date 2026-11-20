@@ -6,6 +6,7 @@ import { RevenueChart } from "./components/RevenueChart";
 import { PaymentMethodChart } from "./components/PaymentMethodChart";
 import { TopCampaigns } from "./components/TopCampaigns";
 import { HourlySalesChart } from "./components/HourlySalesChart";
+import { BuyersLocationCard } from "./components/BuyersLocationCard";
 import { GlobalFilterBar } from "@/components/layout/GlobalFilterBar";
 import { useDashboard } from "@/hooks/use-dashboard";
 import { fetchCustomersFilterOptions } from "@/services/customers";
@@ -86,9 +87,14 @@ export default function DashboardPage() {
             </div>
             <PaymentMethodChart data={data.payment_distribution} />
           </div>
-          <div className="grid gap-6 lg:grid-cols-2">
+          <div className="grid gap-6 lg:grid-cols-3">
             <TopCampaigns data={data.top_campaigns} />
             <HourlySalesChart data={data.hourly_sales} />
+            <BuyersLocationCard
+              data={data.buyer_locations}
+              totalSales={data.kpis?.total_sales}
+              totalRevenue={data.kpis?.total_revenue}
+            />
           </div>
         </>
       )}

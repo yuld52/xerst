@@ -53,6 +53,16 @@ export interface HourlySale {
   revenue: number;
 }
 
+export interface BuyerLocation {
+  city: string;
+  state: string;
+  country?: string;
+  lat: number;
+  lng: number;
+  sales: number;
+  revenue: number;
+}
+
 export interface DashboardOverview {
   kpis: DashboardKpis;
   daily_revenue: DailyRevenue[];
@@ -60,5 +70,6 @@ export interface DashboardOverview {
   payment_distribution?: PaymentMethodDist[];
   top_campaigns: TopCampaign[];
   hourly_sales: HourlySale[];
+  buyer_locations?: BuyerLocation[];
   meta_error?: string | null;
 }
