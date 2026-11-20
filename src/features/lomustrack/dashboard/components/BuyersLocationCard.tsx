@@ -128,8 +128,8 @@ export function BuyersLocationCard({
     try {
       globe = createGlobe(canvas, {
         devicePixelRatio: Math.min(2, window.devicePixelRatio || 1),
-        width: 600,
-        height: 600,
+        width: 400,
+        height: 400,
         phi: currentPhi,
         theta,
         dark: 1,
@@ -185,8 +185,8 @@ export function BuyersLocationCard({
   const totalLocSales = locations.reduce((sum, l) => sum + l.sales, 0);
 
   return (
-    <Card className="h-full min-h-[380px] border-0 bg-card shadow-[0_4px_18px_rgba(15,23,42,0.06)] flex flex-col justify-between overflow-hidden">
-      <CardHeader className="p-5 pb-2">
+    <Card className="h-full min-h-[300px] border-0 bg-card shadow-[0_4px_18px_rgba(15,23,42,0.06)] flex flex-col justify-between overflow-hidden">
+      <CardHeader className="p-4 pb-1">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5">
             <CardTitle className="text-left text-lg font-semibold text-foreground">
@@ -232,12 +232,12 @@ export function BuyersLocationCard({
         </div>
       </CardHeader>
 
-      <CardContent className="flex flex-1 flex-col justify-between p-5 pt-0">
+      <CardContent className="flex flex-1 flex-col justify-between p-4 pt-0">
         {viewMode === "globo" ? (
           <div className="flex flex-1 flex-col items-center justify-center">
             {/* Globo 3D Cobe */}
-            <div className="relative w-full max-w-[270px] aspect-square flex items-center justify-center my-1 select-none">
-              <div className="absolute inset-0 rounded-full bg-blue-500/10 blur-2xl pointer-events-none" />
+            <div className="relative w-full max-w-[160px] aspect-square flex items-center justify-center my-0.5 select-none">
+              <div className="absolute inset-0 rounded-full bg-blue-500/10 blur-xl pointer-events-none" />
               <canvas
                 ref={canvasRef}
                 style={{
@@ -272,7 +272,7 @@ export function BuyersLocationCard({
             </div>
 
             {/* Badges dos locais mais ativos */}
-            <div className="flex flex-wrap items-center justify-center gap-1.5 mt-2 w-full">
+            <div className="flex flex-wrap items-center justify-center gap-1.5 mt-1.5 w-full">
               {locations.slice(0, 3).map((loc) => {
                 const isSelected = selectedLocation.city === loc.city;
                 return (
@@ -281,13 +281,13 @@ export function BuyersLocationCard({
                     type="button"
                     onClick={() => handleSelectLocation(loc)}
                     className={cn(
-                      "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-all border",
+                      "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium transition-all border",
                       isSelected
                         ? "bg-blue-600/20 border-blue-500/50 text-blue-300 shadow-[0_0_12px_rgba(59,130,246,0.25)]"
                         : "bg-muted/40 border-border/40 text-muted-foreground hover:bg-muted/70 hover:text-foreground",
                     )}
                   >
-                    <span className="size-2 rounded-full bg-blue-400 shadow-[0_0_6px_rgba(96,165,250,0.8)]" />
+                    <span className="size-1.5 rounded-full bg-blue-400 shadow-[0_0_6px_rgba(96,165,250,0.8)]" />
                     <span>
                       {loc.city}, {loc.state} · {loc.sales}
                     </span>
@@ -297,7 +297,7 @@ export function BuyersLocationCard({
             </div>
 
             {/* Rodapé informativo do local selecionado */}
-            <p className="text-center text-xs text-muted-foreground mt-3 font-medium">
+            <p className="text-center text-[11px] text-muted-foreground mt-2 font-medium">
               {selectedLocation.city}, {selectedLocation.state} — {selectedLocation.sales}{" "}
               {selectedLocation.sales === 1 ? "venda" : "vendas"} (
               {convertAndFormatMZN(selectedLocation.revenue)})
