@@ -6,6 +6,7 @@ import {
   RiListUnordered,
   RiSearchLine,
   RiFocus3Line,
+  RiMapPinLine,
 } from "@remixicon/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -89,21 +90,36 @@ export function BuyersLocationCard({
 
   // Normaliza locais recebidos ou usa os locais padrão escalados proporcionalmente
   const locations: BuyerLocation[] = useMemo(() => {
-    const rawList = data && data.length > 0 ? data : DEFAULT_LOCATIONS;
-    const sumSales = rawList.reduce((s, l) => s + (l.sales || 0), 0);
-
-    // Se os dados vierem com valores fictícios/unitários (ex: soma <= quantidade de cidades), mas tivermos totalSales e totalRevenue reais
-    if (totalSales && totalSales > 0 && totalRevenue && totalRevenue > 0 && sumSales <= rawList.length) {
-      const proportions = [0.42, 0.24, 0.15, 0.11, 0.08];
-      return rawList.map((loc, idx) => {
-        const p = proportions[idx] || (1 / rawList.length);
-        const sales = Math.max(1, Math.round(totalSales * p));
-        const revenue = Number((totalRevenue * p).toFixed(2));
-        return { ...loc, sales, revenue };
-      }).sort((a, b) => b.sales - a.sales || b.revenue - a.revenue);
+    // Se o usuário está com 0 vendas totais no período (conta real sem vendas)
+    if (totalSales === 0) {
+      return [];
     }
 
-    return [...rawList].sort((a, b) => b.sales - a.sales || b.revenue - a.revenue);
+    if (data && data.length > 0) {
+      const sumSales = data.reduce((s, l) => s + (l.sales || 0), 0);
+      if (totalSales && totalSales > 0 && totalRevenue && totalRevenue > 0 && sumSales <= data.length) {
+        const proportions = [0.42, 0.24, 0.15, 0.11, 0.08];
+        return data.map((loc, idx) => {
+          const p = proportions[idx] || (1 / data.length);
+          const sales = Math.max(1, Math.round(totalSales * p));
+          const revenue = Number((totalRevenue * p).toFixed(2));
+          return { ...loc, sales, revenue };
+        }).sort((a, b) => b.sales - a.sales || b.revenue - a.revenue);
+      }
+      return [...data].sort((a, b) => b.sales - a.sales || b.revenue - a.revenue);
+    }
+
+    if (!totalSales || totalSales <= 0) {
+      return [];
+    }
+
+    const proportions = [0.42, 0.24, 0.15, 0.11, 0.08];
+    return DEFAULT_LOCATIONS.map((loc, idx) => {
+      const p = proportions[idx] || (1 / DEFAULT_LOCATIONS.length);
+      const sales = Math.max(1, Math.round(totalSales * p));
+      const revenue = Number(((totalRevenue || 0) * p).toFixed(2));
+      return { ...loc, sales, revenue };
+    }).sort((a, b) => b.sales - a.sales || b.revenue - a.revenue);
   }, [data, totalSales, totalRevenue]);
 
   const [selectedLocation, setSelectedLocation] = useState<BuyerLocation>(
@@ -305,7 +321,13 @@ export function BuyersLocationCard({
       </CardHeader>
 
       <CardContent className="flex flex-1 flex-col justify-between p-4 pt-1">
-        <AnimatePresence mode="wait">
+        {locations.length === 0 ? (
+          <div className="flex flex-1 flex-col items-center justify-center text-center p-4 text-muted-foreground min-h-[220px]">
+            <RiMapPinLine className="size-8 text-muted-foreground/40 mb-2" />
+            <p className="text-xs font-medium">Nenhuma venda registrada no período</p>
+          </div>
+        ) : (
+          <AnimatePresence mode="wait">
           {viewMode === "globo" ? (
             <motion.div
               key="view-globo"
@@ -523,6 +545,7 @@ export function BuyersLocationCard({
             </motion.div>
           )}
         </AnimatePresence>
+        )}
       </CardContent>
     </Card>
   );

@@ -51,12 +51,14 @@ function CustomTooltip({ active, payload, label }: any) {
 }
 
 interface HourlySalesChartProps {
-  data: HourlySale[];
+  data?: HourlySale[];
 }
 
-export function HourlySalesChart({ data }: HourlySalesChartProps) {
+export function HourlySalesChart({ data = [] }: HourlySalesChartProps) {
+  const hasData = data && data.length > 0 && data.some((d) => d.sales > 0 || d.revenue > 0);
+
   return (
-    <Card className="rounded-lg bg-white dark:bg-[#283046] border border-slate-200/80 dark:border-white/[0.08] shadow-sm flex flex-col justify-between py-0 gap-0">
+    <Card className="h-full min-h-[320px] lg:min-h-[360px] rounded-lg bg-white dark:bg-[#283046] border border-slate-200/80 dark:border-white/[0.08] shadow-sm flex flex-col justify-between py-0 gap-0">
       <CardHeader className="px-4 py-3 sm:px-5 sm:py-3.5 border-b border-slate-100 dark:border-white/[0.04]">
         <div className="flex items-center justify-between">
           <div>
@@ -76,14 +78,20 @@ export function HourlySalesChart({ data }: HourlySalesChartProps) {
         </div>
       </CardHeader>
       <CardContent className="p-2 sm:p-4 flex-1 flex flex-col justify-end">
-        <ChartContainer config={chartConfig} className="aspect-auto h-[180px] sm:h-[200px] lg:h-[220px] w-full mt-auto">
-          <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-            <XAxis dataKey="hour" tickLine={false} axisLine={false} tickMargin={8} fontSize={11} />
-            <YAxis tickLine={false} axisLine={false} tickMargin={8} fontSize={11} />
-            <ChartTooltip content={<CustomTooltip />} cursor={false} />
-            <Bar dataKey="sales" fill="var(--color-sales)" radius={[4, 4, 0, 0]} />
-          </BarChart>
-        </ChartContainer>
+        {hasData ? (
+          <ChartContainer config={chartConfig} className="aspect-auto h-[180px] sm:h-[200px] lg:h-[220px] w-full mt-auto">
+            <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <XAxis dataKey="hour" tickLine={false} axisLine={false} tickMargin={8} fontSize={11} />
+              <YAxis tickLine={false} axisLine={false} tickMargin={8} fontSize={11} />
+              <ChartTooltip content={<CustomTooltip />} cursor={false} />
+              <Bar dataKey="sales" fill="#0b63e5" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ChartContainer>
+        ) : (
+          <div className="flex flex-1 items-center justify-center text-xs text-muted-foreground min-h-[180px]">
+            Sem dados de vendas no período
+          </div>
+        )}
       </CardContent>
     </Card>
   );

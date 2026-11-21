@@ -6,9 +6,9 @@ import { RiMoneyDollarBoxLine, RiBarChartLine, RiLineChartLine, RiInformationLin
 import type { DailyRevenue } from "@/types/dashboard";
 
 const chartConfig = {
-  revenue: { label: "Faturamento", color: "var(--chart-1)" },
-  spend: { label: "Investido", color: "var(--chart-4)" },
-  profit: { label: "Lucro", color: "var(--chart-2)" },
+  revenue: { label: "Faturamento", color: "#0b63e5" },
+  spend: { label: "Investido", color: "#f59e0b" },
+  profit: { label: "Lucro", color: "#10b981" },
 } satisfies ChartConfig;
 
 const metricIcons = {
@@ -18,9 +18,9 @@ const metricIcons = {
 };
 
 const metricColors = {
-  revenue: "var(--chart-1)",
-  spend: "var(--chart-4)",
-  profit: "var(--chart-2)",
+  revenue: "#0b63e5",
+  spend: "#f59e0b",
+  profit: "#10b981",
 };
 
 import { convertAndFormatMZN } from "@/utils/format";
@@ -98,63 +98,69 @@ export function RevenueChart({ data }: RevenueChartProps) {
         </div>
       </CardHeader>
       <CardContent className="p-2 sm:p-4 pt-3 sm:pt-4">
-        <ChartContainer config={chartConfig} className="aspect-auto h-[240px] sm:h-[270px] lg:h-[290px] w-full">
-          <AreaChart data={data}>
-            <defs>
-              <linearGradient id="fillRevenue" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--color-revenue)" stopOpacity={0.8} />
-                <stop offset="95%" stopColor="var(--color-revenue)" stopOpacity={0.05} />
-              </linearGradient>
-              <linearGradient id="fillSpend" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--color-spend)" stopOpacity={0.6} />
-                <stop offset="95%" stopColor="var(--color-spend)" stopOpacity={0.05} />
-              </linearGradient>
-              <linearGradient id="fillProfit" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--color-profit)" stopOpacity={0.7} />
-                <stop offset="95%" stopColor="var(--color-profit)" stopOpacity={0.05} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid vertical={false} strokeDasharray="3 3" />
-            <XAxis
-              dataKey="date"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              minTickGap={32}
-              tickFormatter={(value) =>
-                new Date(value).toLocaleDateString("pt-BR", { month: "short", day: "numeric" })
-              }
-            />
-            <YAxis
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              tickFormatter={(value) => withSymbol(`${(convertFromBRL(value) / 1000).toFixed(0)}k`).replace(/\s*MT\b/gi, "")}
-            />
-            <ChartTooltip content={<CustomTooltip />} cursor={false} />
-            <Area
-              dataKey="revenue"
-              type="monotone"
-              fill="url(#fillRevenue)"
-              stroke="var(--color-revenue)"
-              strokeWidth={2}
-            />
-            <Area
-              dataKey="profit"
-              type="monotone"
-              fill="url(#fillProfit)"
-              stroke="var(--color-profit)"
-              strokeWidth={2}
-            />
-            <Area
-              dataKey="spend"
-              type="monotone"
-              fill="url(#fillSpend)"
-              stroke="var(--color-spend)"
-              strokeWidth={2}
-            />
-          </AreaChart>
-        </ChartContainer>
+        {data && data.length > 0 ? (
+          <ChartContainer config={chartConfig} className="aspect-auto h-[240px] sm:h-[270px] lg:h-[290px] w-full">
+            <AreaChart data={data}>
+              <defs>
+                <linearGradient id="fillRevenue" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#0b63e5" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="#0b63e5" stopOpacity={0.05} />
+                </linearGradient>
+                <linearGradient id="fillSpend" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.6} />
+                  <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.05} />
+                </linearGradient>
+                <linearGradient id="fillProfit" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.7} />
+                  <stop offset="95%" stopColor="#10b981" stopOpacity={0.05} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid vertical={false} strokeDasharray="3 3" />
+              <XAxis
+                dataKey="date"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                minTickGap={32}
+                tickFormatter={(value) =>
+                  new Date(value).toLocaleDateString("pt-BR", { month: "short", day: "numeric" })
+                }
+              />
+              <YAxis
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                tickFormatter={(value) => withSymbol(`${(convertFromBRL(value) / 1000).toFixed(0)}k`).replace(/\s*MT\b/gi, "")}
+              />
+              <ChartTooltip content={<CustomTooltip />} cursor={false} />
+              <Area
+                dataKey="revenue"
+                type="monotone"
+                fill="url(#fillRevenue)"
+                stroke="#0b63e5"
+                strokeWidth={2}
+              />
+              <Area
+                dataKey="profit"
+                type="monotone"
+                fill="url(#fillProfit)"
+                stroke="#10b981"
+                strokeWidth={2}
+              />
+              <Area
+                dataKey="spend"
+                type="monotone"
+                fill="url(#fillSpend)"
+                stroke="#f59e0b"
+                strokeWidth={2}
+              />
+            </AreaChart>
+          </ChartContainer>
+        ) : (
+          <div className="flex h-[240px] items-center justify-center text-xs text-muted-foreground">
+            Sem dados de performance no período
+          </div>
+        )}
       </CardContent>
     </Card>
   );
