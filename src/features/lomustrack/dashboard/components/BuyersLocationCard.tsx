@@ -229,36 +229,36 @@ export function BuyersLocationCard({
   }, [locations, searchQuery]);
 
   return (
-    <Card className="h-full min-h-[310px] border border-border/60 bg-card shadow-[0_4px_24px_rgba(15,23,42,0.06)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.3)] flex flex-col justify-between overflow-hidden rounded-2xl transition-all">
-      <CardHeader className="p-4 pb-2">
+    <Card className="h-full min-h-[310px] rounded-lg bg-white dark:bg-[#283046] border border-slate-200/80 dark:border-white/[0.08] shadow-sm flex flex-col justify-between overflow-hidden transition-all">
+      <CardHeader className="p-4 sm:p-5 pb-2">
         <div className="flex items-start justify-between gap-2">
-          {/* Título com estética 21st.dev em 2 linhas */}
+          {/* Título */}
           <div className="flex items-center gap-1.5">
             <div className="leading-tight text-left">
-              <h3 className="text-[15px] sm:text-base font-bold tracking-tight text-foreground">
+              <h3 className="text-sm sm:text-base font-semibold text-slate-800 dark:text-slate-100">
                 De onde
               </h3>
-              <h3 className="text-[15px] sm:text-base font-bold tracking-tight text-foreground">
+              <h3 className="text-sm sm:text-base font-semibold text-slate-800 dark:text-slate-100">
                 compram
               </h3>
             </div>
             <span
-              className="inline-flex cursor-help text-muted-foreground/60 hover:text-foreground transition-colors self-start mt-0.5"
+              className="inline-flex cursor-help text-slate-400/80 hover:text-slate-200 transition-colors self-start mt-0.5"
               title="Origem geográfica dos clientes com base nas vendas e conversões registradas."
             >
               <RiInformationLine className="size-4" />
             </span>
           </div>
 
-          {/* Segmented Control 21st.dev [Globo | Lista] */}
-          <div className="inline-flex items-center rounded-xl bg-muted/60 p-1 border border-border/40 text-xs">
+          {/* Segmented Control [Globo | Lista] */}
+          <div className="inline-flex items-center rounded-lg bg-slate-100 dark:bg-slate-800/80 p-0.5 border border-slate-200/60 dark:border-white/10 text-xs">
             <button
               type="button"
               onClick={() => setViewMode("globo")}
               className={cn(
-                "flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all",
+                "flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold transition-all",
                 viewMode === "globo"
-                  ? "bg-card text-foreground shadow-sm font-bold"
+                  ? "bg-white dark:bg-[#202738] text-foreground shadow-sm font-bold"
                   : "text-muted-foreground hover:text-foreground",
               )}
             >
@@ -269,9 +269,9 @@ export function BuyersLocationCard({
               type="button"
               onClick={() => setViewMode("lista")}
               className={cn(
-                "flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all",
+                "flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold transition-all",
                 viewMode === "lista"
-                  ? "bg-card text-foreground shadow-sm font-bold"
+                  ? "bg-white dark:bg-[#202738] text-foreground shadow-sm font-bold"
                   : "text-muted-foreground hover:text-foreground",
               )}
             >

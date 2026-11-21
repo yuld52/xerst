@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { RiInformationLine } from "@remixicon/react";
 import { cn } from "@/lib/utils";
 import type { TopCampaign } from "@/types/dashboard";
 
@@ -16,7 +17,7 @@ interface TopCampaignsProps {
 export function TopCampaigns({ data }: TopCampaignsProps) {
   if (data.length === 0) {
     return (
-      <Card className="border-border/40">
+      <Card className="rounded-lg bg-white dark:bg-[#283046] border border-slate-200/80 dark:border-white/[0.08] shadow-sm">
         <CardContent className="flex items-center justify-center h-[200px] text-muted-foreground">
           Sem campanhas no período
         </CardContent>
@@ -25,15 +26,25 @@ export function TopCampaigns({ data }: TopCampaignsProps) {
   }
 
   return (
-    <Card className="border-border/40">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base">Top Campanhas</CardTitle>
+    <Card className="rounded-lg bg-white dark:bg-[#283046] border border-slate-200/80 dark:border-white/[0.08] shadow-sm">
+      <CardHeader className="p-4 sm:p-5 pb-2">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-sm sm:text-base font-semibold text-slate-800 dark:text-slate-100">
+            Top Campanhas
+          </CardTitle>
+          <span
+            className="cursor-help text-slate-400/80 hover:text-slate-600 dark:text-slate-400/80 dark:hover:text-slate-200 transition-colors"
+            title="Campanhas com melhor desempenho no período"
+          >
+            <RiInformationLine className="size-4 shrink-0" />
+          </span>
+        </div>
       </CardHeader>
-      <CardContent className="space-y-3 px-4">
+      <CardContent className="space-y-2.5 p-4 sm:p-5 pt-1">
         {data.slice(0, 3).map((campaign, index) => (
           <div
             key={campaign.name}
-            className="group flex items-center justify-between rounded-lg border border-transparent p-3 transition-all duration-200 hover:border-border hover:bg-muted/50"
+            className="group flex items-center justify-between rounded-lg border border-transparent p-2.5 transition-all duration-200 hover:border-slate-200 dark:hover:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-700/20"
           >
             <div className="flex items-center gap-3 min-w-0">
               <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-xs font-bold text-primary">

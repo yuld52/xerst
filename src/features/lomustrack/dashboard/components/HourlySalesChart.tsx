@@ -1,7 +1,7 @@
 import { Bar, BarChart, XAxis, YAxis } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, type ChartConfig } from "@/components/ui/chart";
-import { RiShoppingBag3Line, RiMoneyDollarBoxLine } from "@remixicon/react";
+import { RiShoppingBag3Line, RiMoneyDollarBoxLine, RiInformationLine } from "@remixicon/react";
 import type { HourlySale } from "@/types/dashboard";
 
 const chartConfig = {
@@ -56,10 +56,24 @@ interface HourlySalesChartProps {
 
 export function HourlySalesChart({ data }: HourlySalesChartProps) {
   return (
-    <Card className="border-border/40">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base">Vendas por Hora</CardTitle>
-        <CardDescription>Horários de pico de vendas no período</CardDescription>
+    <Card className="rounded-lg bg-white dark:bg-[#283046] border border-slate-200/80 dark:border-white/[0.08] shadow-sm">
+      <CardHeader className="p-4 sm:p-5 pb-2">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-sm sm:text-base font-semibold text-slate-800 dark:text-slate-100">
+              Vendas por Hora
+            </CardTitle>
+            <CardDescription className="text-xs text-slate-500 dark:text-slate-400">
+              Horários de pico de vendas no período
+            </CardDescription>
+          </div>
+          <span
+            className="cursor-help text-slate-400/80 hover:text-slate-600 dark:text-slate-400/80 dark:hover:text-slate-200 transition-colors"
+            title="Distribuição das vendas por hora do dia"
+          >
+            <RiInformationLine className="size-4 shrink-0" />
+          </span>
+        </div>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="aspect-auto h-[200px] w-full">

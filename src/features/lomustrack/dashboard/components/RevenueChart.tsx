@@ -2,7 +2,7 @@ import { convertFromBRL, withSymbol } from "@/lib/currencySettings";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, type ChartConfig } from "@/components/ui/chart";
-import { RiMoneyDollarBoxLine, RiBarChartLine, RiLineChartLine } from "@remixicon/react";
+import { RiMoneyDollarBoxLine, RiBarChartLine, RiLineChartLine, RiInformationLine } from "@remixicon/react";
 import type { DailyRevenue } from "@/types/dashboard";
 
 const chartConfig = {
@@ -69,7 +69,7 @@ interface RevenueChartProps {
 export function RevenueChart({ data }: RevenueChartProps) {
   if (data.length === 0) {
     return (
-      <Card className="border-border/40">
+      <Card className="rounded-lg bg-white dark:bg-[#283046] border border-slate-200/80 dark:border-white/[0.08] shadow-sm">
         <CardContent className="flex items-center justify-center h-[340px] text-muted-foreground">
           Sem dados no período
         </CardContent>
@@ -78,10 +78,24 @@ export function RevenueChart({ data }: RevenueChartProps) {
   }
 
   return (
-    <Card className="border-border/40">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base">Performance Diária</CardTitle>
-        <CardDescription>Faturamento, investimento e lucro no período</CardDescription>
+    <Card className="rounded-lg bg-white dark:bg-[#283046] border border-slate-200/80 dark:border-white/[0.08] shadow-sm">
+      <CardHeader className="p-4 sm:p-5 pb-2">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-sm sm:text-base font-semibold text-slate-800 dark:text-slate-100">
+              Performance Diária
+            </CardTitle>
+            <CardDescription className="text-xs text-slate-500 dark:text-slate-400">
+              Faturamento, investimento e lucro no período
+            </CardDescription>
+          </div>
+          <span
+            className="cursor-help text-slate-400/80 hover:text-slate-600 dark:text-slate-400/80 dark:hover:text-slate-200 transition-colors"
+            title="Evolução diária de faturamento, investimento e lucro"
+          >
+            <RiInformationLine className="size-4 shrink-0" />
+          </span>
+        </div>
       </CardHeader>
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
         <ChartContainer config={chartConfig} className="aspect-auto h-[280px] w-full">
