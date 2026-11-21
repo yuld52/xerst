@@ -1,0 +1,43 @@
+name: Daily Automation
+on:
+  schedule:
+    - cron: '0 6 * * *'  # 06:00 UTC = 08:00 Maputo
+  workflow_dispatch:  # permite rodar manualmente na aba Actions
+
+jobs:
+  automation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Run Campaign Rules
+        run: |
+          echo "🔄 Running campaign rules..."
+          RESPONSE=$(curl -s -w "\n%{http_code}" -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            https://${{ secrets.VERCEL_DOMAIN }}/api/automation/rules/run)
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | head -n-1)
+          echo "Status: $HTTP_CODE"
+          echo "Response: $BODY"
+          if [ "$HTTP_CODE" -ge 400 ]; then exit 1; fi
+
+      - name: Retry Failed Notifications
+        run: |
+          echo "🔄 Retrying failed notifications..."
+          RESPONSE=$(curl -s -w "\n%{http_code}" -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            https://${{ secrets.VERCEL_DOMAIN }}/api/automation/run)
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | head -n-1)
+          echo "Status: $HTTP_CODE"
+          echo "Response: $BODY"
+          if [ "$HTTP_CODE" -ge 400 ]; then exit 1; fi
+
+      - name: Send Daily Reports
+        run: |
+          echo "📊 Sending daily reports..."
+          RESPONSE=$(curl -s -w "\n%{http_code}" -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            https://${{ secrets.VERCEL_DOMAIN }}/api/automation/reports/run)
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | head -n-1)
+          echo "Status: $HTTP_CODE"
+          echo "Response: $BODY"
+          if [ "$HTTP_CODE" -ge 400 ]; then exit 1; fi
