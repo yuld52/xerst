@@ -3,7 +3,9 @@ import { apiDownload, apiRequest } from "@/services/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { RiDownloadLine, RiRefreshLine, RiShieldCheckLine } from "@remixicon/react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { RiDownloadLine, RiRefreshLine, RiShieldCheckLine, RiMailSendLine, RiCloseLine } from "@remixicon/react";
 
 type Integration = {
   platform: string;
@@ -43,6 +45,19 @@ export default function AdminOperationsPage() {
   const [audit, setAudit] = useState<Audit[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Email form state
+  const [showEmailForm, setShowEmailForm] = useState(false);
+  const [emailLoading, setEmailLoading] = useState(false);
+  const [emailError, setEmailError] = useState("");
+  const [emailSuccess, setEmailSuccess] = useState("");
+  const [emailForm, setEmailForm] = useState({
+    email: "",
+    subject: "",
+    message: "",
+    cta_text: "",
+    cta_url: "",
+  });
 
   const load = async () => {
     setLoading(true);
@@ -71,6 +86,27 @@ export default function AdminOperationsPage() {
     await load();
   };
 
+  const handleEmailSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setEmailError("");
+    setEmailSuccess("");
+    setEmailLoading(true);
+    try {
+      await apiRequest("/superadmin/settings/send-email", {
+        method: "POST",
+        body: emailForm,
+      });
+      setEmailSuccess("Email enviado com sucesso!");
+      setEmailForm({ email: "", subject: "", message: "", cta_text: "", cta_url: "" });
+      setShowEmailForm(false);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Erro ao enviar email";
+      setEmailError(msg);
+    } finally {
+      setEmailLoading(false);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6 p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -80,10 +116,92 @@ export default function AdminOperationsPage() {
             Integrações, webhooks, auditoria e exportações reais.
           </p>
         </div>
-        <Button variant="outline" onClick={() => void load()} disabled={loading} className="gap-2">
-          <RiRefreshLine className="size-4" /> Atualizar
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setShowEmailForm(true)} className="gap-2">
+            <RiMailSendLine className="size-4" /> Enviar email
+          </Button>
+          <Button variant="outline" onClick={() => void load()} disabled={loading} className="gap-2">
+            <RiRefreshLine className="size-4" /> Atualizar
+          </Button>
+        </div>
       </div>
+
+      {showEmailForm && (
+        <Card>
+          <CardHeader className="flex items-center justify-between">
+            <CardTitle>Enviar email informativo</CardTitle>
+            <Button variant="ghost" size="icon" onClick={() => setShowEmailForm(false)}>
+              <RiCloseLine className="size-4" />
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleEmailSubmit} className="space-y-4 max-w-2xl">
+              {emailError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">{emailError}</div>
+              )}
+              {emailSuccess && (
+                <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-600">{emailSuccess}</div>
+              )}
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-muted-foreground">Email destinatário</label>
+                <Input
+                  type="email"
+                  placeholder="usuario@exemplo.com"
+                  value={emailForm.email}
+                  onChange={(e) => setEmailForm({ ...emailForm, email: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-muted-foreground">Assunto</label>
+                <Input
+                  placeholder="Assunto do email"
+                  value={emailForm.subject}
+                  onChange={(e) => setEmailForm({ ...emailForm, subject: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-muted-foreground">Mensagem (suporta quebras de linha)</label>
+                <Textarea
+                  placeholder="Digite sua mensagem aqui..."
+                  value={emailForm.message}
+                  onChange={(e) => setEmailForm({ ...emailForm, message: e.target.value })}
+                  rows={6}
+                  required
+                />
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-muted-foreground">Texto do botão (opcional)</label>
+                  <Input
+                    placeholder="Ex: Acessar dashboard"
+                    value={emailForm.cta_text}
+                    onChange={(e) => setEmailForm({ ...emailForm, cta_text: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-muted-foreground">URL do botão (opcional)</label>
+                  <Input
+                    placeholder="https://lomustrack.online/dashboard"
+                    value={emailForm.cta_url}
+                    onChange={(e) => setEmailForm({ ...emailForm, cta_url: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2 pt-2">
+                <Button type="submit" disabled={emailLoading} className="gap-2">
+                  <RiMailSendLine className="size-4" />
+                  {emailLoading ? "Enviando..." : "Enviar email"}
+                </Button>
+                <Button type="button" variant="outline" onClick={() => setShowEmailForm(false)}>
+                  Cancelar
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -7,6 +7,7 @@ from api.superadmin.companies import require_superadmin
 from database.models.admin import Admin
 from database.models.audit_log import AuditLog
 from database.models.global_app_settings import GlobalAppSettings
+from services.email import send_info_email
 
 router = APIRouter(prefix="/superadmin/settings", tags=["superadmin"])
 
@@ -21,6 +22,14 @@ class GlobalSettingsPayload(BaseModel):
     allowSignups: bool
     maintenanceMode: bool
     pushNotifications: bool
+
+
+class SendEmailPayload(BaseModel):
+    email: str
+    subject: str
+    message: str
+    cta_text: str | None = None
+    cta_url: str | None = None
 
 
 def _get_or_create_settings(db: Session) -> GlobalAppSettings:
@@ -61,3 +70,33 @@ def update_global_settings(
     db.commit()
     db.refresh(row)
     return {**DEFAULT_SETTINGS, **merged_settings}
+
+
+@router.post("/send-email")
+def send_admin_email(
+    payload: SendEmailPayload,
+    db: Session = Depends(get_db),
+    actor: Admin = Depends(require_superadmin),
+):
+    """Envia email informativo para um usuário (apenas superadmin)."""
+    success = send_info_email(
+        to=payload.email,
+        subject=payload.subject,
+        message=payload.message,
+        cta_text=payload.cta_text,
+        cta_url=payload.cta_url,
+    )
+    
+    db.add(AuditLog(
+        actor_id=actor.id,
+        action="admin.send_email",
+        resource_type="admin_email",
+        resource_id=payload.email,
+        details={"subject": payload.subject, "has_cta": bool(payload.cta_text)},
+    ))
+    db.commit()
+    
+    if not success:
+        raise HTTPException(status_code=500, detail="Falha ao enviar email (verifique RESEND_API_KEY)")
+    
+    return {"message": "Email enviado com sucesso"}

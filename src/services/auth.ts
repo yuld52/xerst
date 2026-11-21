@@ -109,6 +109,19 @@ export async function resetPassword(token: string, password: string, confirm_pas
   });
 }
 
+export async function sendAdminEmail(data: {
+  email: string;
+  subject: string;
+  message: string;
+  cta_text?: string;
+  cta_url?: string;
+}): Promise<{ message: string }> {
+  return apiRequest<{ message: string }>("/superadmin/settings/send-email", {
+    method: "POST",
+    body: data,
+  });
+}
+
 export function logout() {
   sessionStorage.removeItem("mock_mode");
   removeCookie("access_token");
