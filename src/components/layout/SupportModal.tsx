@@ -55,7 +55,7 @@ export function SupportModal({ open, onOpenChange, userEmail, userName }: Suppor
     const text = encodeURIComponent(
       `Olá! Preciso de suporte no LomusTrack.\nNome: ${userName || "Usuário"}\nE-mail: ${userEmail || ""}`,
     );
-    window.open(`https://wa.me/5511999999999?text=${text}`, "_blank");
+    window.open(`https://wa.me/258857245896?text=${text}`, "_blank");
   };
 
   return (
@@ -91,11 +91,11 @@ export function SupportModal({ open, onOpenChange, userEmail, userName }: Suppor
             <span className="text-xs font-semibold text-foreground group-hover:text-emerald-500 transition-colors">
               WhatsApp
             </span>
-            <span className="text-[11px] text-muted-foreground">Atendimento direto</span>
+            <span className="text-[11px] text-muted-foreground">+258 85 724 5896</span>
           </button>
 
           <a
-            href={`mailto:suporte@lomustrack.com?subject=Suporte LomusTrack - ${encodeURIComponent(userName || "Usuário")}`}
+            href={`mailto:yuldchissico@gmail.com?subject=Suporte LomusTrack - ${encodeURIComponent(userName || "Usuário")}`}
             className="flex flex-col items-start p-3 rounded-xl border border-border/60 bg-muted/30 hover:bg-muted/60 transition-all text-left group"
           >
             <div className="flex items-center justify-between w-full mb-1">
@@ -108,7 +108,7 @@ export function SupportModal({ open, onOpenChange, userEmail, userName }: Suppor
               E-mail
             </span>
             <span className="text-[11px] text-muted-foreground truncate w-full">
-              suporte@lomustrack.com
+              yuldchissico@gmail.com
             </span>
           </a>
         </div>
