@@ -3,6 +3,7 @@ import { ResetSalesCard } from "./components/ResetSalesCard";
 import { MockModeCard } from "./components/MockModeCard";
 import { CurrencyCard } from "./components/CurrencyCard";
 import { NotificationSettingsCard } from "./components/NotificationSettingsCard";
+import { McpCard } from "./components/McpCard";
 
 export default function AdvancedSettingsPage() {
   return (
@@ -20,6 +21,7 @@ export default function AdvancedSettingsPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
+        <McpCard />
         <CurrencyCard />
         <NotificationSettingsCard />
         <ResetSalesCard />
