@@ -58,7 +58,7 @@ export function KpiCard({
 
         <p
           className={cn(
-            "mt-auto pt-2 text-center font-bold tabular-nums tracking-tight",
+            "mt-auto pt-2 text-left font-bold tabular-nums tracking-tight",
             isLongValue ? "text-base sm:text-lg" : "text-xl sm:text-2xl",
             variantStyles[variant],
           )}
@@ -69,7 +69,7 @@ export function KpiCard({
       </div>
 
       {(subtitle || trend) && (
-        <div className="mt-0.5 flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground text-center">
+        <div className="mt-0.5 flex items-center justify-between text-[11px] text-muted-foreground text-left">
           {subtitle && <span className="truncate">{subtitle}</span>}
           {trend && (
             <span
