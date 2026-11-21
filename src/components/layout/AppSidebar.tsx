@@ -139,14 +139,11 @@ export function AppSidebar() {
         <NotificationBell />
       </SidebarHeader>
       <SidebarContent className="px-3 gap-0">
-        {visibleGroups.map((group) => (
-          <SidebarNavGroup
-            key={group.label}
-            items={group.items}
-            currentPath={location.pathname}
-            onNavigate={(url: string) => navigate(url)}
-          />
-        ))}
+        <SidebarNavGroup
+          items={visibleGroups.flatMap((group) => group.items)}
+          currentPath={location.pathname}
+          onNavigate={(url: string) => navigate(url)}
+        />
       </SidebarContent>
       <SidebarFooter className="p-3 border-t border-sidebar-border">
         <AiTrainingProfile />

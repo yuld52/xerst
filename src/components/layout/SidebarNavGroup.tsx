@@ -20,8 +20,8 @@ interface SidebarNavGroupProps {
 
 export function SidebarNavGroup({ items, currentPath, onNavigate }: SidebarNavGroupProps) {
   return (
-    <SidebarGroup className="py-1">
-      <SidebarMenu className="gap-0.5">
+    <SidebarGroup className="p-0">
+      <SidebarMenu className="gap-1">
         {items.map((item) => (
           <SidebarMenuItem key={item.title}>
             <SidebarMenuButton

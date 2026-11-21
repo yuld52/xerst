@@ -248,6 +248,7 @@ function AppSidebarContent() {
   const { features } = useAdvancedFeatures();
 
   const visibleGroups = filterNavGroups(navGroups, role, { ...features });
+  const allNavItems = visibleGroups.flatMap((group) => group.items);
   const currentPath = location.pathname;
 
   return (
@@ -282,25 +283,23 @@ function AppSidebarContent() {
       </AnimatedSidebarHeader>
 
       <AnimatedSidebarContent className="px-2 pt-1">
-        {visibleGroups.map((group) => (
-          <AnimatedSidebarGroup key={group.label} className="pt-0.5">
-            <AnimatedSidebarGroupContent>
-              <AnimatedSidebarMenu>
-                {group.items.map((item) => (
-                  <AnimatedSidebarMenuItem key={item.title}>
-                    <AnimatedSidebarMenuButton
-                      isActive={currentPath === item.url}
-                      icon={<item.icon className="size-4" />}
-                      onSelect={() => navigate(item.url)}
-                    >
-                      {item.title}
-                    </AnimatedSidebarMenuButton>
-                  </AnimatedSidebarMenuItem>
-                ))}
-              </AnimatedSidebarMenu>
-            </AnimatedSidebarGroupContent>
-          </AnimatedSidebarGroup>
-        ))}
+        <AnimatedSidebarGroup className="p-0">
+          <AnimatedSidebarGroupContent>
+            <AnimatedSidebarMenu className="gap-1">
+              {allNavItems.map((item) => (
+                <AnimatedSidebarMenuItem key={item.title}>
+                  <AnimatedSidebarMenuButton
+                    isActive={currentPath === item.url}
+                    icon={<item.icon className="size-4" />}
+                    onSelect={() => navigate(item.url)}
+                  >
+                    {item.title}
+                  </AnimatedSidebarMenuButton>
+                </AnimatedSidebarMenuItem>
+              ))}
+            </AnimatedSidebarMenu>
+          </AnimatedSidebarGroupContent>
+        </AnimatedSidebarGroup>
       </AnimatedSidebarContent>
 
       <AnimatedSidebarFooter className="gap-3 border-none p-3">
