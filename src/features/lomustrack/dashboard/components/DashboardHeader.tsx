@@ -55,7 +55,7 @@ export function DashboardHeader({ onRefresh, currentRevenue = 0 }: DashboardHead
             <span className="mr-6">
               <span
                 className="font-semibold text-primary"
-                title="Metas: 10K · 100K · 1M · 5M · 10M MT"
+                title="Metas: 10K · 100K · 1M · 5M · 10M"
               >
                 Prêmios
               </span>
@@ -68,9 +68,9 @@ export function DashboardHeader({ onRefresh, currentRevenue = 0 }: DashboardHead
               </span>
             </span>
             <span className="space-x-1">
-              <span className="font-bold">{formatPrize(currentRevenueMZN)} MT</span>
+              <span className="font-bold">{formatPrize(currentRevenueMZN)}</span>
               <span className="font-bold">/</span>
-              <span className="font-bold">{formatPrize(prizeGoalMZN)} MT</span>
+              <span className="font-bold">{formatPrize(prizeGoalMZN)}</span>
             </span>
           </div>
           <div

@@ -14,7 +14,7 @@ interface AwardUser {
 
 const MILESTONES = [10_000, 100_000, 1_000_000, 5_000_000, 10_000_000];
 function money(value: number) {
-  return `MT ${value.toLocaleString("pt-MZ", { maximumFractionDigits: 0 })}`;
+  return `${value.toLocaleString("pt-MZ", { maximumFractionDigits: 0 })}`;
 }
 
 function milestoneLabel(value: number) {
@@ -123,7 +123,7 @@ export default function AdminAwardsPage() {
                       Próximo:{" "}
                       {achieved.length === MILESTONES.length
                         ? "Todas as metas"
-                        : `${milestoneLabel(next)} MT`}
+                        : `${milestoneLabel(next)}`}
                     </p>
                   </div>
                 </div>
@@ -136,7 +136,7 @@ export default function AdminAwardsPage() {
                       className="gap-1"
                     >
                       {revenue >= milestone && <RiAwardLine className="size-3" />}
-                      {milestoneLabel(milestone)} MT
+                      {milestoneLabel(milestone)}
                     </Badge>
                   ))}
                 </div>
