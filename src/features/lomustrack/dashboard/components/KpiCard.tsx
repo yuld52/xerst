@@ -1,5 +1,5 @@
-import { Card, CardContent } from "@/components/ui/card";
 import type { RemixiconComponentType } from "@remixicon/react";
+import { RiInformationLine } from "@remixicon/react";
 import { cn } from "@/lib/utils";
 import { useValueDisplay } from "@/contexts/ValueDisplayContext";
 import { fmtFull } from "@/utils/format";
@@ -9,6 +9,7 @@ interface KpiCardProps {
   value: string;
   rawValue?: number;
   subtitle?: string;
+  tooltip?: string;
   icon?: RemixiconComponentType;
   trend?: {
     value: number;
@@ -18,9 +19,9 @@ interface KpiCardProps {
 }
 
 const variantStyles = {
-  default: "text-foreground",
-  primary: "text-primary",
-  success: "text-[var(--color-success)]",
+  default: "text-slate-900 dark:text-white",
+  primary: "text-slate-900 dark:text-white",
+  success: "text-slate-900 dark:text-white",
   destructive: "text-destructive",
 };
 
@@ -29,48 +30,58 @@ export function KpiCard({
   value,
   rawValue,
   subtitle,
+  tooltip,
   trend,
   variant = "default",
 }: KpiCardProps) {
   const { showFull } = useValueDisplay();
   const displayValue = showFull && rawValue != null ? fmtFull(rawValue) : value;
   const titleAttr = rawValue != null ? (showFull ? value : fmtFull(rawValue)) : value;
-  const isLongValue = displayValue.length > 12;
+  const isLongValue = displayValue.length > 13;
 
   return (
-    <Card className="group relative overflow-hidden border-border/40 transition-all duration-300 hover:shadow-lg hover:border-primary/20">
-      <CardContent className="p-3 sm:p-5">
-        <div className="space-y-1.5">
-            <p className="text-[10px] sm:text-xs font-medium uppercase text-muted-foreground break-words">
-              {title}
-            </p>
-            <p
+    <div
+      className="group relative flex flex-col justify-between rounded-lg bg-white dark:bg-[#283046] border border-slate-200/80 dark:border-white/[0.08] px-4 py-2.5 sm:py-3 shadow-sm min-h-[72px] sm:min-h-[76px] transition-all duration-200 hover:border-slate-300 dark:hover:border-white/20"
+      title={tooltip || title}
+    >
+      <div className="absolute top-2.5 right-3 sm:top-3 sm:right-4 pointer-events-none">
+        <RiInformationLine
+          className="size-3.5 sm:size-4 text-slate-400/80 group-hover:text-slate-600 dark:text-slate-400/80 dark:group-hover:text-slate-200 transition-colors"
+          aria-hidden="true"
+        />
+      </div>
+
+      <div className="space-y-1">
+        <p className="text-xs sm:text-[13px] font-semibold text-slate-700 dark:text-slate-200 pr-6 truncate">
+          {title}
+        </p>
+        <p
+          className={cn(
+            "font-bold tabular-nums tracking-tight",
+            isLongValue ? "text-base sm:text-lg" : "text-xl sm:text-2xl",
+            variantStyles[variant],
+          )}
+          title={titleAttr}
+        >
+          {displayValue}
+        </p>
+      </div>
+
+      {(subtitle || trend) && (
+        <div className="mt-0.5 flex items-center justify-between text-[11px] text-muted-foreground">
+          {subtitle && <span className="truncate">{subtitle}</span>}
+          {trend && (
+            <span
               className={cn(
-                "font-bold tabular-nums break-words",
-                isLongValue ? "text-sm sm:text-base" : "text-lg sm:text-xl",
-                variantStyles[variant],
+                "font-medium shrink-0",
+                trend.positive ? "text-emerald-500" : "text-destructive",
               )}
-              title={titleAttr}
             >
-              {displayValue}
-            </p>
-            {subtitle && <p className="text-xs text-muted-foreground break-words">{subtitle}</p>}
-            {trend && (
-              <div className="flex items-center gap-1">
-                <span
-                  className={cn(
-                    "text-xs font-medium",
-                    trend.positive ? "text-[var(--color-success)]" : "text-destructive",
-                  )}
-                >
-                  {trend.positive ? "↑" : "↓"} {Math.abs(trend.value).toFixed(2)}%
-                </span>
-                <span className="text-xs text-muted-foreground">vs período anterior</span>
-              </div>
-            )}
+              {trend.positive ? "↑" : "↓"} {Math.abs(trend.value).toFixed(1)}%
+            </span>
+          )}
         </div>
-      </CardContent>
-      <div className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-transparent via-primary/50 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-    </Card>
+      )}
+    </div>
   );
 }

@@ -74,18 +74,16 @@ const Button: React.FC<ButtonProps> = ({ children, className, ...props }) => (
 )
 
 const Logo: React.FC = () => (
-  <div className="mb-8 flex flex-col items-center justify-center gap-3">
-    <div className="size-16 rounded-2xl bg-gradient-to-br from-zinc-900 to-zinc-700 dark:from-zinc-800 dark:to-zinc-900 flex items-center justify-center p-2.5 shadow-lg shadow-blue-500/10 border border-zinc-600/30 dark:border-zinc-700/50 ring-1 ring-white/5">
-      <img
-        src="/brand-logo.png"
-        alt="LomusTrack"
-        className="h-full w-auto object-contain drop-shadow-sm"
-        onError={(e) => {
-          (e.currentTarget as HTMLElement).style.display = "none"
-        }}
-      />
-    </div>
-    <span className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-zinc-800 via-zinc-600 to-zinc-800 dark:from-zinc-100 dark:via-zinc-300 dark:to-zinc-100 bg-clip-text text-transparent">
+  <div className="mb-6 flex flex-col items-center justify-center gap-2">
+    <img
+      src="/brand-logo.png"
+      alt="LomusTrack"
+      className="size-10 object-contain"
+      onError={(e) => {
+        (e.currentTarget as HTMLElement).style.display = "none"
+      }}
+    />
+    <span className="text-2xl font-bold tracking-tight bg-gradient-to-r from-zinc-900 to-zinc-600 dark:from-zinc-100 dark:to-zinc-400 bg-clip-text text-transparent">
       LomusTrack
     </span>
   </div>
