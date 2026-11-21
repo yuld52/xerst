@@ -35,10 +35,10 @@ export function PaymentMethodChart({ data = [] }: PaymentMethodChartProps) {
   }));
   const total = values.reduce((sum, item) => sum + item.value, 0);
   const totalLabel = total > 0 ? convertAndFormatMZN(total, 0) : "0";
-  const totalLabelClass = totalLabel.length > 10 ? "text-xs sm:text-sm" : "text-sm sm:text-base";
+  const totalLabelClass = totalLabel.length > 10 ? "text-xs sm:text-sm lg:text-base" : "text-sm sm:text-base lg:text-xl";
 
   return (
-    <Card className="h-full min-h-[330px] rounded-lg bg-white dark:bg-[#283046] border border-slate-200/80 dark:border-white/[0.08] shadow-sm flex flex-col justify-between">
+    <Card className="h-full min-h-[340px] lg:min-h-[380px] rounded-lg bg-white dark:bg-[#283046] border border-slate-200/80 dark:border-white/[0.08] shadow-sm flex flex-col justify-between">
       <CardHeader className="p-4 sm:p-5 pb-0">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm sm:text-base font-semibold text-slate-800 dark:text-slate-100">
@@ -56,19 +56,19 @@ export function PaymentMethodChart({ data = [] }: PaymentMethodChartProps) {
         </div>
       </CardHeader>
       <CardContent className="flex flex-1 flex-col justify-between p-4 sm:p-5 pt-1">
-        <div className="relative flex flex-1 items-center justify-center my-auto min-h-[190px]">
+        <div className="relative flex flex-1 items-center justify-center my-auto min-h-[200px] lg:min-h-[250px]">
           {total > 0 && (
             <ChartContainer
               config={chartConfig}
-              className="aspect-square h-[185px] w-[185px] sm:h-[200px] sm:w-[200px] mx-auto"
+              className="aspect-square h-[200px] w-[200px] sm:h-[230px] sm:w-[230px] lg:h-[250px] lg:w-[250px] mx-auto"
             >
               <PieChart>
                 <Pie
                   data={values}
                   dataKey="value"
                   nameKey="name"
-                  innerRadius={55}
-                  outerRadius={80}
+                  innerRadius="58%"
+                  outerRadius="82%"
                   stroke="transparent"
                   strokeWidth={0}
                 >
