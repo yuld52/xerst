@@ -3,7 +3,11 @@ import { getMockData } from "./mockInterceptor";
 import { isImportDemo } from "@/lib/import-demo";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
-const DEMO_READ_ONLY_POST_ENDPOINTS = new Set(["/gemini/chat", "/gemini/daily-report"]);
+const DEMO_ALLOWED_MUTATION_ENDPOINTS = [
+  "/gemini/chat",
+  "/gemini/daily-report",
+  "/campaigns/rules",
+];
 
 /** Evita múltiplos redirects simultâneos de 401 */
 let isRedirecting = false;
@@ -19,7 +23,10 @@ export async function apiRequest<T>(endpoint: string, options: RequestOptions = 
 
   if (isMock) {
     const method = options.method ?? "GET";
-    if (method !== "GET" && !DEMO_READ_ONLY_POST_ENDPOINTS.has(endpoint)) {
+    const isAllowedMutation = DEMO_ALLOWED_MUTATION_ENDPOINTS.some((prefix) =>
+      endpoint.startsWith(prefix),
+    );
+    if (method !== "GET" && !isAllowedMutation) {
       throw new Error(
         "Alterações indisponíveis na demonstração. O serviço original ainda não está conectado.",
       );

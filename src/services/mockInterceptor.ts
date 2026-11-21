@@ -15,6 +15,78 @@ import { productsData } from "../data/mock-products";
 import { funnelData } from "../data/mock-funnel";
 import { monthlyFinancialData, defaultCompanySettings } from "../data/mock-company";
 
+let demoCampaignRules = [
+  {
+    id: "rule_cpa_pause",
+    enabled: true,
+    definition: {
+      id: "rule_cpa_pause",
+      name: "Pausar conjunto com CPA alto",
+      product: "any",
+      account: "all",
+      scope: "active",
+      nameFilter: "any",
+      action: "pause" as const,
+      conditions: [
+        { field: "cpa" as const, operator: "gt" as const, value: "750" },
+        { field: "spend" as const, operator: "gt" as const, value: "1500" },
+      ],
+      period: "today",
+      frequency: "daily",
+      interval: "any",
+      dailyLimit: "none",
+      actionValue: 10,
+      enabled: true,
+    },
+  },
+  {
+    id: "rule_roas_scale",
+    enabled: true,
+    definition: {
+      id: "rule_roas_scale",
+      name: "Escalar orçamento com ROAS acima de 3.5x",
+      product: "any",
+      account: "all",
+      scope: "active",
+      nameFilter: "any",
+      action: "increase_budget" as const,
+      conditions: [
+        { field: "roas" as const, operator: "gt" as const, value: "3.5" },
+        { field: "sales" as const, operator: "gte" as const, value: "5" },
+      ],
+      period: "today",
+      frequency: "daily",
+      interval: "any",
+      dailyLimit: "none",
+      actionValue: 20,
+      enabled: true,
+    },
+  },
+  {
+    id: "rule_zero_sales",
+    enabled: false,
+    definition: {
+      id: "rule_zero_sales",
+      name: "Pausar anúncios sem vendas após gasto limite",
+      product: "any",
+      account: "all",
+      scope: "active",
+      nameFilter: "any",
+      action: "pause" as const,
+      conditions: [
+        { field: "spend" as const, operator: "gt" as const, value: "500" },
+        { field: "sales" as const, operator: "eq" as const, value: "0" },
+      ],
+      period: "today",
+      frequency: "daily",
+      interval: "any",
+      dailyLimit: "none",
+      actionValue: 10,
+      enabled: false,
+    },
+  },
+];
+
 export async function getMockData(endpoint: string, _options?: any): Promise<any> {
   // Mock delay to simulate network
   await new Promise((resolve) => setTimeout(resolve, 120));
@@ -803,6 +875,56 @@ export async function getMockData(endpoint: string, _options?: any): Promise<any
       spend_today: 1580,
       response: `## 🌅 Relatório Diário — Lomus AI\n\n**Bom dia!** Aqui está o resumo de hoje:\n\n### 💰 Financeiro\n- **Faturamento:** R$ 4.890\n- **Gasto:** R$ 1.580\n- **Lucro estimado:** R$ 3.310\n- **ROAS do dia:** 3,09x\n\n### 🏆 Destaques\n1. **Mentoria Premium** — melhor ROAS do dia (4,1x) ✅\n2. **Lançamento VIP** — CPA de R$ 41 (abaixo da meta) ✅\n3. **Curso Marketing** — ROAS em queda (2,7x) ⚠️\n\n### 📌 Ações Recomendadas\n- Aumentar orçamento da **Mentoria Premium** em 20%\n- Revisar criativos do **Curso Marketing Digital**\n- Pausar conjunto "Broad 18-55" (ROAS 2,07x)\n\n> Quer que eu execute alguma dessas ações?`,
     };
+  }
+
+  if (path.startsWith("/campaigns/rules")) {
+    const method = _options?.method ?? "GET";
+    const ruleIdMatch = path.match(/^\/campaigns\/rules\/(.+)$/);
+    const targetRuleId = ruleIdMatch ? decodeURIComponent(ruleIdMatch[1]) : null;
+
+    if (method === "GET") {
+      return demoCampaignRules.map((r) => ({
+        id: r.id,
+        enabled: r.enabled,
+        definition: { ...r.definition, enabled: r.enabled },
+      }));
+    }
+
+    if (method === "POST") {
+      const payload = (_options?.body || {}) as any;
+      const newId = payload.id || `rule_${Date.now()}`;
+      const newRule = {
+        id: newId,
+        enabled: payload.enabled ?? true,
+        definition: {
+          ...payload,
+          id: newId,
+          enabled: payload.enabled ?? true,
+        },
+      };
+      demoCampaignRules.push(newRule);
+      return newRule;
+    }
+
+    if (method === "PATCH" && targetRuleId) {
+      const body = (_options?.body || {}) as any;
+      const rule = demoCampaignRules.find((r) => r.id === targetRuleId);
+      if (rule) {
+        if (body.enabled !== undefined) {
+          rule.enabled = body.enabled;
+          rule.definition.enabled = body.enabled;
+        }
+        if (body.definition) {
+          rule.definition = { ...rule.definition, ...body.definition };
+        }
+      }
+      return rule || { id: targetRuleId, enabled: true, definition: {} };
+    }
+
+    if (method === "DELETE" && targetRuleId) {
+      demoCampaignRules = demoCampaignRules.filter((r) => r.id !== targetRuleId);
+      return { success: true };
+    }
   }
 
   if (path === "/campaigns/ai-action") {
