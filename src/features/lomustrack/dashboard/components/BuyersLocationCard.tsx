@@ -1,7 +1,14 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import createGlobe, { type Globe } from "cobe";
-import { RiInformationLine, RiGlobalLine, RiListUnordered } from "@remixicon/react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  RiInformationLine,
+  RiGlobalLine,
+  RiListUnordered,
+  RiSearchLine,
+  RiFocus3Line,
+} from "@remixicon/react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { convertAndFormatMZN } from "@/utils/format";
 import { cn } from "@/lib/utils";
 import type { BuyerLocation } from "@/types/dashboard";
@@ -66,16 +73,24 @@ export function BuyersLocationCard({
   totalRevenue,
 }: BuyersLocationCardProps) {
   const [viewMode, setViewMode] = useState<"globo" | "lista">("globo");
+  const [searchQuery, setSearchQuery] = useState("");
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  // Controle de rotação e física do globo
   const pointerInteracting = useRef<number | null>(null);
+  const pointerYInteracting = useRef<number | null>(null);
   const isDragging = useRef(false);
-  const phiRef = useRef(4.7); // Focado inicialmente na América do Sul
+  const lastInteractionTime = useRef(Date.now());
+  const phiRef = useRef(4.7);
+  const thetaRef = useRef(0.25);
+  const targetPhi = useRef(4.7);
+  const targetTheta = useRef(0.25);
   const globeRef = useRef<Globe | null>(null);
 
   // Normaliza locais recebidos ou usa os locais padrão escalados proporcionalmente
   const locations: BuyerLocation[] = useMemo(() => {
     if (data && data.length > 0) {
-      return data;
+      return [...data].sort((a, b) => b.sales - a.sales || b.revenue - a.revenue);
     }
     if (totalSales && totalSales > 0 && totalRevenue && totalRevenue > 0) {
       const proportions = [0.42, 0.24, 0.18, 0.1, 0.06];
@@ -84,7 +99,7 @@ export function BuyersLocationCard({
         const sales = Math.max(1, Math.round(totalSales * p));
         const revenue = Number((totalRevenue * p).toFixed(2));
         return { ...loc, sales, revenue };
-      });
+      }).sort((a, b) => b.sales - a.sales);
     }
     return DEFAULT_LOCATIONS;
   }, [data, totalSales, totalRevenue]);
@@ -95,50 +110,63 @@ export function BuyersLocationCard({
 
   useEffect(() => {
     if (locations.length > 0) {
-      setSelectedLocation(locations[0]);
+      setSelectedLocation((curr) => {
+        const match = locations.find((l) => l.city === curr.city);
+        return match || locations[0];
+      });
     }
   }, [locations]);
 
-  // Inicializa o globo WebGL via Cobe
+  // Rotaciona o globo suavemente para focar no local selecionado
+  const handleSelectLocation = useCallback((loc: BuyerLocation, switchToGlobe = false) => {
+    setSelectedLocation(loc);
+    lastInteractionTime.current = Date.now();
+
+    // Converte coordenadas geográficas para os ângulos phi e theta do Cobe
+    const phi = ((-loc.lng - 90) * Math.PI) / 180;
+    targetPhi.current = phi;
+
+    const thetaTarget = (loc.lat * Math.PI) / 180 * -0.4;
+    targetTheta.current = Math.max(-0.4, Math.min(0.4, thetaTarget));
+
+    if (switchToGlobe) {
+      setViewMode("globo");
+    }
+  }, []);
+
+  // Inicializa o globo WebGL via Cobe com física suave e animação contínua
   useEffect(() => {
     if (viewMode !== "globo" || !canvasRef.current) return;
 
-    let width = 0;
     const canvas = canvasRef.current;
-
-    const onResize = () => {
-      if (canvas) {
-        width = canvas.offsetWidth;
-      }
-    };
-    window.addEventListener("resize", onResize);
-    onResize();
-
-    const maxSales = Math.max(...locations.map((l) => l.sales), 1);
-    const markers = locations.map((loc) => ({
-      location: [loc.lat, loc.lng] as [number, number],
-      size: Math.max(0.04, Math.min(0.09, 0.04 + (loc.sales / maxSales) * 0.05)),
-    }));
-
     let animationId: number | null = null;
     let globe: Globe | null = null;
-    let currentPhi = phiRef.current;
-    const theta = 0.25;
+
+    const maxSales = Math.max(...locations.map((l) => l.sales), 1);
+    const markers = locations.map((loc) => {
+      const isSelected = selectedLocation.city === loc.city;
+      return {
+        location: [loc.lat, loc.lng] as [number, number],
+        size: isSelected
+          ? 0.11
+          : Math.max(0.045, Math.min(0.085, 0.045 + (loc.sales / maxSales) * 0.04)),
+      };
+    });
 
     try {
       globe = createGlobe(canvas, {
         devicePixelRatio: Math.min(2, window.devicePixelRatio || 1),
-        width: 400,
-        height: 400,
-        phi: currentPhi,
-        theta,
+        width: 440,
+        height: 440,
+        phi: phiRef.current,
+        theta: thetaRef.current,
         dark: 1,
-        diffuse: 1.2,
+        diffuse: 1.25,
         mapSamples: 16000,
         mapBrightness: 5.5,
         baseColor: [0.04, 0.09, 0.2],
-        markerColor: [0.2, 0.7, 1.0],
-        glowColor: [0.08, 0.28, 0.65],
+        markerColor: [0.25, 0.75, 1.0],
+        glowColor: [0.08, 0.32, 0.72],
         markers,
         scale: 1,
       });
@@ -146,13 +174,22 @@ export function BuyersLocationCard({
       globeRef.current = globe;
 
       const animate = () => {
-        if (!isDragging.current) {
-          currentPhi += 0.0035;
-          phiRef.current = currentPhi;
+        const now = Date.now();
+        // Se o usuário não interagiu nos últimos 3.5 segundos, rotaciona lentamente
+        if (!isDragging.current && now - lastInteractionTime.current > 3500) {
+          targetPhi.current += 0.0022;
         }
-        globe?.update({ phi: phiRef.current, theta });
+
+        // Interpolação suave (lerp) para suavizar a transição
+        if (!isDragging.current) {
+          phiRef.current += (targetPhi.current - phiRef.current) * 0.07;
+          thetaRef.current += (targetTheta.current - thetaRef.current) * 0.07;
+        }
+
+        globe?.update({ phi: phiRef.current, theta: thetaRef.current });
         animationId = requestAnimationFrame(animate);
       };
+
       animationId = requestAnimationFrame(animate);
 
       // Fade-in canvas suave
@@ -165,50 +202,63 @@ export function BuyersLocationCard({
 
     return () => {
       if (animationId !== null) cancelAnimationFrame(animationId);
-      window.removeEventListener("resize", onResize);
       globe?.destroy();
       globeRef.current = null;
     };
-  }, [viewMode, locations]);
+  }, [viewMode, locations, selectedLocation.city]);
 
-  // Rotaciona o globo suavemente para focar no local selecionado
-  const handleSelectLocation = (loc: BuyerLocation) => {
-    setSelectedLocation(loc);
-    // Converte longitude para phi
-    const targetPhi = ((-loc.lng - 90) * Math.PI) / 180;
-    phiRef.current = targetPhi;
-    if (globeRef.current) {
-      globeRef.current.update({ phi: targetPhi });
-    }
-  };
+  // Total de vendas em todas as localidades
+  const totalLocSales = useMemo(() => {
+    return locations.reduce((sum, l) => sum + l.sales, 0);
+  }, [locations]);
 
-  const totalLocSales = locations.reduce((sum, l) => sum + l.sales, 0);
+  const totalLocRevenue = useMemo(() => {
+    return locations.reduce((sum, l) => sum + l.revenue, 0);
+  }, [locations]);
+
+  // Filtro de cidades na aba Lista
+  const filteredLocations = useMemo(() => {
+    if (!searchQuery.trim()) return locations;
+    const q = searchQuery.toLowerCase();
+    return locations.filter(
+      (l) =>
+        l.city.toLowerCase().includes(q) ||
+        l.state.toLowerCase().includes(q) ||
+        (l.country && l.country.toLowerCase().includes(q)),
+    );
+  }, [locations, searchQuery]);
 
   return (
-    <Card className="h-full min-h-[300px] border-0 bg-card shadow-[0_4px_18px_rgba(15,23,42,0.06)] flex flex-col justify-between overflow-hidden">
-      <CardHeader className="p-4 pb-1">
-        <div className="flex items-center justify-between gap-2">
+    <Card className="h-full min-h-[310px] border border-border/60 bg-card shadow-[0_4px_24px_rgba(15,23,42,0.06)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.3)] flex flex-col justify-between overflow-hidden rounded-2xl transition-all">
+      <CardHeader className="p-4 pb-2">
+        <div className="flex items-start justify-between gap-2">
+          {/* Título com estética 21st.dev em 2 linhas */}
           <div className="flex items-center gap-1.5">
-            <CardTitle className="text-left text-lg font-semibold text-foreground">
-              De onde compram
-            </CardTitle>
+            <div className="leading-tight text-left">
+              <h3 className="text-[15px] sm:text-base font-bold tracking-tight text-foreground">
+                De onde
+              </h3>
+              <h3 className="text-[15px] sm:text-base font-bold tracking-tight text-foreground">
+                compram
+              </h3>
+            </div>
             <span
-              className="inline-flex cursor-help text-muted-foreground hover:text-foreground transition-colors"
+              className="inline-flex cursor-help text-muted-foreground/60 hover:text-foreground transition-colors self-start mt-0.5"
               title="Origem geográfica dos clientes com base nas vendas e conversões registradas."
             >
-              <RiInformationLine className="size-[17px]" />
+              <RiInformationLine className="size-4" />
             </span>
           </div>
 
-          {/* Toggle Globo / Lista */}
+          {/* Segmented Control 21st.dev [Globo | Lista] */}
           <div className="inline-flex items-center rounded-xl bg-muted/60 p-1 border border-border/40 text-xs">
             <button
               type="button"
               onClick={() => setViewMode("globo")}
               className={cn(
-                "flex items-center gap-1 px-3 py-1 rounded-lg font-medium transition-all",
+                "flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all",
                 viewMode === "globo"
-                  ? "bg-card text-foreground shadow-sm font-semibold"
+                  ? "bg-card text-foreground shadow-sm font-bold"
                   : "text-muted-foreground hover:text-foreground",
               )}
             >
@@ -219,9 +269,9 @@ export function BuyersLocationCard({
               type="button"
               onClick={() => setViewMode("lista")}
               className={cn(
-                "flex items-center gap-1 px-3 py-1 rounded-lg font-medium transition-all",
+                "flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all",
                 viewMode === "lista"
-                  ? "bg-card text-foreground shadow-sm font-semibold"
+                  ? "bg-card text-foreground shadow-sm font-bold"
                   : "text-muted-foreground hover:text-foreground",
               )}
             >
@@ -232,122 +282,225 @@ export function BuyersLocationCard({
         </div>
       </CardHeader>
 
-      <CardContent className="flex flex-1 flex-col justify-between p-4 pt-0">
-        {viewMode === "globo" ? (
-          <div className="flex flex-1 flex-col items-center justify-center">
-            {/* Globo 3D Cobe */}
-            <div className="relative w-full max-w-[160px] aspect-square flex items-center justify-center my-0.5 select-none">
-              <div className="absolute inset-0 rounded-full bg-blue-500/10 blur-xl pointer-events-none" />
-              <canvas
-                ref={canvasRef}
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  aspectRatio: "1",
-                  contain: "layout paint size",
-                  opacity: 0,
-                  transition: "opacity 0.6s ease",
-                }}
-                className="touch-none cursor-grab active:cursor-grabbing"
-                onPointerDown={(e) => {
-                  pointerInteracting.current = e.clientX;
-                  isDragging.current = true;
-                }}
-                onPointerUp={() => {
-                  pointerInteracting.current = null;
-                  isDragging.current = false;
-                }}
-                onPointerOut={() => {
-                  pointerInteracting.current = null;
-                  isDragging.current = false;
-                }}
-                onMouseMove={(e) => {
-                  if (pointerInteracting.current !== null && isDragging.current) {
-                    const delta = e.clientX - pointerInteracting.current;
+      <CardContent className="flex flex-1 flex-col justify-between p-4 pt-1">
+        <AnimatePresence mode="wait">
+          {viewMode === "globo" ? (
+            <motion.div
+              key="view-globo"
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.96 }}
+              transition={{ duration: 0.2 }}
+              className="flex flex-1 flex-col items-center justify-between"
+            >
+              {/* Globo 3D Cobe com halo azul luminoso 21st.dev */}
+              <div className="relative w-full max-w-[170px] aspect-square flex items-center justify-center my-0.5 select-none">
+                {/* Glow atmosférico em degradê radial */}
+                <div className="absolute inset-0 rounded-full bg-blue-500/15 dark:bg-blue-500/20 blur-xl pointer-events-none" />
+                <div className="absolute inset-2 rounded-full bg-cyan-400/10 blur-2xl pointer-events-none" />
+
+                <canvas
+                  ref={canvasRef}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    aspectRatio: "1",
+                    contain: "layout paint size",
+                    opacity: 0,
+                    transition: "opacity 0.6s ease",
+                  }}
+                  className="touch-none cursor-grab active:cursor-grabbing"
+                  onPointerDown={(e) => {
                     pointerInteracting.current = e.clientX;
-                    phiRef.current += delta * 0.007;
-                  }
-                }}
-              />
-            </div>
+                    pointerYInteracting.current = e.clientY;
+                    isDragging.current = true;
+                    lastInteractionTime.current = Date.now();
+                  }}
+                  onPointerUp={() => {
+                    pointerInteracting.current = null;
+                    pointerYInteracting.current = null;
+                    isDragging.current = false;
+                    lastInteractionTime.current = Date.now();
+                  }}
+                  onPointerOut={() => {
+                    pointerInteracting.current = null;
+                    pointerYInteracting.current = null;
+                    isDragging.current = false;
+                    lastInteractionTime.current = Date.now();
+                  }}
+                  onMouseMove={(e) => {
+                    if (isDragging.current && pointerInteracting.current !== null) {
+                      const deltaX = e.clientX - pointerInteracting.current;
+                      pointerInteracting.current = e.clientX;
+                      targetPhi.current += deltaX * 0.007;
+                      phiRef.current = targetPhi.current;
 
-            {/* Badges dos locais mais ativos */}
-            <div className="flex flex-wrap items-center justify-center gap-1.5 mt-1.5 w-full">
-              {locations.slice(0, 3).map((loc) => {
-                const isSelected = selectedLocation.city === loc.city;
-                return (
-                  <button
-                    key={`${loc.city}-${loc.state}`}
-                    type="button"
-                    onClick={() => handleSelectLocation(loc)}
-                    className={cn(
-                      "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium transition-all border",
-                      isSelected
-                        ? "bg-blue-600/20 border-blue-500/50 text-blue-300 shadow-[0_0_12px_rgba(59,130,246,0.25)]"
-                        : "bg-muted/40 border-border/40 text-muted-foreground hover:bg-muted/70 hover:text-foreground",
-                    )}
-                  >
-                    <span className="size-1.5 rounded-full bg-blue-400 shadow-[0_0_6px_rgba(96,165,250,0.8)]" />
-                    <span>
-                      {loc.city}, {loc.state} · {loc.sales}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
+                      if (pointerYInteracting.current !== null) {
+                        const deltaY = e.clientY - pointerYInteracting.current;
+                        pointerYInteracting.current = e.clientY;
+                        targetTheta.current = Math.max(
+                          -0.45,
+                          Math.min(0.45, targetTheta.current + deltaY * 0.005),
+                        );
+                        thetaRef.current = targetTheta.current;
+                      }
+                    }
+                  }}
+                />
+              </div>
 
-            {/* Rodapé informativo do local selecionado */}
-            <p className="text-center text-[11px] text-muted-foreground mt-2 font-medium">
-              {selectedLocation.city}, {selectedLocation.state} — {selectedLocation.sales}{" "}
-              {selectedLocation.sales === 1 ? "venda" : "vendas"} (
-              {convertAndFormatMZN(selectedLocation.revenue)})
-            </p>
-          </div>
-        ) : (
-          /* Visualização em Lista */
-          <div className="flex flex-1 flex-col justify-start space-y-3 mt-3 overflow-y-auto max-h-[300px] pr-1">
-            {locations.map((loc, idx) => {
-              const pct = totalLocSales > 0 ? (loc.sales / totalLocSales) * 100 : 0;
-              return (
-                <div
-                  key={`${loc.city}-${loc.state}`}
-                  className="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-muted/30 border border-border/30 hover:bg-muted/50 transition-colors"
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">
-                      {idx + 1}
-                    </span>
-                    <div className="min-w-0">
-                      <p className="text-xs font-semibold text-foreground truncate">
-                        {loc.city}, {loc.state}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground truncate">
-                        {loc.country || "Brasil"}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 shrink-0">
-                    <div className="w-16 h-1.5 rounded-full bg-muted overflow-hidden">
-                      <div
-                        className="h-full bg-blue-500 rounded-full transition-all duration-500"
-                        style={{ width: `${Math.min(100, Math.max(15, pct))}%` }}
+              {/* Badges dos locais mais ativos no estilo 21st.dev */}
+              <div className="flex flex-col items-center gap-1.5 mt-1 w-full max-w-[240px]">
+                {locations.slice(0, 2).map((loc) => {
+                  const isSelected = selectedLocation.city === loc.city;
+                  return (
+                    <button
+                      key={`${loc.city}-${loc.state}`}
+                      type="button"
+                      onClick={() => handleSelectLocation(loc)}
+                      className={cn(
+                        "w-full flex items-center justify-center gap-2 py-1 px-3 rounded-xl text-xs font-medium transition-all border",
+                        isSelected
+                          ? "bg-blue-600/15 border-blue-500/60 text-blue-500 dark:text-blue-300 shadow-[0_0_14px_rgba(59,130,246,0.25)] font-semibold scale-[1.02]"
+                          : "bg-muted/40 border-border/40 text-muted-foreground hover:bg-muted/70 hover:text-foreground",
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "size-2 rounded-full transition-all",
+                          isSelected
+                            ? "bg-blue-500 dark:bg-blue-400 shadow-[0_0_8px_rgba(59,130,246,0.9)] animate-pulse"
+                            : "bg-zinc-400/70",
+                        )}
                       />
-                    </div>
-                    <div className="text-right min-w-[70px]">
-                      <p className="text-xs font-bold text-foreground">
-                        {loc.sales} {loc.sales === 1 ? "venda" : "vendas"}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground">
-                        {convertAndFormatMZN(loc.revenue)}
-                      </p>
-                    </div>
+                      <span>
+                        {loc.city}, {loc.state} · {loc.sales}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Rodapé informativo do local selecionado no 21st.dev */}
+              <p className="text-center text-[11px] text-muted-foreground mt-2 font-medium tracking-tight">
+                {selectedLocation.city}, {selectedLocation.state} — {selectedLocation.sales}{" "}
+                {selectedLocation.sales === 1 ? "venda" : "vendas"} (
+                {convertAndFormatMZN(selectedLocation.revenue)})
+              </p>
+            </motion.div>
+          ) : (
+            /* Visualização em Lista Funcional e Pesquisável */
+            <motion.div
+              key="view-lista"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
+              className="flex flex-1 flex-col justify-start space-y-2 mt-1"
+            >
+              {/* Barra de Busca rápida */}
+              <div className="relative w-full">
+                <RiSearchLine className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Filtrar cidade ou estado..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-border/50 bg-muted/30 placeholder:text-muted-foreground/60 text-foreground focus:outline-none focus:ring-1 focus:ring-blue-500/50"
+                />
+              </div>
+
+              {/* Mini resumo do total */}
+              <div className="flex items-center justify-between text-[11px] text-muted-foreground px-1 font-medium">
+                <span>{filteredLocations.length} cidades mapeadas</span>
+                <span>
+                  Total: {totalLocSales} vendas ({convertAndFormatMZN(totalLocRevenue)})
+                </span>
+              </div>
+
+              {/* Lista rolável de cidades */}
+              <div className="flex flex-col space-y-1.5 overflow-y-auto max-h-[190px] pr-1">
+                {filteredLocations.length > 0 ? (
+                  filteredLocations.map((loc, idx) => {
+                    const isSelected = selectedLocation.city === loc.city;
+                    const pct = totalLocSales > 0 ? (loc.sales / totalLocSales) * 100 : 0;
+
+                    return (
+                      <div
+                        key={`${loc.city}-${loc.state}`}
+                        onClick={() => handleSelectLocation(loc)}
+                        className={cn(
+                          "group flex items-center justify-between gap-2 p-2 rounded-xl border transition-all cursor-pointer",
+                          isSelected
+                            ? "bg-blue-600/10 border-blue-500/40 shadow-sm"
+                            : "bg-muted/20 border-border/30 hover:bg-muted/40",
+                        )}
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span
+                            className={cn(
+                              "flex size-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold",
+                              idx === 0
+                                ? "bg-amber-500/20 text-amber-500"
+                                : "bg-muted text-muted-foreground",
+                            )}
+                          >
+                            {idx + 1}
+                          </span>
+                          <div className="min-w-0">
+                            <p className="text-xs font-semibold text-foreground truncate flex items-center gap-1">
+                              <span>
+                                {loc.city}, {loc.state}
+                              </span>
+                            </p>
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              <div className="w-12 h-1 rounded-full bg-muted overflow-hidden">
+                                <div
+                                  className="h-full bg-blue-500 rounded-full"
+                                  style={{ width: `${Math.min(100, Math.max(12, pct))}%` }}
+                                />
+                              </div>
+                              <span className="text-[10px] text-muted-foreground">
+                                {pct.toFixed(0)}%
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <div className="text-right">
+                            <p className="text-xs font-bold text-foreground">
+                              {loc.sales} {loc.sales === 1 ? "venda" : "vendas"}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground">
+                              {convertAndFormatMZN(loc.revenue)}
+                            </p>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSelectLocation(loc, true);
+                            }}
+                            title="Ver e focar no Globo"
+                            className="size-6 rounded-lg bg-blue-600/10 text-blue-500 hover:bg-blue-600 hover:text-white flex items-center justify-center transition-colors"
+                          >
+                            <RiFocus3Line className="size-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="text-center py-6 text-xs text-muted-foreground">
+                    Nenhuma cidade encontrada para "{searchQuery}".
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </CardContent>
     </Card>
   );
