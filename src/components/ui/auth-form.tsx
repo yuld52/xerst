@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { ChevronLeft, Github, Chrome, Loader2 } from "lucide-react"
+import { ChevronLeft, Loader2 } from "lucide-react"
 import { motion } from "framer-motion"
 import { useTheme } from "next-themes"
 
@@ -41,8 +41,6 @@ export const AuthForm: React.FC<AuthFormProps> = ({
 
         <Logo />
         <Header mode={mode} />
-        <SocialButtons />
-        <Divider />
         <FormSection
           mode={mode}
           onSubmit={onSubmit}
@@ -135,47 +133,6 @@ const Header: React.FC<{ mode: "login" | "signup" }> = ({ mode }) => {
   )
 }
 
-const SocialButtons: React.FC = () => (
-  <div className="mb-6 space-y-3">
-    <div className="grid grid-cols-2 gap-3">
-      <SocialButton icon={<Chrome size={18} />}>Google</SocialButton>
-      <SocialButton icon={<Github size={18} />}>GitHub</SocialButton>
-      <SocialButton fullWidth>Entrar com SSO Empresarial</SocialButton>
-    </div>
-  </div>
-)
-
-const SocialButton: React.FC<{
-  icon?: React.ReactNode
-  fullWidth?: boolean
-  children?: React.ReactNode
-  onClick?: () => void
-}> = ({ icon, fullWidth, children, onClick }) => (
-  <button
-    type="button"
-    onClick={onClick}
-    className={`relative z-0 flex items-center justify-center gap-2 overflow-hidden rounded-md 
-    border border-zinc-300 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800/80 
-    px-4 py-2 text-sm font-semibold text-zinc-800 dark:text-zinc-200 transition-all duration-500
-    before:absolute before:inset-0 before:-z-10 before:translate-x-[150%] before:translate-y-[150%] before:scale-[2.5]
-    before:rounded-[100%] before:bg-zinc-800 dark:before:bg-zinc-200 before:transition-transform before:duration-700 before:content-[""]
-    hover:scale-[1.02] hover:text-zinc-100 dark:hover:text-zinc-900 hover:before:translate-x-[0%] hover:before:translate-y-[0%] active:scale-95
-    ${fullWidth ? "col-span-2" : ""}`}
-  >
-    {icon}
-    <span>{children}</span>
-  </button>
-)
-
-const Divider: React.FC = () => (
-  <div className="my-6 flex items-center gap-3">
-    <div className="h-[1px] w-full bg-zinc-300 dark:bg-zinc-800" />
-    <span className="text-xs uppercase tracking-wider text-zinc-400 dark:text-zinc-500 font-medium">
-      OU
-    </span>
-    <div className="h-[1px] w-full bg-zinc-300 dark:bg-zinc-800" />
-  </div>
-)
 
 const FormSection: React.FC<{
   mode: "login" | "signup"
