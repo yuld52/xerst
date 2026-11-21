@@ -34,6 +34,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
   successMessage,
   onExploreDemo,
   onForgotPassword,
+  email,
 }) => {
   return (
     <div
