@@ -41,7 +41,7 @@ export function KpiCard({
 
   return (
     <div
-      className="group relative flex flex-col justify-between rounded-lg bg-white dark:bg-[#283046] border border-slate-200/80 dark:border-white/[0.08] px-4 py-2.5 sm:py-3 shadow-sm min-h-[72px] sm:min-h-[76px] transition-all duration-200 hover:border-slate-300 dark:hover:border-white/20"
+      className="group relative flex flex-col justify-between rounded-lg bg-white dark:bg-[#283046] border border-slate-200/80 dark:border-white/[0.08] p-3 sm:px-4 sm:py-3 shadow-sm min-h-[80px] sm:min-h-[86px] transition-all duration-200 hover:border-slate-300 dark:hover:border-white/20"
       title={tooltip || title}
     >
       <div className="absolute top-2.5 right-3 sm:top-3 sm:right-4 pointer-events-none">
@@ -51,13 +51,14 @@ export function KpiCard({
         />
       </div>
 
-      <div className="space-y-1">
+      <div className="flex flex-col justify-between flex-1 min-h-0">
         <p className="text-xs sm:text-[13px] font-semibold text-slate-700 dark:text-slate-200 pr-6 truncate">
           {title}
         </p>
+
         <p
           className={cn(
-            "font-bold tabular-nums tracking-tight",
+            "mt-auto pt-2 text-center font-bold tabular-nums tracking-tight",
             isLongValue ? "text-base sm:text-lg" : "text-xl sm:text-2xl",
             variantStyles[variant],
           )}
@@ -68,7 +69,7 @@ export function KpiCard({
       </div>
 
       {(subtitle || trend) && (
-        <div className="mt-0.5 flex items-center justify-between text-[11px] text-muted-foreground">
+        <div className="mt-0.5 flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground text-center">
           {subtitle && <span className="truncate">{subtitle}</span>}
           {trend && (
             <span
