@@ -2,7 +2,7 @@ import { getCookie, removeCookie } from "@/lib/cookies";
 import { getMockData } from "./mockInterceptor";
 import { isImportDemo } from "@/lib/import-demo";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || (typeof window !== "undefined" && window.location.hostname.includes("www.") ? "https://www.lomustrack.online/api" : "/api");
+const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "/api" : "https://www.lomustrack.online/api");
 const DEMO_ALLOWED_MUTATION_ENDPOINTS = [
   "/gemini/chat",
   "/gemini/daily-report",
