@@ -48,7 +48,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
         style={{ backgroundColor: "#ffffff" }}
       >
         <Logo />
-        <Header mode={mode} />
+        <Header mode={mode} email={email} />
         <FormSection
           mode={mode}
           onSubmit={onSubmit}
@@ -97,7 +97,7 @@ const Logo: React.FC = () => (
   </div>
 )
 
-const Header: React.FC<{ mode: "login" | "signup" | "forgot-password" | "verify-code" }> = ({ mode }) => {
+const Header: React.FC<{ mode: "login" | "signup" | "forgot-password" | "verify-code"; email?: string }> = ({ mode, email }) => {
   const isLogin = mode === "login"
   const isForgotPassword = mode === "forgot-password"
   const isVerifyCode = mode === "verify-code"
@@ -120,7 +120,7 @@ const Header: React.FC<{ mode: "login" | "signup" | "forgot-password" | "verify-
       )}
       {isVerifyCode && (
         <p className="mt-2 text-sm text-zinc-600">
-          Enviamos um código de 6 dígitos para <strong>{email}</strong>. Verifique sua caixa de entrada e spam.
+          Enviamos um código de 6 dígitos para <strong>{email || ""}</strong>. Verifique sua caixa de entrada e spam.
         </p>
       )}
     </div>
@@ -157,14 +157,14 @@ const FormSection: React.FC<{
   const isForgotPassword = mode === "forgot-password"
   const isVerifyCode = mode === "verify-code"
   const [name, setName] = React.useState("")
-  const [emailState, setEmailState] = React.useState("")
+  const [emailState, setEmailState] = React.useState(email || "")
   const [password, setPassword] = React.useState("")
   const [confirmPassword, setConfirmPassword] = React.useState("")
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (onSubmit) {
-      onSubmit({ name, email, password, confirmPassword })
+      onSubmit({ name, email: emailState, password, confirmPassword })
     }
   }
 
@@ -205,8 +205,8 @@ const FormSection: React.FC<{
           type="email"
           required
           placeholder="seu.email@empresa.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          value={emailState}
+          onChange={(e) => setEmailState(e.target.value)}
           className="w-full rounded-md border border-zinc-300 
           bg-white px-3 py-2 text-sm text-zinc-900
           placeholder-zinc-400 
