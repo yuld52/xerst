@@ -13,12 +13,17 @@ const chartConfig = {
 
 function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
-  const [year, month] = (label as string).split("-");
-  const date = new Date(Number(year), Number(month) - 1);
-  const monthStr = date.toLocaleDateString("pt-BR", {
-    month: "long",
-    year: "numeric",
-  });
+  let monthStr = String(label || "");
+  if (typeof label === "string" && label.includes("-")) {
+    const [year, month] = label.split("-");
+    const date = new Date(Number(year), Number(month) - 1);
+    if (!isNaN(date.getTime())) {
+      monthStr = date.toLocaleDateString("pt-BR", {
+        month: "long",
+        year: "numeric",
+      });
+    }
+  }
 
   const newMrr = payload.find((p: any) => p.dataKey === "new_mrr")?.value ?? 0;
   const churned = payload.find((p: any) => p.dataKey === "churned_neg")?.value ?? 0;
@@ -104,10 +109,13 @@ export function MrrMovementChart({ data }: MrrMovementChartProps) {
               tickMargin={8}
               minTickGap={32}
               tickFormatter={(v) => {
+                if (!v || typeof v !== "string") return "";
+                if (!v.includes("-")) return v;
                 const [y, m] = v.split("-");
-                return new Date(Number(y), Number(m) - 1).toLocaleDateString("pt-BR", {
-                  month: "short",
-                });
+                const d = new Date(Number(y), Number(m) - 1);
+                return !isNaN(d.getTime())
+                  ? d.toLocaleDateString("pt-BR", { month: "short" })
+                  : v;
               }}
             />
             <YAxis

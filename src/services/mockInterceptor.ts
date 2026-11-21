@@ -432,6 +432,30 @@ export async function getMockData(endpoint: string, _options?: any): Promise<any
     if (path.includes("products")) {
       return [{ id: "prod_1", name: "Assinatura VIP" }];
     }
+    if (path.includes("current")) {
+      return {
+        plan_id: "premium",
+        plan: {
+          name: "Premium",
+          monthly_price: 29,
+          sales_limit: 1000,
+          ad_account_limit: 3,
+          webhook_limit: 3,
+        },
+        started_at: "2026-01-01T00:00:00Z",
+        expires_at: "2026-12-31T23:59:59Z",
+        usage: {
+          approved_sales_this_month: 189,
+          ad_accounts: 2,
+          webhooks: 1,
+        },
+        available_plans: [
+          { id: "free", name: "Gratuito", monthly_price: 0, sales_limit: 80, ad_account_limit: 1, webhook_limit: 1 },
+          { id: "premium", name: "Premium", monthly_price: 29, sales_limit: 1000, ad_account_limit: 3, webhook_limit: 3 },
+          { id: "monster", name: "Monster", monthly_price: 79, sales_limit: 5000, ad_account_limit: null, webhook_limit: null },
+        ],
+      };
+    }
   }
 
   if (path.startsWith("/stripe")) {

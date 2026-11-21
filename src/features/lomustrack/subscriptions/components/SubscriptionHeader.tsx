@@ -13,7 +13,7 @@ export function SubscriptionHeader({ onRefresh }: SubscriptionHeaderProps) {
           <RiRepeatLine className="size-5 text-indigo-500" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Assinaturas</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Assinatura</h1>
           <p className="text-sm text-muted-foreground">
             Métricas de receita recorrente e retenção de assinantes
           </p>

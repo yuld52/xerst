@@ -76,10 +76,9 @@ const navGroups: NavGroup[] = [
       { title: "Dashboard", icon: LayoutDashboard, url: "/dashboard" },
       { title: "Campanhas", icon: Megaphone, url: "/campaigns" },
       {
-        title: "Métricas Stripe",
+        title: "Assinatura",
         icon: ArrowRightLeft,
         url: "/subscriptions",
-        featureKey: "stripe_enabled",
       },
     ],
   },
@@ -115,10 +114,6 @@ const navGroups: NavGroup[] = [
         featureKey: "stripe_enabled",
       },
     ],
-  },
-  {
-    label: "Conta",
-    items: [{ title: "Assinatura", icon: CreditCard, url: "/my-subscription" }],
   },
 ];
 
