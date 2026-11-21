@@ -51,14 +51,13 @@ export function KpiCard({
         />
       </div>
 
-      <div className="flex flex-col justify-between flex-1 min-h-0">
+      <div className="space-y-1.5">
         <p className="text-xs sm:text-[13px] font-semibold text-slate-700 dark:text-slate-200 pr-6 truncate">
           {title}
         </p>
-
         <p
           className={cn(
-            "mt-auto pt-2 text-left font-bold tabular-nums tracking-tight",
+            "font-bold tabular-nums tracking-tight",
             isLongValue ? "text-base sm:text-lg" : "text-xl sm:text-2xl",
             variantStyles[variant],
           )}
@@ -68,21 +67,19 @@ export function KpiCard({
         </p>
       </div>
 
-      {(subtitle || trend) && (
-        <div className="mt-0.5 flex items-center justify-between text-[11px] text-muted-foreground text-left">
-          {subtitle && <span className="truncate">{subtitle}</span>}
-          {trend && (
-            <span
-              className={cn(
-                "font-medium shrink-0",
-                trend.positive ? "text-emerald-500" : "text-destructive",
-              )}
-            >
-              {trend.positive ? "↑" : "↓"} {Math.abs(trend.value).toFixed(1)}%
-            </span>
-          )}
-        </div>
-      )}
+      <div className="h-4 flex items-center justify-between text-[11px] text-muted-foreground">
+        {subtitle && <span className="truncate">{subtitle}</span>}
+        {trend && (
+          <span
+            className={cn(
+              "font-medium shrink-0",
+              trend.positive ? "text-emerald-500" : "text-destructive",
+            )}
+          >
+            {trend.positive ? "↑" : "↓"} {Math.abs(trend.value).toFixed(1)}%
+          </span>
+        )}
+      </div>
     </div>
   );
 }
