@@ -120,15 +120,6 @@ const Header: React.FC<{ mode: "login" | "signup" }> = ({ mode }) => {
       <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
         {isLogin ? "Entre na sua conta" : "Crie sua conta"}
       </h1>
-      <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-        {isLogin ? "Não tem uma conta? " : "Já possui uma conta? "}
-        <a
-          href={isLogin ? "/setup" : "/login"}
-          className="text-blue-600 dark:text-blue-400 font-medium hover:underline transition-colors"
-        >
-          {isLogin ? "Criar conta." : "Fazer login."}
-        </a>
-      </p>
     </div>
   )
 }
@@ -279,6 +270,18 @@ const FormSection: React.FC<{
             Explorar demonstração
           </button>
         )}
+
+        <div className="text-center pt-2">
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+            {isLogin ? "Não tem uma conta? " : "Já possui uma conta? "}
+            <a
+              href={isLogin ? "/setup" : "/login"}
+              className="text-blue-600 dark:text-blue-400 font-medium hover:underline transition-colors"
+            >
+              {isLogin ? "Criar conta." : "Fazer login."}
+            </a>
+          </p>
+        </div>
       </div>
     </form>
   )
