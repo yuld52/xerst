@@ -229,8 +229,8 @@ export function BuyersLocationCard({
   }, [locations, searchQuery]);
 
   return (
-    <Card className="h-full min-h-[310px] rounded-lg bg-white dark:bg-[#283046] border border-slate-200/80 dark:border-white/[0.08] shadow-sm flex flex-col justify-between overflow-hidden transition-all">
-      <CardHeader className="p-4 sm:p-5 pb-2">
+    <Card className="h-full min-h-[320px] lg:min-h-[360px] rounded-lg bg-white dark:bg-[#283046] border border-slate-200/80 dark:border-white/[0.08] shadow-sm flex flex-col justify-between overflow-hidden py-0 gap-0 transition-all">
+      <CardHeader className="px-4 py-3 sm:px-5 sm:py-3.5 border-b border-slate-100 dark:border-white/[0.04]">
         <div className="flex items-start justify-between gap-2">
           {/* Título */}
           <div className="flex items-center gap-1.5">

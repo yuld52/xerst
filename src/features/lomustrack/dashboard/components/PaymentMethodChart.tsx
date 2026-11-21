@@ -38,8 +38,8 @@ export function PaymentMethodChart({ data = [] }: PaymentMethodChartProps) {
   const totalLabelClass = totalLabel.length > 10 ? "text-xs sm:text-sm lg:text-base" : "text-sm sm:text-base lg:text-xl";
 
   return (
-    <Card className="h-full min-h-[340px] lg:min-h-[380px] rounded-lg bg-white dark:bg-[#283046] border border-slate-200/80 dark:border-white/[0.08] shadow-sm flex flex-col justify-between">
-      <CardHeader className="p-4 sm:p-5 pb-0">
+    <Card className="h-full min-h-[320px] lg:min-h-[360px] rounded-lg bg-white dark:bg-[#283046] border border-slate-200/80 dark:border-white/[0.08] shadow-sm flex flex-col justify-between py-0 gap-0">
+      <CardHeader className="px-4 py-3 sm:px-5 sm:py-3.5 border-b border-slate-100 dark:border-white/[0.04]">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm sm:text-base font-semibold text-slate-800 dark:text-slate-100">
             Vendas por Pagamento
@@ -55,7 +55,7 @@ export function PaymentMethodChart({ data = [] }: PaymentMethodChartProps) {
           </span>
         </div>
       </CardHeader>
-      <CardContent className="flex flex-1 flex-col justify-between p-4 sm:p-5 pt-1">
+      <CardContent className="p-3 sm:p-4 flex flex-1 flex-col justify-between">
         <div className="relative flex flex-1 items-center justify-center my-auto min-h-[200px] lg:min-h-[250px]">
           {total > 0 && (
             <ChartContainer

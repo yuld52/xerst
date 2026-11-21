@@ -78,14 +78,14 @@ export function RevenueChart({ data }: RevenueChartProps) {
   }
 
   return (
-    <Card className="rounded-lg bg-white dark:bg-[#283046] border border-slate-200/80 dark:border-white/[0.08] shadow-sm">
-      <CardHeader className="p-4 sm:p-5 pb-2">
+    <Card className="rounded-lg bg-white dark:bg-[#283046] border border-slate-200/80 dark:border-white/[0.08] shadow-sm py-0 gap-0">
+      <CardHeader className="px-4 py-3 sm:px-5 sm:py-3.5 border-b border-slate-100 dark:border-white/[0.04]">
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-sm sm:text-base font-semibold text-slate-800 dark:text-slate-100">
               Performance Diária
             </CardTitle>
-            <CardDescription className="text-xs text-slate-500 dark:text-slate-400">
+            <CardDescription className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               Faturamento, investimento e lucro no período
             </CardDescription>
           </div>
@@ -97,8 +97,8 @@ export function RevenueChart({ data }: RevenueChartProps) {
           </span>
         </div>
       </CardHeader>
-      <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
-        <ChartContainer config={chartConfig} className="aspect-auto h-[280px] w-full">
+      <CardContent className="p-2 sm:p-4 pt-3 sm:pt-4">
+        <ChartContainer config={chartConfig} className="aspect-auto h-[240px] sm:h-[270px] lg:h-[290px] w-full">
           <AreaChart data={data}>
             <defs>
               <linearGradient id="fillRevenue" x1="0" y1="0" x2="0" y2="1">

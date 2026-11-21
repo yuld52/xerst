@@ -56,14 +56,14 @@ interface HourlySalesChartProps {
 
 export function HourlySalesChart({ data }: HourlySalesChartProps) {
   return (
-    <Card className="rounded-lg bg-white dark:bg-[#283046] border border-slate-200/80 dark:border-white/[0.08] shadow-sm">
-      <CardHeader className="p-4 sm:p-5 pb-2">
+    <Card className="rounded-lg bg-white dark:bg-[#283046] border border-slate-200/80 dark:border-white/[0.08] shadow-sm flex flex-col justify-between py-0 gap-0">
+      <CardHeader className="px-4 py-3 sm:px-5 sm:py-3.5 border-b border-slate-100 dark:border-white/[0.04]">
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-sm sm:text-base font-semibold text-slate-800 dark:text-slate-100">
               Vendas por Hora
             </CardTitle>
-            <CardDescription className="text-xs text-slate-500 dark:text-slate-400">
+            <CardDescription className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               Horários de pico de vendas no período
             </CardDescription>
           </div>
@@ -75,9 +75,9 @@ export function HourlySalesChart({ data }: HourlySalesChartProps) {
           </span>
         </div>
       </CardHeader>
-      <CardContent>
-        <ChartContainer config={chartConfig} className="aspect-auto h-[200px] w-full">
-          <BarChart data={data}>
+      <CardContent className="p-2 sm:p-4 flex-1 flex flex-col justify-end">
+        <ChartContainer config={chartConfig} className="aspect-auto h-[180px] sm:h-[200px] lg:h-[220px] w-full mt-auto">
+          <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
             <XAxis dataKey="hour" tickLine={false} axisLine={false} tickMargin={8} fontSize={11} />
             <YAxis tickLine={false} axisLine={false} tickMargin={8} fontSize={11} />
             <ChartTooltip content={<CustomTooltip />} cursor={false} />

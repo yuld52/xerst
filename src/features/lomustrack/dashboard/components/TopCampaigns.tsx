@@ -26,8 +26,8 @@ export function TopCampaigns({ data }: TopCampaignsProps) {
   }
 
   return (
-    <Card className="rounded-lg bg-white dark:bg-[#283046] border border-slate-200/80 dark:border-white/[0.08] shadow-sm">
-      <CardHeader className="p-4 sm:p-5 pb-2">
+    <Card className="rounded-lg bg-white dark:bg-[#283046] border border-slate-200/80 dark:border-white/[0.08] shadow-sm flex flex-col justify-between py-0 gap-0">
+      <CardHeader className="px-4 py-3 sm:px-5 sm:py-3.5 border-b border-slate-100 dark:border-white/[0.04]">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm sm:text-base font-semibold text-slate-800 dark:text-slate-100">
             Top Campanhas
@@ -40,39 +40,39 @@ export function TopCampaigns({ data }: TopCampaignsProps) {
           </span>
         </div>
       </CardHeader>
-      <CardContent className="space-y-2.5 p-4 sm:p-5 pt-1">
+      <CardContent className="p-3 sm:p-4 space-y-2 flex-1 flex flex-col justify-around">
         {data.slice(0, 3).map((campaign, index) => (
           <div
             key={campaign.name}
-            className="group flex items-center justify-between rounded-lg border border-transparent p-2.5 transition-all duration-200 hover:border-slate-200 dark:hover:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-700/20"
+            className="group flex items-center justify-between rounded-lg border border-transparent p-2 sm:p-2.5 transition-all duration-200 hover:border-slate-200 dark:hover:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-700/20"
           >
-            <div className="flex items-center gap-3 min-w-0">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-xs font-bold text-primary">
+            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+              <span className="flex h-6 w-6 sm:h-7 sm:w-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-[11px] sm:text-xs font-bold text-primary">
                 #{index + 1}
               </span>
               <div className="min-w-0">
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <p className="text-sm font-medium truncate max-w-[180px]">{campaign.name}</p>
+                    <p className="text-xs sm:text-sm font-medium truncate max-w-[150px] sm:max-w-[180px]">{campaign.name}</p>
                   </TooltipTrigger>
                   <TooltipContent side="top" className="max-w-[320px]">
                     <p className="text-xs">{campaign.name}</p>
                   </TooltipContent>
                 </Tooltip>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[11px] sm:text-xs text-muted-foreground truncate">
                   {campaign.sales} vendas
                   {campaign.spend > 0 ? ` · Invest. ${fmt(campaign.spend)}` : ""}
                   {campaign.cpa > 0 ? ` · CPA ${fmt(campaign.cpa)}` : ""}
                 </p>
               </div>
             </div>
-            <div className="text-right shrink-0 ml-3">
-              <p className="text-sm font-semibold tabular-nums">{fmt(campaign.revenue)}</p>
-              <div className="flex items-center gap-2 justify-end">
+            <div className="text-right shrink-0 ml-2 sm:ml-3">
+              <p className="text-xs sm:text-sm font-semibold tabular-nums">{fmt(campaign.revenue)}</p>
+              <div className="flex items-center gap-1.5 sm:gap-2 justify-end">
                 {campaign.profit !== 0 && (
                   <p
                     className={cn(
-                      "text-xs font-medium tabular-nums",
+                      "text-[11px] sm:text-xs font-medium tabular-nums",
                       campaign.profit >= 0 ? "text-[var(--color-success)]" : "text-destructive",
                     )}
                   >
@@ -83,7 +83,7 @@ export function TopCampaigns({ data }: TopCampaignsProps) {
                 {campaign.roas !== 0 && (
                   <p
                     className={cn(
-                      "text-xs font-medium tabular-nums",
+                      "text-[11px] sm:text-xs font-medium tabular-nums",
                       campaign.roas >= 3
                         ? "text-[var(--color-success)]"
                         : campaign.roas >= 2

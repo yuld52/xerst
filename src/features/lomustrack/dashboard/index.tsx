@@ -55,7 +55,7 @@ export default function DashboardPage() {
   }, []);
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="flex flex-col gap-4 sm:gap-5 lg:gap-6 p-3 sm:p-5 lg:p-6">
       <DashboardHeader onRefresh={reload} currentRevenue={data?.kpis?.total_revenue ?? 0} />
       <GlobalFilterBar
         filters={filters}
@@ -67,7 +67,7 @@ export default function DashboardPage() {
         accounts={accounts}
       />
       {loading || !data ? (
-        <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-2.5 sm:gap-3 grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <Skeleton key={i} className="h-[74px] w-full rounded-lg" />
           ))}
@@ -81,13 +81,13 @@ export default function DashboardPage() {
             opCostsEnabled={filters.opCostsEnabled}
             opCostsTotal={settings?.operational_costs.reduce((s, c) => s + c.amount, 0) ?? 0}
           />
-          <div className="grid gap-6 lg:grid-cols-3">
+          <div className="grid gap-3 sm:gap-4 lg:gap-5 lg:grid-cols-3">
             <div className="lg:col-span-2">
               <RevenueChart data={data.daily_revenue} />
             </div>
             <PaymentMethodChart data={data.payment_distribution} />
           </div>
-          <div className="grid gap-6 lg:grid-cols-3">
+          <div className="grid gap-3 sm:gap-4 lg:gap-5 lg:grid-cols-3">
             <TopCampaigns data={data.top_campaigns} />
             <HourlySalesChart data={data.hourly_sales} />
             <BuyersLocationCard
