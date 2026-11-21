@@ -21,6 +21,7 @@ import type { DashboardFilters, DatePreset } from "@/hooks/use-dashboard";
 import type { CompanySettings } from "@/types/company";
 import type { UpsellOption } from "@/types/sale";
 import { ProductSelect } from "@/components/ProductSelect";
+import { convertAndFormatMZN } from "@/utils/format";
 
 const presetLabels: Record<DatePreset, string> = {
   today: "Hoje",
@@ -214,7 +215,7 @@ export function GlobalFilterBar({
           />
           {filters.opCostsEnabled && opCostsTotal > 0 && (
             <span className="text-xs font-semibold text-destructive tabular-nums">
-              -MT {opCostsTotal.toLocaleString("pt-MZ")}
+              -{convertAndFormatMZN(opCostsTotal)}
             </span>
           )}
         </div>

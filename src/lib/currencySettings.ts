@@ -6,7 +6,7 @@ export const CURRENCIES: Record<
   CurrencyCode,
   { label: string; symbol: string; rate: number; prefix: boolean }
 > = {
-  MZN: { label: "Metical (MZN)", symbol: "MT", rate: 13, prefix: false },
+  MZN: { label: "Metical (MZN)", symbol: "", rate: 13, prefix: false },
   BRL: { label: "Real (BRL)", symbol: "R$", rate: 1, prefix: true },
   // Keep display conversion aligned with backend normalization to MZN:
   // 1 BRL = 13 MZN, 1 USD = 64 MZN, and 1 EUR = 70 MZN.
@@ -39,5 +39,6 @@ export function convertToBRL(value: number, code: CurrencyCode = getCurrency()):
 
 export function withSymbol(formatted: string, code: CurrencyCode = getCurrency()): string {
   const c = CURRENCIES[code];
+  if (!c || !c.symbol || c.symbol.trim() === "") return formatted;
   return c.prefix ? `${c.symbol} ${formatted}` : `${formatted} ${c.symbol}`;
 }
