@@ -19,9 +19,9 @@ interface KpiCardProps {
 }
 
 const variantStyles = {
-  default: "text-slate-900 dark:text-white",
-  primary: "text-slate-900 dark:text-white",
-  success: "text-slate-900 dark:text-white",
+  default: "text-foreground",
+  primary: "text-primary",
+  success: "text-[var(--color-success)]",
   destructive: "text-destructive",
 };
 
