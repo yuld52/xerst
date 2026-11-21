@@ -42,9 +42,10 @@ const navGroups: NavGroup[] = [
       { title: "Dashboard", icon: RiDashboardLine, url: "/dashboard" },
       { title: "Campanhas", icon: RiMegaphoneLine, url: "/campaigns" },
       {
-        title: "Assinatura",
+        title: "Métricas Stripe",
         icon: RiRepeatLine,
         url: "/subscriptions",
+        featureKey: "stripe_enabled",
       },
     ],
   },
@@ -80,6 +81,10 @@ const navGroups: NavGroup[] = [
         featureKey: "stripe_enabled",
       },
     ],
+  },
+  {
+    label: "Conta",
+    items: [{ title: "Assinatura", icon: RiBankCardLine, url: "/my-subscription" }],
   },
 ];
 
