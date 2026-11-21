@@ -35,10 +35,10 @@ export function PaymentMethodChart({ data = [] }: PaymentMethodChartProps) {
   }));
   const total = values.reduce((sum, item) => sum + item.value, 0);
   const totalLabel = total > 0 ? convertAndFormatMZN(total, 0) : "0";
-  const totalLabelClass = totalLabel.length > 10 ? "text-[14px]" : "text-[21px]";
+  const totalLabelClass = totalLabel.length > 10 ? "text-xs sm:text-sm" : "text-sm sm:text-base";
 
   return (
-    <Card className="h-full min-h-[325px] rounded-lg bg-white dark:bg-[#283046] border border-slate-200/80 dark:border-white/[0.08] shadow-sm">
+    <Card className="h-full min-h-[330px] rounded-lg bg-white dark:bg-[#283046] border border-slate-200/80 dark:border-white/[0.08] shadow-sm flex flex-col justify-between">
       <CardHeader className="p-4 sm:p-5 pb-0">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm sm:text-base font-semibold text-slate-800 dark:text-slate-100">
@@ -55,20 +55,20 @@ export function PaymentMethodChart({ data = [] }: PaymentMethodChartProps) {
           </span>
         </div>
       </CardHeader>
-      <CardContent className="flex min-h-0 flex-1 flex-col justify-between p-4 sm:p-5 pt-2">
-        <div className="relative flex min-h-0 flex-1 items-center justify-center">
+      <CardContent className="flex flex-1 flex-col justify-between p-4 sm:p-5 pt-1">
+        <div className="relative flex flex-1 items-center justify-center my-auto min-h-[190px]">
           {total > 0 && (
             <ChartContainer
               config={chartConfig}
-              className="absolute inset-0 mx-auto h-full w-full max-w-[250px]"
+              className="aspect-square h-[185px] w-[185px] sm:h-[200px] sm:w-[200px] mx-auto"
             >
               <PieChart>
                 <Pie
                   data={values}
                   dataKey="value"
                   nameKey="name"
-                  innerRadius={72}
-                  outerRadius={104}
+                  innerRadius={55}
+                  outerRadius={80}
                   stroke="transparent"
                   strokeWidth={0}
                 >
@@ -79,19 +79,19 @@ export function PaymentMethodChart({ data = [] }: PaymentMethodChartProps) {
               </PieChart>
             </ChartContainer>
           )}
-          <div className="relative z-10 flex w-[120px] flex-col items-center text-center">
-            <p className="text-base font-medium text-slate-500 dark:text-slate-400">Total</p>
+          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
+            <p className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">Total</p>
             <p
-              className={`mt-1 whitespace-nowrap font-bold text-slate-900 dark:text-white tabular-nums ${totalLabelClass}`}
+              className={`mt-0.5 whitespace-nowrap font-bold text-slate-900 dark:text-white tabular-nums ${totalLabelClass}`}
             >
               {totalLabel}
             </p>
           </div>
         </div>
-        <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs sm:text-sm text-muted-foreground pt-2">
+        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground pt-2">
           {values.map((item) => (
             <div key={item.name} className="flex items-center gap-1.5 whitespace-nowrap">
-              <span className="size-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+              <span className="size-2 rounded-full" style={{ backgroundColor: item.color }} />
               <span>{item.name}</span>
             </div>
           ))}
