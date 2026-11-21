@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { ChevronLeft, Loader2 } from "lucide-react"
+import { Loader2 } from "lucide-react"
 import { motion } from "framer-motion"
 import { useTheme } from "next-themes"
 
@@ -16,7 +16,6 @@ export interface AuthFormProps {
   loading?: boolean
   error?: string
   onExploreDemo?: () => void
-  onBack?: () => void
 }
 
 export const AuthForm: React.FC<AuthFormProps> = ({
@@ -25,7 +24,6 @@ export const AuthForm: React.FC<AuthFormProps> = ({
   loading = false,
   error = "",
   onExploreDemo,
-  onBack,
 }) => {
   return (
     <div className="relative min-h-screen bg-white dark:bg-zinc-950 py-12 px-4 text-zinc-800 dark:text-zinc-200 selection:bg-zinc-300 dark:selection:bg-zinc-600 flex flex-col justify-center items-center overflow-hidden">
@@ -35,10 +33,6 @@ export const AuthForm: React.FC<AuthFormProps> = ({
         transition={{ duration: 0.8, ease: "easeInOut" }}
         className="relative z-10 mx-auto w-full max-w-xl p-6 sm:p-8 bg-white/80 dark:bg-zinc-900/70 backdrop-blur-xl rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 shadow-2xl"
       >
-        <div className="flex items-center justify-between mb-3">
-          <BackButton onBack={onBack} />
-        </div>
-
         <Logo />
         <Header mode={mode} />
         <FormSection
@@ -53,29 +47,6 @@ export const AuthForm: React.FC<AuthFormProps> = ({
 
       <BackgroundDecoration />
     </div>
-  )
-}
-
-const BackButton: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
-  const handleClick = () => {
-    if (onBack) {
-      onBack()
-    } else if (typeof window !== "undefined" && window.history.length > 1) {
-      window.history.back()
-    } else {
-      window.location.href = "/"
-    }
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={handleClick}
-      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/60 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all hover:scale-[1.02] active:scale-95"
-    >
-      <ChevronLeft size={15} />
-      <span>Voltar</span>
-    </button>
   )
 }
 

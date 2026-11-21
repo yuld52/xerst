@@ -38,7 +38,6 @@ export default function LoginPage() {
       loading={loading}
       error={error}
       onExploreDemo={handleExploreDemo}
-      onBack={() => navigate("/")}
     />
   );
 }

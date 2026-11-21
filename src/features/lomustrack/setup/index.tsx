@@ -146,7 +146,6 @@ export default function SetupPage() {
       onSubmit={handleSetup}
       loading={loading}
       error={error}
-      onBack={() => navigate("/login")}
     />
   );
 }
