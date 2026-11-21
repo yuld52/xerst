@@ -110,9 +110,26 @@ export default function AdminLoginPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-slate-200">
-                Senha
-              </Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password" className="text-slate-200">
+                  Senha
+                </Label>
+                <a
+                  href="/forgot-password"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate("/forgot-password");
+                    setTimeout(() => {
+                      if (window.location.pathname !== "/forgot-password") {
+                        window.location.href = "/forgot-password";
+                      }
+                    }, 50);
+                  }}
+                  className="text-xs text-blue-400 hover:text-blue-300 hover:underline cursor-pointer"
+                >
+                  Esqueceu a senha?
+                </a>
+              </div>
               <div className="relative">
                 <RiLockPasswordLine className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                 <Input

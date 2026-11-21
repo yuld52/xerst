@@ -32,6 +32,16 @@ export default function LoginPage() {
     navigate("/dashboard?mock=true");
   };
 
+  const handleForgotPassword = () => {
+    navigate("/forgot-password");
+    // Fallback garantido caso o SPA router não altere a rota
+    setTimeout(() => {
+      if (window.location.pathname !== "/forgot-password") {
+        window.location.href = "/forgot-password";
+      }
+    }, 50);
+  };
+
   return (
     <AuthForm
       mode="login"
@@ -39,7 +49,7 @@ export default function LoginPage() {
       loading={loading}
       error={error}
       onExploreDemo={handleExploreDemo}
-      onForgotPassword={() => navigate("/forgot-password")}
+      onForgotPassword={handleForgotPassword}
     />
   );
 }

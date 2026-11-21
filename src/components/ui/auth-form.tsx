@@ -203,14 +203,24 @@ const FormSection: React.FC<{
               <a
                 href="/forgot-password"
                 onClick={(e) => {
+                  e.preventDefault()
                   if (onForgotPassword) {
-                    e.preventDefault()
-                    onForgotPassword()
+                    try {
+                      onForgotPassword()
+                    } catch {
+                      window.location.href = "/forgot-password"
+                      return
+                    }
                   }
+                  setTimeout(() => {
+                    if (window.location.pathname !== "/forgot-password") {
+                      window.location.href = "/forgot-password"
+                    }
+                  }, 50)
                 }}
-                className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500 hover:underline cursor-pointer"
               >
-                Esqueceu?
+                Esqueceu a senha?
               </a>
             )}
           </div>
