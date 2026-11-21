@@ -40,7 +40,7 @@ export function InviteSetupForm({
   };
 
   return (
-    <div className="rounded-xl border border-border bg-card p-6 shadow-xl">
+    <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-xl">
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-lg font-semibold text-gray-900">Criar sua conta</h2>
         <Badge variant="outline" className="border-gray-300 text-[10px] text-gray-600">

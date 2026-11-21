@@ -118,20 +118,20 @@ export default function SetupPage() {
     }
     if (inviteError) {
       return (
-        <div className="flex min-h-screen items-center justify-center bg-background p-4">
-          <div className="rounded-xl border border-border bg-card shadow-2xl p-6 text-center space-y-3 max-w-md w-full">
+        <div className="flex min-h-screen items-center justify-center bg-white p-4">
+          <div className="rounded-xl border border-zinc-200 bg-white shadow-xl p-6 text-center space-y-3 max-w-md w-full">
             <p className="text-destructive font-medium">{inviteError}</p>
-            <p className="text-muted-foreground text-sm">
+            <p className="text-zinc-600 text-sm">
               Redirecionando para o login em{" "}
-              <span className="text-foreground font-medium">{redirectCountdown}s</span>...
+              <span className="text-zinc-900 font-medium">{redirectCountdown}s</span>...
             </p>
           </div>
         </div>
       );
     }
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background p-4">
-        <div className="w-full max-w-md space-y-8">
+      <div className="flex min-h-screen items-center justify-center bg-white p-4">
+        <div className="w-full max-w-md space-y-8 bg-white p-6 rounded-2xl border border-zinc-200 shadow-xl">
           <InviteSetupForm
             name={inviteInfo?.name ?? ""}
             role={inviteInfo?.role ?? ""}
