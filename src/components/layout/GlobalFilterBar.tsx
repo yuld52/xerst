@@ -3,13 +3,9 @@ import {
   RiCalendarLine,
   RiFilterLine,
   RiCloseLine,
-  RiPercentLine,
-  RiBuildingLine,
 } from "@remixicon/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -21,7 +17,6 @@ import type { DashboardFilters, DatePreset } from "@/hooks/use-dashboard";
 import type { CompanySettings } from "@/types/company";
 import type { UpsellOption } from "@/types/sale";
 import { ProductSelect } from "@/components/ProductSelect";
-import { convertAndFormatMZN } from "@/utils/format";
 
 const presetLabels: Record<DatePreset, string> = {
   today: "Hoje",
@@ -65,15 +60,11 @@ export function GlobalFilterBar({
     return () => observer.disconnect();
   }, []);
   const isCustom = filters.datePreset === "custom";
-  const taxRate = settings?.tax_rate ?? 0;
-  const opCostsTotal = settings?.operational_costs.reduce((s, c) => s + c.amount, 0) ?? 0;
   const activeCount = [
     filters.datePreset !== "today" ? "1" : "",
     filters.product !== "all" ? "1" : "",
     filters.platform !== "all" ? "1" : "",
     filters.accountSlug !== "all" ? "1" : "",
-    filters.taxEnabled ? "1" : "",
-    filters.opCostsEnabled ? "1" : "",
   ].filter(Boolean).length;
   const platformLabels: Record<string, string> = {
     kiwify: "Kiwify",
@@ -185,40 +176,6 @@ export function GlobalFilterBar({
             ))}
           </SelectContent>
         </Select>
-        {/* Tax toggle */}
-        <div className="flex items-center gap-2 border-l border-border/30 pl-2.5 ml-0.5">
-          <RiPercentLine className="size-3.5 text-muted-foreground" />
-          <Label htmlFor="tax-toggle" className="text-xs cursor-pointer select-none">
-            Impostos
-          </Label>
-          <Switch
-            id="tax-toggle"
-            checked={filters.taxEnabled}
-            onCheckedChange={(v) => onFiltersChange({ ...filters, taxEnabled: v })}
-            className="scale-90"
-          />
-          {filters.taxEnabled && (
-            <span className="text-xs font-semibold text-destructive tabular-nums">-{taxRate}%</span>
-          )}
-        </div>
-        {/* Operational cost toggle */}
-        <div className="flex items-center gap-2 border-l border-border/30 pl-2.5">
-          <RiBuildingLine className="size-3.5 text-muted-foreground" />
-          <Label htmlFor="opcost-toggle" className="text-xs cursor-pointer select-none">
-            Custos
-          </Label>
-          <Switch
-            id="opcost-toggle"
-            checked={filters.opCostsEnabled}
-            onCheckedChange={(v) => onFiltersChange({ ...filters, opCostsEnabled: v })}
-            className="scale-90"
-          />
-          {filters.opCostsEnabled && opCostsTotal > 0 && (
-            <span className="text-xs font-semibold text-destructive tabular-nums">
-              -{convertAndFormatMZN(opCostsTotal)}
-            </span>
-          )}
-        </div>
         {activeCount > 0 && (
           <Button
             variant="ghost"

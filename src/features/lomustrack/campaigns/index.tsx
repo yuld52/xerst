@@ -1,7 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { CampaignsHeader } from "./components/CampaignsHeader";
 import { CampaignsTable } from "./components/CampaignsTable";
-import { BottleneckTabs } from "./components/BottleneckTabs";
 import { CampaignsKpis } from "./components/CampaignsKpis";
 import { PresetDrawer } from "./components/PresetDrawer";
 import { KpiColorsDrawer } from "./components/KpiColorsDrawer";
@@ -242,13 +241,6 @@ export default function CampaignsPage() {
             <CampaignsLoading />
           ) : error ? (
             <div className="text-center py-12 text-destructive">{error}</div>
-          ) : activePresetId === "gargalos" ? (
-            <BottleneckTabs
-              data={filtered}
-              hasVturb={false}
-              dateStart={dateStart}
-              dateEnd={dateEnd}
-            />
           ) : (
             <KpiColorsProvider value={kpiColors}>
               <CampaignsTable
