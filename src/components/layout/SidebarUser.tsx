@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   RiLogoutBoxLine,
   RiExpandUpDownLine,
@@ -6,10 +7,12 @@ import {
   RiComputerLine,
   RiUserLine,
   RiSettings3Line,
+  RiCustomerService2Line,
 } from "@remixicon/react";
 import { useNavigate } from "@/lib/import-navigation";
 import { useTheme } from "next-themes";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { SupportModal } from "./SupportModal";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,6 +36,7 @@ export function SidebarUser() {
 
   const { theme, resolvedTheme, setTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
+  const [supportOpen, setSupportOpen] = useState(false);
 
   const initials =
     user?.name
@@ -106,6 +110,11 @@ export function SidebarUser() {
               <RiSettings3Line className="size-4" />
               Configurações Avançadas
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setSupportOpen(true)}>
+              <RiCustomerService2Line className="size-4" />
+              Suporte
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => setTheme(isDark ? "light" : "dark")}>
               {isDark ? <RiSunLine className="size-4" /> : <RiMoonLine className="size-4" />}
               {isDark ? "Modo Claro" : "Modo Escuro"}
@@ -122,6 +131,12 @@ export function SidebarUser() {
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
+      <SupportModal
+        open={supportOpen}
+        onOpenChange={setSupportOpen}
+        userEmail={user?.email}
+        userName={user?.name}
+      />
     </SidebarMenu>
   );
 }

@@ -36,7 +36,7 @@ import { AiTrainingProfile } from "./AiTrainingProfile";
 import { getStoredUser, logout } from "@/services/auth";
 import { useAdvancedFeatures } from "@/contexts/AdvancedFeaturesContext";
 import { Outlet } from "@/lib/import-navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { fetchDisplayCurrency } from "@/services/company";
 import { setCurrency, CURRENCIES, type CurrencyCode } from "@/lib/currencySettings";
 import { isImportDemo } from "@/lib/import-demo";
@@ -50,8 +50,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useTheme } from "next-themes";
-import { Sun, Moon, Monitor, LogOut, User, Settings } from "lucide-react";
+import { Sun, Moon, Monitor, LogOut, User, Settings, Headphones } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { SupportModal } from "./SupportModal";
 
 type UserRole = "owner" | "admin" | "viewer";
 
@@ -143,6 +144,7 @@ function SidebarUserFooter() {
   const user = getStoredUser();
   const { theme, resolvedTheme, setTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
+  const [supportOpen, setSupportOpen] = useState(false);
 
   const initials =
     user?.name
@@ -167,6 +169,7 @@ function SidebarUserFooter() {
   };
 
   return (
+    <>
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
@@ -222,6 +225,11 @@ function SidebarUserFooter() {
           <Settings className="size-4" />
           Configurações Avançadas
         </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setSupportOpen(true)}>
+          <Headphones className="size-4" />
+          Suporte
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => setTheme(isDark ? "light" : "dark")}>
           {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
           {isDark ? "Modo Claro" : "Modo Escuro"}
@@ -237,6 +245,13 @@ function SidebarUserFooter() {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+    <SupportModal
+      open={supportOpen}
+      onOpenChange={setSupportOpen}
+      userEmail={user?.email}
+      userName={user?.name}
+    />
+    </>
   );
 }
 
