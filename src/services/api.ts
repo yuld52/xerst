@@ -62,9 +62,14 @@ export async function apiRequest<T>(endpoint: string, options: RequestOptions = 
       localStorage.removeItem("user");
 
       // Evitar loop infinito — só redireciona se não estiver já redirecionando
-      // e se não estiver em /login ou /setup
+      // e se não estiver em /login ou /setup ou /forgot-password
       const currentPath = window.location.pathname;
-      if (!isRedirecting && currentPath !== "/login" && currentPath !== "/setup") {
+      if (
+        !isRedirecting &&
+        currentPath !== "/login" &&
+        currentPath !== "/setup" &&
+        currentPath !== "/forgot-password"
+      ) {
         isRedirecting = true;
         window.location.replace("/login");
       }
