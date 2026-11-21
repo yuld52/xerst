@@ -32,7 +32,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
 }) => {
   return (
     <div
-      className="relative min-h-screen bg-white py-12 px-4 text-zinc-800 selection:bg-zinc-200 flex flex-col justify-center items-center overflow-hidden"
+      className="theme-static-light relative min-h-screen bg-white py-12 px-4 text-zinc-800 selection:bg-zinc-200 flex flex-col justify-center items-center overflow-hidden"
       style={{ backgroundColor: "#ffffff" }}
     >
       <motion.div

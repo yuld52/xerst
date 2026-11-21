@@ -373,45 +373,66 @@
   background-size: 40px 40px;
 }
 
-/* Compatibilidade para telas que ainda usam utilitários claros legados. */
-.dark .bg-white {
+/* Compatibilidade para telas que ainda usam utilitários claros legados,
+   EXCETO telas estaticamente claras (login/cadastro) ou elementos com estilo dark: explícito. */
+.dark :not(.theme-static-light):not(.theme-static-light *):not([class*="dark:bg-"]).bg-white {
   background-color: var(--card) !important;
 }
 
-.dark .bg-gray-50,
-.dark .bg-gray-100 {
+.dark :not(.theme-static-light):not(.theme-static-light *).bg-gray-50,
+.dark :not(.theme-static-light):not(.theme-static-light *).bg-gray-100 {
   background-color: var(--background) !important;
 }
 
-.dark .text-gray-900,
-.dark .text-gray-800,
-.dark .text-gray-700,
-.dark .text-gray-600 {
+.dark :not(.theme-static-light):not(.theme-static-light *).text-gray-900,
+.dark :not(.theme-static-light):not(.theme-static-light *).text-gray-800,
+.dark :not(.theme-static-light):not(.theme-static-light *).text-gray-700,
+.dark :not(.theme-static-light):not(.theme-static-light *).text-gray-600 {
   color: var(--foreground) !important;
 }
 
-.dark .text-gray-500,
-.dark .text-gray-400 {
+.dark :not(.theme-static-light):not(.theme-static-light *).text-gray-500,
+.dark :not(.theme-static-light):not(.theme-static-light *).text-gray-400 {
   color: var(--muted-foreground) !important;
 }
 
-.dark .border-gray-100,
-.dark .border-gray-200,
-.dark .border-gray-300 {
+.dark :not(.theme-static-light):not(.theme-static-light *).border-gray-100,
+.dark :not(.theme-static-light):not(.theme-static-light *).border-gray-200,
+.dark :not(.theme-static-light):not(.theme-static-light *).border-gray-300 {
   border-color: var(--border) !important;
 }
 
-/* Login e cadastro permanecem claros, independentemente do tema interno. */
+/* Login e cadastro permanecem 100% isolados e claros com fundo branco, independentemente do tema interno ou do Dashboard. */
+.theme-static-light,
 .dark .theme-static-light {
-  --background: oklch(0.98463 0.00171 247.839);
-  --foreground: oklch(0.21008 0.03176 264.665);
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.15 0.02 250);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.21008 0.03176 264.665);
+  --card-foreground: oklch(0.15 0.02 250);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.21008 0.03176 264.665);
-  --muted: oklch(0.96696 0.00287 264.542);
-  --muted-foreground: oklch(0.44611 0.02631 256.802);
-  --border: oklch(0.92758 0.00581 264.531);
-  --input: oklch(0.87168 0.00934 258.338);
+  --popover-foreground: oklch(0.15 0.02 250);
+  --muted: oklch(0.96 0.005 250);
+  --muted-foreground: oklch(0.45 0.02 250);
+  --border: oklch(0.90 0.005 250);
+  --input: oklch(0.90 0.005 250);
   color-scheme: light;
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+.theme-static-light .bg-white,
+.dark .theme-static-light .bg-white {
+  background-color: #ffffff !important;
+}
+
+.theme-static-light input,
+.dark .theme-static-light input {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #d1d5db !important;
+}
+
+.theme-static-light input::placeholder,
+.dark .theme-static-light input::placeholder {
+  color: #9ca3af !important;
 }

@@ -118,7 +118,7 @@ export default function SetupPage() {
     }
     if (inviteError) {
       return (
-        <div className="flex min-h-screen items-center justify-center bg-white p-4">
+        <div className="theme-static-light flex min-h-screen items-center justify-center bg-white p-4">
           <div className="rounded-xl border border-zinc-200 bg-white shadow-xl p-6 text-center space-y-3 max-w-md w-full">
             <p className="text-destructive font-medium">{inviteError}</p>
             <p className="text-zinc-600 text-sm">
@@ -130,7 +130,7 @@ export default function SetupPage() {
       );
     }
     return (
-      <div className="flex min-h-screen items-center justify-center bg-white p-4">
+      <div className="theme-static-light flex min-h-screen items-center justify-center bg-white p-4">
         <div className="w-full max-w-md space-y-8 bg-white p-6 rounded-2xl border border-zinc-200 shadow-xl">
           <InviteSetupForm
             name={inviteInfo?.name ?? ""}
