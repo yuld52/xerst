@@ -374,8 +374,8 @@
 }
 
 /* Compatibilidade para telas que ainda usam utilitários claros legados,
-   EXCETO telas estaticamente claras (login/cadastro) ou elementos com estilo dark: explícito. */
-.dark :not(.theme-static-light):not(.theme-static-light *):not([class*="dark:bg-"]).bg-white {
+   EXCETO telas estaticamente claras (login/cadastro). */
+.dark :not(.theme-static-light):not(.theme-static-light *).bg-white {
   background-color: var(--card) !important;
 }
 

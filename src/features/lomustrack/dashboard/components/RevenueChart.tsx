@@ -69,7 +69,7 @@ interface RevenueChartProps {
 export function RevenueChart({ data }: RevenueChartProps) {
   if (data.length === 0) {
     return (
-      <Card className="rounded-lg bg-white dark:bg-[#283046] border border-slate-200/80 dark:border-white/[0.08] shadow-sm">
+      <Card className="rounded-lg bg-white dark:bg-card border border-slate-200/80 dark:border-white/[0.08] shadow-sm">
         <CardContent className="flex items-center justify-center h-[340px] text-muted-foreground">
           Sem dados no período
         </CardContent>
@@ -78,7 +78,7 @@ export function RevenueChart({ data }: RevenueChartProps) {
   }
 
   return (
-    <Card className="rounded-lg bg-white dark:bg-[#283046] border border-slate-200/80 dark:border-white/[0.08] shadow-sm py-0 gap-0">
+    <Card className="rounded-lg bg-white dark:bg-card border border-slate-200/80 dark:border-white/[0.08] shadow-sm py-0 gap-0">
       <CardHeader className="px-4 py-3 sm:px-5 sm:py-3.5 border-b border-slate-100 dark:border-white/[0.04]">
         <div className="flex items-center justify-between">
           <div>

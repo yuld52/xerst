@@ -41,7 +41,7 @@ export function KpiCard({
 
   return (
     <div
-      className="group relative flex flex-col justify-between rounded-lg bg-white dark:bg-[#283046] border border-slate-200/80 dark:border-white/[0.08] p-3 sm:px-4 sm:py-3 shadow-sm min-h-[80px] sm:min-h-[86px] transition-all duration-200 hover:border-slate-300 dark:hover:border-white/20"
+      className="group relative flex flex-col justify-between rounded-lg bg-white dark:bg-card border border-slate-200/80 dark:border-white/[0.08] p-3 sm:px-4 sm:py-3 shadow-sm min-h-[80px] sm:min-h-[86px] transition-all duration-200 hover:border-slate-300 dark:hover:border-white/20"
       title={tooltip || title}
     >
       <div className="absolute top-2.5 right-3 sm:top-3 sm:right-4 pointer-events-none">

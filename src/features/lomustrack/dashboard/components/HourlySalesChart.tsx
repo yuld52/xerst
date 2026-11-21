@@ -58,7 +58,7 @@ export function HourlySalesChart({ data = [] }: HourlySalesChartProps) {
   const hasData = data && data.length > 0 && data.some((d) => d.sales > 0 || d.revenue > 0);
 
   return (
-    <Card className="h-full min-h-[320px] lg:min-h-[360px] rounded-lg bg-white dark:bg-[#283046] border border-slate-200/80 dark:border-white/[0.08] shadow-sm flex flex-col justify-between py-0 gap-0">
+    <Card className="h-full min-h-[320px] lg:min-h-[360px] rounded-lg bg-white dark:bg-card border border-slate-200/80 dark:border-white/[0.08] shadow-sm flex flex-col justify-between py-0 gap-0">
       <CardHeader className="px-4 py-3 sm:px-5 sm:py-3.5 border-b border-slate-100 dark:border-white/[0.04]">
         <div className="flex items-center justify-between">
           <div>
