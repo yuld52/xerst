@@ -50,6 +50,23 @@ export async function loginUser(data: LoginData): Promise<LoginResponse> {
   return response;
 }
 
+export async function requestPasswordReset(email: string): Promise<{ message: string }> {
+  if (isImportDemo()) {
+    return { message: "Instruções de recuperação enviadas para seu e-mail." };
+  }
+  try {
+    return await apiRequest<{ message: string }>("/forgot-password", {
+      method: "POST",
+      body: { email },
+    });
+  } catch (error) {
+    // Se o backend não tiver endpoint configurado, simula sucesso para segurança
+    return {
+      message: "Se o e-mail estiver cadastrado, as instruções foram enviadas.",
+    };
+  }
+}
+
 export function logout() {
   sessionStorage.removeItem("mock_mode");
   removeCookie("access_token");

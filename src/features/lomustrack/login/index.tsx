@@ -9,12 +9,13 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (data: { email: string; password: string }) => {
+  const handleSubmit = async (data: { email: string; password?: string }) => {
+    if (!data.password) return;
     setError("");
     setLoading(true);
 
     try {
-      await loginUser(data);
+      await loginUser({ email: data.email, password: data.password });
       toast.success("Login realizado com sucesso!");
       navigate("/dashboard", { replace: true });
     } catch (err) {
@@ -38,6 +39,7 @@ export default function LoginPage() {
       loading={loading}
       error={error}
       onExploreDemo={handleExploreDemo}
+      onForgotPassword={() => navigate("/forgot-password")}
     />
   );
 }

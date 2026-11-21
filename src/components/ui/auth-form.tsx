@@ -5,17 +5,21 @@ import { Loader2 } from "lucide-react"
 import { motion } from "framer-motion"
 import { useTheme } from "next-themes"
 
+export interface AuthFormData {
+  name?: string
+  email: string
+  password?: string
+  confirmPassword?: string
+}
+
 export interface AuthFormProps {
-  mode?: "login" | "signup"
-  onSubmit?: (data: {
-    name?: string
-    email: string
-    password: string
-    confirmPassword?: string
-  }) => void | Promise<void>
+  mode?: "login" | "signup" | "forgot-password"
+  onSubmit?: (data: AuthFormData) => void | Promise<void>
   loading?: boolean
   error?: string
+  successMessage?: string
   onExploreDemo?: () => void
+  onForgotPassword?: () => void
 }
 
 export const AuthForm: React.FC<AuthFormProps> = ({
@@ -23,7 +27,9 @@ export const AuthForm: React.FC<AuthFormProps> = ({
   onSubmit,
   loading = false,
   error = "",
+  successMessage,
   onExploreDemo,
+  onForgotPassword,
 }) => {
   return (
     <div className="relative min-h-screen bg-white dark:bg-zinc-950 py-12 px-4 text-zinc-800 dark:text-zinc-200 selection:bg-zinc-300 dark:selection:bg-zinc-600 flex flex-col justify-center items-center overflow-hidden">
@@ -40,7 +46,9 @@ export const AuthForm: React.FC<AuthFormProps> = ({
           onSubmit={onSubmit}
           loading={loading}
           error={error}
+          successMessage={successMessage}
           onExploreDemo={onExploreDemo}
+          onForgotPassword={onForgotPassword}
         />
         <TermsAndConditions />
       </motion.div>
@@ -83,27 +91,47 @@ const Logo: React.FC = () => (
   </div>
 )
 
-const Header: React.FC<{ mode: "login" | "signup" }> = ({ mode }) => {
+const Header: React.FC<{ mode: "login" | "signup" | "forgot-password" }> = ({ mode }) => {
   const isLogin = mode === "login"
+  const isForgotPassword = mode === "forgot-password"
 
   return (
     <div className="mb-6 text-center">
       <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
-        {isLogin ? "Entre na sua conta" : "Crie sua conta"}
+        {isForgotPassword
+          ? "Recuperar senha"
+          : isLogin
+            ? "Entre na sua conta"
+            : "Crie sua conta"}
       </h1>
+      {isForgotPassword && (
+        <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+          Informe seu e-mail cadastrado para receber o link de redefinição.
+        </p>
+      )}
     </div>
   )
 }
 
-
 const FormSection: React.FC<{
-  mode: "login" | "signup"
+  mode: "login" | "signup" | "forgot-password"
   onSubmit?: AuthFormProps["onSubmit"]
   loading: boolean
   error?: string
+  successMessage?: string
   onExploreDemo?: () => void
-}> = ({ mode, onSubmit, loading, error, onExploreDemo }) => {
+  onForgotPassword?: () => void
+}> = ({
+  mode,
+  onSubmit,
+  loading,
+  error,
+  successMessage,
+  onExploreDemo,
+  onForgotPassword,
+}) => {
   const isLogin = mode === "login"
+  const isForgotPassword = mode === "forgot-password"
   const [name, setName] = React.useState("")
   const [email, setEmail] = React.useState("")
   const [password, setPassword] = React.useState("")
@@ -118,7 +146,7 @@ const FormSection: React.FC<{
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {!isLogin && (
+      {mode === "signup" && (
         <div>
           <label
             htmlFor="name-input"
@@ -162,42 +190,46 @@ const FormSection: React.FC<{
         />
       </div>
 
-      <div>
-        <div className="mb-1.5 flex items-end justify-between">
-          <label
-            htmlFor="password-input"
-            className="block text-sm font-medium text-zinc-600 dark:text-zinc-400"
-          >
-            Senha
-          </label>
-          {isLogin && (
-            <a
-              href="#"
-              onClick={(e) => {
-                e.preventDefault()
-                alert("Entre em contato com o suporte ou administrador para redefinir sua senha.")
-              }}
-              className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+      {!isForgotPassword && (
+        <div>
+          <div className="mb-1.5 flex items-end justify-between">
+            <label
+              htmlFor="password-input"
+              className="block text-sm font-medium text-zinc-600 dark:text-zinc-400"
             >
-              Esqueceu?
-            </a>
-          )}
+              Senha
+            </label>
+            {isLogin && (
+              <a
+                href="/forgot-password"
+                onClick={(e) => {
+                  if (onForgotPassword) {
+                    e.preventDefault()
+                    onForgotPassword()
+                  }
+                }}
+                className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+              >
+                Esqueceu?
+              </a>
+            )}
+          </div>
+          <input
+            id="password-input"
+            type="password"
+            required
+            placeholder="••••••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full rounded-md border border-zinc-300 dark:border-zinc-700 
+            bg-white dark:bg-zinc-900 px-3 py-2 text-sm text-zinc-800 dark:text-zinc-200
+            placeholder-zinc-400 dark:placeholder-zinc-500 
+            ring-1 ring-transparent transition-all focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+          />
         </div>
-        <input
-          id="password-input"
-          type="password"
-          required
-          placeholder="••••••••••••"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full rounded-md border border-zinc-300 dark:border-zinc-700 
-          bg-white dark:bg-zinc-900 px-3 py-2 text-sm text-zinc-800 dark:text-zinc-200
-          placeholder-zinc-400 dark:placeholder-zinc-500 
-          ring-1 ring-transparent transition-all focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-        />
-      </div>
+      )}
 
-      {!isLogin && (
+      {mode === "signup" && (
         <div>
           <label
             htmlFor="confirm-password-input"
@@ -220,6 +252,15 @@ const FormSection: React.FC<{
         </div>
       )}
 
+      {successMessage && (
+        <div className="p-4 bg-emerald-500/10 border border-emerald-500/25 rounded-xl text-sm text-emerald-600 dark:text-emerald-400 text-center font-medium animate-in fade-in space-y-1">
+          <p className="font-semibold">{successMessage}</p>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 font-normal">
+            Verifique sua caixa de entrada e spam.
+          </p>
+        </div>
+      )}
+
       {error && (
         <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-600 dark:text-red-400 text-center font-medium animate-in fade-in">
           {error}
@@ -229,7 +270,15 @@ const FormSection: React.FC<{
       <div className="pt-2 space-y-3">
         <Button type="submit" disabled={loading} className="w-full flex items-center justify-center gap-2">
           {loading && <Loader2 className="size-4 animate-spin" />}
-          <span>{isLogin ? "Entrar na plataforma" : "Criar minha conta"}</span>
+          <span>
+            {isForgotPassword
+              ? successMessage
+                ? "Reenviar e-mail"
+                : "Enviar instruções"
+              : isLogin
+                ? "Entrar na plataforma"
+                : "Criar minha conta"}
+          </span>
         </Button>
 
         {isLogin && onExploreDemo && (
@@ -244,13 +293,37 @@ const FormSection: React.FC<{
 
         <div className="text-center pt-2">
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            {isLogin ? "Não tem uma conta? " : "Já possui uma conta? "}
-            <a
-              href={isLogin ? "/setup" : "/login"}
-              className="text-blue-600 dark:text-blue-400 font-medium hover:underline transition-colors"
-            >
-              {isLogin ? "Criar conta." : "Fazer login."}
-            </a>
+            {isForgotPassword ? (
+              <>
+                Lembrou sua senha?{" "}
+                <a
+                  href="/login"
+                  className="text-blue-600 dark:text-blue-400 font-medium hover:underline transition-colors"
+                >
+                  Fazer login.
+                </a>
+              </>
+            ) : isLogin ? (
+              <>
+                Não tem uma conta?{" "}
+                <a
+                  href="/setup"
+                  className="text-blue-600 dark:text-blue-400 font-medium hover:underline transition-colors"
+                >
+                  Criar conta.
+                </a>
+              </>
+            ) : (
+              <>
+                Já possui uma conta?{" "}
+                <a
+                  href="/login"
+                  className="text-blue-600 dark:text-blue-400 font-medium hover:underline transition-colors"
+                >
+                  Fazer login.
+                </a>
+              </>
+            )}
           </p>
         </div>
       </div>

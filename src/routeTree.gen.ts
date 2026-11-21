@@ -15,6 +15,7 @@ import { Route as ManagementRouteImport } from './routes/_management'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AdminLoginRouteImport } from './routes/admin-login'
 import { Route as DocumentationRouteImport } from './routes/documentation'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as SetupRouteImport } from './routes/setup'
 import { Route as DashboardAdvancedSettingsRouteImport } from './routes/_dashboard.advanced-settings'
@@ -69,6 +70,11 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
 const DocumentationRoute = DocumentationRouteImport.update({
   id: '/documentation',
   path: '/documentation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -218,6 +224,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/admin-login': typeof AdminLoginRoute
   '/documentation': typeof DocumentationRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/setup': typeof SetupRoute
   '/advanced-settings': typeof DashboardAdvancedSettingsRoute
@@ -251,6 +258,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/admin-login': typeof AdminLoginRoute
   '/documentation': typeof DocumentationRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/setup': typeof SetupRoute
   '/advanced-settings': typeof DashboardAdvancedSettingsRoute
@@ -287,6 +295,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/admin-login': typeof AdminLoginRoute
   '/documentation': typeof DocumentationRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/setup': typeof SetupRoute
   '/_dashboard/advanced-settings': typeof DashboardAdvancedSettingsRoute
@@ -322,6 +331,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/admin-login'
     | '/documentation'
+    | '/forgot-password'
     | '/login'
     | '/setup'
     | '/advanced-settings'
@@ -355,6 +365,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/admin-login'
     | '/documentation'
+    | '/forgot-password'
     | '/login'
     | '/setup'
     | '/advanced-settings'
@@ -390,6 +401,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/admin-login'
     | '/documentation'
+    | '/forgot-password'
     | '/login'
     | '/setup'
     | '/_dashboard/advanced-settings'
@@ -426,6 +438,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   AdminLoginRoute: typeof AdminLoginRoute
   DocumentationRoute: typeof DocumentationRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   SetupRoute: typeof SetupRoute
 }
@@ -472,6 +485,13 @@ declare module '@tanstack/react-router' {
       path: '/documentation'
       fullPath: '/documentation'
       preLoaderRoute: typeof DocumentationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -743,6 +763,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   AdminLoginRoute: AdminLoginRoute,
   DocumentationRoute: DocumentationRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   SetupRoute: SetupRoute,
 }

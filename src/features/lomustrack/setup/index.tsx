@@ -52,9 +52,14 @@ export default function SetupPage() {
   const handleSetup = async (data: {
     name?: string;
     email: string;
-    password: string;
+    password?: string;
     confirmPassword?: string;
   }) => {
+    if (!data.password) {
+      setError("Senha é obrigatória");
+      toast.error("Senha é obrigatória");
+      return;
+    }
     if (data.confirmPassword && data.password !== data.confirmPassword) {
       setError("As senhas não coincidem");
       toast.error("As senhas não coincidem");
