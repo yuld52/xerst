@@ -17,9 +17,10 @@ import { monthlyFinancialData, defaultCompanySettings } from "../data/mock-compa
 
 export async function getMockData(endpoint: string, _options?: any): Promise<any> {
   // Mock delay to simulate network
-  await new Promise((resolve) => setTimeout(resolve, 500));
+  await new Promise((resolve) => setTimeout(resolve, 120));
 
-  const [path] = endpoint.split("?");
+  const [path, queryString] = endpoint.split("?");
+  const queryParams = new URLSearchParams(queryString || "");
 
   if (path === "/dashboard/overview") {
     return {
@@ -194,65 +195,132 @@ export async function getMockData(endpoint: string, _options?: any): Promise<any
   }
 
   if (path.startsWith("/sales")) {
-    if (path.includes("summary")) {
-      return {
-        total: salesData.length,
-        approved: salesData.filter((s) => s.status === "approved").length,
-        refunded: salesData.filter((s) => s.status === "refunded").length,
-        chargebacks: salesData.filter((s) => s.status === "chargeback").length,
-        pending: salesData.filter((s) => s.status === "pending").length,
-        trial: salesData.filter((s) => s.status === "trial").length,
-        revenue: 25400,
-        avg_ticket: 297,
-      };
-    }
+    const search = (queryParams.get("search") || "").toLowerCase().trim();
+    const status = queryParams.get("status") || "all";
+    const platform = queryParams.get("platform") || "all";
+    const productId = queryParams.get("product_id");
+    const campaign = queryParams.get("campaign") || "all";
+    const startDate = queryParams.get("start_date");
+    const endDate = queryParams.get("end_date");
+
     if (path.includes("filter-options")) {
+      const distinctCampaigns = Array.from(
+        new Set(salesData.map((s) => s.utmCampaign).filter(Boolean)),
+      );
       return {
-        products: [{ id: 1, name: "Produto Mock" }],
-        platforms: [{ value: "kiwify", label: "Kiwify" }],
+        products: productsData.map((p, i) => ({ id: i + 1, name: p.name })),
+        platforms: [
+          { value: "kiwify", label: "Kiwify" },
+          { value: "payt", label: "PayT" },
+        ],
         accounts: [
           { slug: "act_123456789", name: "Lomus - Oficial", platform: "facebook" },
           { slug: "act_987654321", name: "Lomus - Secundária", platform: "facebook" },
         ],
         upsells: [],
-        campaigns: ["Campanha Mock"],
+        campaigns:
+          distinctCampaigns.length > 0
+            ? distinctCampaigns
+            : ["Campaign - Ebook Fitness", "Campaign - Curso Marketing Digital"],
       };
     }
-    const mappedSales = salesData.map((s, i) => ({
-      ...s,
-      id: i + 1,
-      external_id: s.id,
-      customer_email: s.customerEmail,
-      product_name: s.product,
-      product_id: 1,
-      utm_campaign: s.utmCampaign,
-      utm_content: s.utmContent,
-      utm_medium: s.utmMedium,
-      utm_source: s.utmSource,
-      webhook_slug: null,
-      checkout_url: null,
-      order_bumps: [],
-      created_at: s.date,
-    }));
-    return { items: mappedSales, total: mappedSales.length, page: 1, per_page: 20 };
+
+    const matchSale = (s: typeof salesData[0], applyStatusFilter = true) => {
+      if (applyStatusFilter && status !== "all" && s.status !== status) {
+        return false;
+      }
+      if (platform !== "all" && s.platform !== platform) {
+        return false;
+      }
+      if (campaign !== "all" && s.utmCampaign !== campaign) {
+        return false;
+      }
+      if (productId) {
+        const prodIndex = parseInt(productId) - 1;
+        const targetProduct = productsData[prodIndex]?.name;
+        if (targetProduct && !s.product.toLowerCase().includes(targetProduct.toLowerCase())) {
+          return false;
+        }
+      }
+      if (startDate && s.date.slice(0, 10) < startDate) {
+        return false;
+      }
+      if (endDate && s.date.slice(0, 10) > endDate) {
+        return false;
+      }
+      if (search) {
+        const matches =
+          s.customerEmail.toLowerCase().includes(search) ||
+          s.id.toLowerCase().includes(search) ||
+          s.product.toLowerCase().includes(search) ||
+          (s.utmCampaign && s.utmCampaign.toLowerCase().includes(search)) ||
+          (s.utmMedium && s.utmMedium.toLowerCase().includes(search)) ||
+          (s.utmSource && s.utmSource.toLowerCase().includes(search)) ||
+          (s.src && s.src.toLowerCase().includes(search));
+        if (!matches) return false;
+      }
+      return true;
+    };
+
+    if (path.includes("summary")) {
+      const summaryList = salesData.filter((s) => matchSale(s, false));
+      const approved = summaryList.filter((s) => s.status === "approved");
+      const revenue = approved.reduce((acc, s) => acc + s.amount, 0);
+      const avgTicket = approved.length > 0 ? revenue / approved.length : 0;
+      return {
+        total: summaryList.length,
+        approved: approved.length,
+        refunded: summaryList.filter((s) => s.status === "refunded").length,
+        chargebacks: summaryList.filter((s) => s.status === "chargeback").length,
+        pending: summaryList.filter((s) => s.status === "pending").length,
+        trial: summaryList.filter((s) => s.status === "trial").length,
+        revenue,
+        avg_ticket: avgTicket,
+      };
+    }
+
+    const filteredSales = salesData.filter((s) => matchSale(s, true));
+    const page = parseInt(queryParams.get("page") || "1") || 1;
+    const perPage = parseInt(queryParams.get("per_page") || "12") || 12;
+    const startIndex = (page - 1) * perPage;
+    const paged = filteredSales.slice(startIndex, startIndex + perPage);
+
+    const mappedSales = paged.map((s, i) => {
+      const prodIndex = productsData.findIndex((p) => p.name === s.product);
+      return {
+        ...s,
+        id: startIndex + i + 1,
+        external_id: s.id,
+        customer_email: s.customerEmail,
+        product_name: s.product,
+        product_id: prodIndex >= 0 ? prodIndex + 1 : 1,
+        utm_campaign: s.utmCampaign,
+        utm_content: s.utmContent,
+        utm_medium: s.utmMedium,
+        utm_source: s.utmSource,
+        webhook_slug: null,
+        checkout_url: null,
+        order_bumps: [],
+        created_at: s.date,
+      };
+    });
+    return { items: mappedSales, total: filteredSales.length, page, per_page: perPage };
   }
 
   if (path.startsWith("/customers")) {
-    if (path.includes("summary")) {
-      return {
-        total_customers: customersData.length,
-        total_orders: customersData.reduce((acc, c) => acc + c.totalOrders, 0),
-        total_spent: customersData.reduce((acc, c) => acc + c.totalSpent, 0),
-        unique_products: 3,
-        avg_ticket:
-          customersData.reduce((acc, c) => acc + c.totalSpent, 0) /
-          customersData.reduce((acc, c) => acc + c.totalOrders, 0),
-      };
-    }
+    const search = (queryParams.get("search") || "").toLowerCase().trim();
+    const productId = queryParams.get("product_id");
+    const platform = queryParams.get("platform") || "all";
+    const startDate = queryParams.get("start_date");
+    const endDate = queryParams.get("end_date");
+
     if (path.includes("filter-options")) {
       return {
-        products: [{ id: 1, name: "Produto Mock" }],
-        platforms: [{ value: "kiwify", label: "Kiwify" }],
+        products: productsData.map((p, i) => ({ id: i + 1, name: p.name })),
+        platforms: [
+          { value: "kiwify", label: "Kiwify" },
+          { value: "payt", label: "PayT" },
+        ],
         accounts: [
           { slug: "act_123456789", name: "Lomus - Oficial", platform: "facebook" },
           { slug: "act_987654321", name: "Lomus - Secundária", platform: "facebook" },
@@ -260,14 +328,64 @@ export async function getMockData(endpoint: string, _options?: any): Promise<any
         upsells: [],
       };
     }
-    const mappedCustomers = customersData.map((c) => ({
+
+    const matchCustomer = (c: typeof customersData[0]) => {
+      if (search) {
+        const matches =
+          c.name.toLowerCase().includes(search) ||
+          c.email.toLowerCase().includes(search) ||
+          c.phone.toLowerCase().includes(search) ||
+          (c.cpf && c.cpf.includes(search)) ||
+          c.id.toLowerCase().includes(search);
+        if (!matches) return false;
+      }
+      if (productId) {
+        const prodIndex = parseInt(productId) - 1;
+        const targetProduct = productsData[prodIndex]?.name;
+        if (
+          targetProduct &&
+          !c.products.some((p) => p.toLowerCase().includes(targetProduct.toLowerCase()))
+        ) {
+          return false;
+        }
+      }
+      if (startDate && c.lastPurchase < startDate) {
+        return false;
+      }
+      if (endDate && c.firstPurchase > endDate) {
+        return false;
+      }
+      return true;
+    };
+
+    const filteredCustomers = customersData.filter(matchCustomer);
+
+    if (path.includes("summary")) {
+      const totalSpent = filteredCustomers.reduce((acc, c) => acc + c.totalSpent, 0);
+      const totalOrders = filteredCustomers.reduce((acc, c) => acc + c.totalOrders, 0);
+      return {
+        total_customers: filteredCustomers.length,
+        total_orders: totalOrders,
+        total_spent: totalSpent,
+        unique_products: 3,
+        avg_ticket: totalOrders > 0 ? totalSpent / totalOrders : 0,
+      };
+    }
+
+    const page = parseInt(queryParams.get("page") || "1") || 1;
+    const perPage = parseInt(queryParams.get("per_page") || "12") || 12;
+    const startIndex = (page - 1) * perPage;
+    const paged = filteredCustomers.slice(startIndex, startIndex + perPage);
+
+    const mappedCustomers = paged.map((c) => ({
       ...c,
+      external_id: c.id,
       total_spent: c.totalSpent,
       total_orders: c.totalOrders,
       first_purchase_at: c.firstPurchase,
       last_purchase_at: c.lastPurchase,
     }));
-    return { items: mappedCustomers, total: mappedCustomers.length, page: 1, per_page: 20 };
+    return { items: mappedCustomers, total: filteredCustomers.length, page, per_page: perPage };
   }
 
   if (path.startsWith("/products")) {

@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { RiGroupLine, RiSearchLine, RiFilterLine } from "@remixicon/react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,21 @@ export function CustomersHeader({
   onToggleFilters,
   filtersOpen,
 }: CustomersHeaderProps) {
+  const [localSearch, setLocalSearch] = useState(search);
+
+  useEffect(() => {
+    setLocalSearch(search);
+  }, [search]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (localSearch !== search) {
+        onSearchChange(localSearch);
+      }
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [localSearch, search, onSearchChange]);
+
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-center gap-3">
@@ -40,8 +56,8 @@ export function CustomersHeader({
           <RiSearchLine className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
             placeholder="Buscar nome ou email..."
-            value={search}
-            onChange={(e) => onSearchChange(e.target.value)}
+            value={localSearch}
+            onChange={(e) => setLocalSearch(e.target.value)}
             className="pl-9 w-full sm:w-[240px] h-9 text-sm"
           />
         </div>
