@@ -9,7 +9,7 @@ interface KpiCardProps {
   value: string;
   rawValue?: number;
   subtitle?: string;
-  icon: RemixiconComponentType;
+  icon?: RemixiconComponentType;
   trend?: {
     value: number;
     positive: boolean;
@@ -24,19 +24,11 @@ const variantStyles = {
   destructive: "text-destructive",
 };
 
-const iconBgStyles = {
-  default: "bg-muted",
-  primary: "bg-primary/10",
-  success: "bg-[var(--color-success)]/10",
-  destructive: "bg-destructive/10",
-};
-
 export function KpiCard({
   title,
   value,
   rawValue,
   subtitle,
-  icon: Icon,
   trend,
   variant = "default",
 }: KpiCardProps) {
@@ -48,8 +40,7 @@ export function KpiCard({
   return (
     <Card className="group relative overflow-hidden border-border/40 transition-all duration-300 hover:shadow-lg hover:border-primary/20">
       <CardContent className="p-3 sm:p-5">
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0 flex-1 space-y-1.5">
+        <div className="space-y-1.5">
             <p className="text-[10px] sm:text-xs font-medium uppercase text-muted-foreground break-words">
               {title}
             </p>
@@ -77,10 +68,6 @@ export function KpiCard({
                 <span className="text-xs text-muted-foreground">vs período anterior</span>
               </div>
             )}
-          </div>
-          <div className={cn("rounded-lg p-1.5 sm:p-2.5 shrink-0", iconBgStyles[variant])}>
-            <Icon className={cn("size-4 sm:size-5", variantStyles[variant])} />
-          </div>
         </div>
       </CardContent>
       <div className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-transparent via-primary/50 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
