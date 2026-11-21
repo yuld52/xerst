@@ -26,17 +26,8 @@ const DEFAULT_LOCATIONS: BuyerLocation[] = [
     country: "Brasil",
     lat: -23.5505,
     lng: -46.6333,
-    sales: 1,
-    revenue: 217.19,
-  },
-  {
-    city: "Belo Horizonte",
-    state: "MG",
-    country: "Brasil",
-    lat: -19.9167,
-    lng: -43.9345,
-    sales: 1,
-    revenue: 189.9,
+    sales: 356,
+    revenue: 695877,
   },
   {
     city: "Rio de Janeiro",
@@ -44,8 +35,17 @@ const DEFAULT_LOCATIONS: BuyerLocation[] = [
     country: "Brasil",
     lat: -22.9068,
     lng: -43.1729,
-    sales: 1,
-    revenue: 197.5,
+    sales: 203,
+    revenue: 397644,
+  },
+  {
+    city: "Belo Horizonte",
+    state: "MG",
+    country: "Brasil",
+    lat: -19.9167,
+    lng: -43.9345,
+    sales: 127,
+    revenue: 248528,
   },
   {
     city: "Curitiba",
@@ -53,8 +53,8 @@ const DEFAULT_LOCATIONS: BuyerLocation[] = [
     country: "Brasil",
     lat: -25.4284,
     lng: -49.2733,
-    sales: 1,
-    revenue: 154.0,
+    sales: 93,
+    revenue: 182253,
   },
   {
     city: "Brasília",
@@ -62,8 +62,8 @@ const DEFAULT_LOCATIONS: BuyerLocation[] = [
     country: "Brasil",
     lat: -15.7975,
     lng: -47.8919,
-    sales: 1,
-    revenue: 178.0,
+    sales: 68,
+    revenue: 132548,
   },
 ];
 
@@ -89,19 +89,21 @@ export function BuyersLocationCard({
 
   // Normaliza locais recebidos ou usa os locais padrão escalados proporcionalmente
   const locations: BuyerLocation[] = useMemo(() => {
-    if (data && data.length > 0) {
-      return [...data].sort((a, b) => b.sales - a.sales || b.revenue - a.revenue);
-    }
-    if (totalSales && totalSales > 0 && totalRevenue && totalRevenue > 0) {
-      const proportions = [0.42, 0.24, 0.18, 0.1, 0.06];
-      return DEFAULT_LOCATIONS.map((loc, idx) => {
-        const p = proportions[idx] || 0.05;
+    const rawList = data && data.length > 0 ? data : DEFAULT_LOCATIONS;
+    const sumSales = rawList.reduce((s, l) => s + (l.sales || 0), 0);
+
+    // Se os dados vierem com valores fictícios/unitários (ex: soma <= quantidade de cidades), mas tivermos totalSales e totalRevenue reais
+    if (totalSales && totalSales > 0 && totalRevenue && totalRevenue > 0 && sumSales <= rawList.length) {
+      const proportions = [0.42, 0.24, 0.15, 0.11, 0.08];
+      return rawList.map((loc, idx) => {
+        const p = proportions[idx] || (1 / rawList.length);
         const sales = Math.max(1, Math.round(totalSales * p));
         const revenue = Number((totalRevenue * p).toFixed(2));
         return { ...loc, sales, revenue };
-      }).sort((a, b) => b.sales - a.sales);
+      }).sort((a, b) => b.sales - a.sales || b.revenue - a.revenue);
     }
-    return DEFAULT_LOCATIONS;
+
+    return [...rawList].sort((a, b) => b.sales - a.sales || b.revenue - a.revenue);
   }, [data, totalSales, totalRevenue]);
 
   const [selectedLocation, setSelectedLocation] = useState<BuyerLocation>(
@@ -134,6 +136,22 @@ export function BuyersLocationCard({
     }
   }, []);
 
+  // Atualiza marcadores no globo sem recriar o contexto WebGL quando a seleção muda
+  useEffect(() => {
+    if (!globeRef.current) return;
+    const maxSales = Math.max(...locations.map((l) => l.sales), 1);
+    const markers = locations.map((loc) => {
+      const isSelected = selectedLocation.city === loc.city;
+      return {
+        location: [loc.lat, loc.lng] as [number, number],
+        size: isSelected
+          ? 0.12
+          : Math.max(0.045, Math.min(0.085, 0.045 + (loc.sales / maxSales) * 0.04)),
+      };
+    });
+    globeRef.current.update({ markers });
+  }, [selectedLocation.city, locations]);
+
   // Inicializa o globo WebGL via Cobe com física suave e animação contínua
   useEffect(() => {
     if (viewMode !== "globo" || !canvasRef.current) return;
@@ -148,7 +166,7 @@ export function BuyersLocationCard({
       return {
         location: [loc.lat, loc.lng] as [number, number],
         size: isSelected
-          ? 0.11
+          ? 0.12
           : Math.max(0.045, Math.min(0.085, 0.045 + (loc.sales / maxSales) * 0.04)),
       };
     });
@@ -180,10 +198,14 @@ export function BuyersLocationCard({
           targetPhi.current += 0.0022;
         }
 
-        // Interpolação suave (lerp) para suavizar a transição
+        // Interpolação suave (lerp) para suavizar a transição com normalização angular de menor caminho
         if (!isDragging.current) {
-          phiRef.current += (targetPhi.current - phiRef.current) * 0.07;
-          thetaRef.current += (targetTheta.current - thetaRef.current) * 0.07;
+          const twoPi = Math.PI * 2;
+          let dPhi = (targetPhi.current - phiRef.current) % twoPi;
+          if (dPhi > Math.PI) dPhi -= twoPi;
+          if (dPhi < -Math.PI) dPhi += twoPi;
+          phiRef.current += dPhi * 0.08;
+          thetaRef.current += (targetTheta.current - thetaRef.current) * 0.08;
         }
 
         globe?.update({ phi: phiRef.current, theta: thetaRef.current });
@@ -205,7 +227,7 @@ export function BuyersLocationCard({
       globe?.destroy();
       globeRef.current = null;
     };
-  }, [viewMode, locations, selectedLocation.city]);
+  }, [viewMode]);
 
   // Total de vendas em todas as localidades
   const totalLocSales = useMemo(() => {
@@ -374,7 +396,7 @@ export function BuyersLocationCard({
                         )}
                       />
                       <span>
-                        {loc.city}, {loc.state} · {loc.sales}
+                        {loc.city}, {loc.state} · {loc.sales} {loc.sales === 1 ? "venda" : "vendas"}
                       </span>
                     </button>
                   );
@@ -385,7 +407,7 @@ export function BuyersLocationCard({
               <p className="text-center text-[11px] text-muted-foreground mt-2 font-medium tracking-tight">
                 {selectedLocation.city}, {selectedLocation.state} — {selectedLocation.sales}{" "}
                 {selectedLocation.sales === 1 ? "venda" : "vendas"} (
-                {convertAndFormatMZN(selectedLocation.revenue)})
+                {convertAndFormatMZN(selectedLocation.revenue).replace(/\s*MT\b/gi, "")})
               </p>
             </motion.div>
           ) : (
@@ -414,7 +436,7 @@ export function BuyersLocationCard({
               <div className="flex items-center justify-between text-[11px] text-muted-foreground px-1 font-medium">
                 <span>{filteredLocations.length} cidades mapeadas</span>
                 <span>
-                  Total: {totalLocSales} vendas ({convertAndFormatMZN(totalLocRevenue)})
+                  Total: {totalLocSales} {totalLocSales === 1 ? "venda" : "vendas"} ({convertAndFormatMZN(totalLocRevenue).replace(/\s*MT\b/gi, "")})
                 </span>
               </div>
 
@@ -473,7 +495,7 @@ export function BuyersLocationCard({
                               {loc.sales} {loc.sales === 1 ? "venda" : "vendas"}
                             </p>
                             <p className="text-[10px] text-muted-foreground">
-                              {convertAndFormatMZN(loc.revenue)}
+                              {convertAndFormatMZN(loc.revenue).replace(/\s*MT\b/gi, "")}
                             </p>
                           </div>
 
