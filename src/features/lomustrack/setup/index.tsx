@@ -69,14 +69,19 @@ export default function SetupPage() {
     setError("");
     setLoading(true);
     try {
-      await createAdmin({
+      const res = await createAdmin({
         name: data.name || data.email.split("@")[0],
         email: data.email,
         password: data.password,
         confirm_password: data.confirmPassword || data.password,
       });
-      toast.success("Conta criada com sucesso!");
-      navigate("/login", { replace: true });
+      if (res.requires_verification) {
+        toast.success("Conta criada! Verifique seu email.");
+        navigate(`/verify-email?email=${encodeURIComponent(data.email)}`, { replace: true });
+      } else {
+        toast.success("Conta criada com sucesso!");
+        navigate("/login", { replace: true });
+      }
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Erro ao criar conta";
       setError(msg);

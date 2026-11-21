@@ -12,13 +12,18 @@ export interface AuthFormData {
 }
 
 export interface AuthFormProps {
-  mode?: "login" | "signup" | "forgot-password"
+  mode?: "login" | "signup" | "forgot-password" | "verify-code"
   onSubmit?: (data: AuthFormData) => void | Promise<void>
   loading?: boolean
   error?: string
   successMessage?: string
   onExploreDemo?: () => void
   onForgotPassword?: () => void
+  // verify-code specific
+  email?: string
+  onResend?: () => void
+  resending?: boolean
+  countdown?: number
 }
 
 export const AuthForm: React.FC<AuthFormProps> = ({
@@ -92,22 +97,30 @@ const Logo: React.FC = () => (
   </div>
 )
 
-const Header: React.FC<{ mode: "login" | "signup" | "forgot-password" }> = ({ mode }) => {
+const Header: React.FC<{ mode: "login" | "signup" | "forgot-password" | "verify-code" }> = ({ mode }) => {
   const isLogin = mode === "login"
   const isForgotPassword = mode === "forgot-password"
+  const isVerifyCode = mode === "verify-code"
 
   return (
     <div className="mb-6 text-center">
       <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
         {isForgotPassword
           ? "Recuperar senha"
-          : isLogin
-            ? "Entre na sua conta"
-            : "Crie sua conta"}
+          : isVerifyCode
+            ? "Verificar email"
+            : isLogin
+              ? "Entre na sua conta"
+              : "Crie sua conta"}
       </h1>
       {isForgotPassword && (
         <p className="mt-2 text-sm text-zinc-600">
           Informe seu e-mail cadastrado para receber o link de redefinição.
+        </p>
+      )}
+      {isVerifyCode && (
+        <p className="mt-2 text-sm text-zinc-600">
+          Enviamos um código de 6 dígitos para <strong>{email}</strong>. Verifique sua caixa de entrada e spam.
         </p>
       )}
     </div>
@@ -115,13 +128,18 @@ const Header: React.FC<{ mode: "login" | "signup" | "forgot-password" }> = ({ mo
 }
 
 const FormSection: React.FC<{
-  mode: "login" | "signup" | "forgot-password"
+  mode: "login" | "signup" | "forgot-password" | "verify-code"
   onSubmit?: AuthFormProps["onSubmit"]
   loading: boolean
   error?: string
   successMessage?: string
   onExploreDemo?: () => void
   onForgotPassword?: () => void
+  // verify-code specific
+  email?: string
+  onResend?: () => void
+  resending?: boolean
+  countdown?: number
 }> = ({
   mode,
   onSubmit,
@@ -130,11 +148,16 @@ const FormSection: React.FC<{
   successMessage,
   onExploreDemo,
   onForgotPassword,
+  email,
+  onResend,
+  resending,
+  countdown,
 }) => {
   const isLogin = mode === "login"
   const isForgotPassword = mode === "forgot-password"
+  const isVerifyCode = mode === "verify-code"
   const [name, setName] = React.useState("")
-  const [email, setEmail] = React.useState("")
+  const [emailState, setEmailState] = React.useState("")
   const [password, setPassword] = React.useState("")
   const [confirmPassword, setConfirmPassword] = React.useState("")
 
@@ -191,7 +214,7 @@ const FormSection: React.FC<{
         />
       </div>
 
-      {!isForgotPassword && (
+      {!isForgotPassword && !isVerifyCode && (
         <div>
           <div className="mb-1.5 flex items-end justify-between">
             <label
@@ -236,6 +259,33 @@ const FormSection: React.FC<{
             bg-white px-3 py-2 text-sm text-zinc-900
             placeholder-zinc-400 
             ring-1 ring-transparent transition-all focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+          />
+        </div>
+      )}
+
+      {isVerifyCode && (
+        <div>
+          <label
+            htmlFor="code-input"
+            className="mb-1.5 block text-sm font-medium text-zinc-700"
+          >
+            Código de 6 dígitos
+          </label>
+          <input
+            id="code-input"
+            type="text"
+            required
+            maxLength={6}
+            placeholder="123456"
+            value={password}
+            onChange={(e) => setPassword(e.target.value.replace(/\D/g, "").slice(0, 6))}
+            className="w-full rounded-md border border-zinc-300 
+            bg-white px-3 py-2 text-sm text-zinc-900
+            placeholder-zinc-400 
+            ring-1 ring-transparent transition-all focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
+            text-center tracking-widest text-2xl font-mono"
+            autoComplete="one-time-code"
+            inputMode="numeric"
           />
         </div>
       )}
@@ -286,9 +336,11 @@ const FormSection: React.FC<{
               ? successMessage
                 ? "Reenviar e-mail"
                 : "Enviar instruções"
-              : isLogin
-                ? "Entrar na plataforma"
-                : "Criar minha conta"}
+              : isVerifyCode
+                ? "Verificar código"
+                : isLogin
+                  ? "Entrar na plataforma"
+                  : "Criar minha conta"}
           </span>
         </Button>
 
@@ -313,6 +365,19 @@ const FormSection: React.FC<{
                 >
                   Fazer login.
                 </a>
+              </>
+            ) : isVerifyCode ? (
+              <>
+                <button
+                  type="button"
+                  onClick={onResend}
+                  disabled={resending || countdown > 0}
+                  className="text-blue-600 font-medium hover:underline hover:text-blue-700 transition-colors disabled:text-zinc-400 disabled:cursor-not-allowed"
+                >
+                  {countdown > 0
+                    ? `Reenviar código (${countdown}s)`
+                    : "Não recebeu? Reenviar código"}
+                </button>
               </>
             ) : isLogin ? (
               <>

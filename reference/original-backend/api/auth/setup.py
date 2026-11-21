@@ -2,9 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr
 import bcrypt
-from datetime import datetime
+import secrets
+from datetime import datetime, timedelta
 from database.core.connection import get_db
 from database.models.admin import Admin, UserRole
+from services.email import send_welcome_email, send_signup_code_email
 
 router = APIRouter()
 
@@ -30,6 +32,22 @@ class InviteInfoResponse(BaseModel):
     name: str
     role: str
     email: EmailStr | None = None
+
+
+class VerifyCodeRequest(BaseModel):
+    email: EmailStr
+    code: str
+
+
+class VerifyCodeResponse(BaseModel):
+    message: str
+    access_token: str | None = None
+    token_type: str | None = None
+    user: dict | None = None
+
+
+class ResendCodeRequest(BaseModel):
+    email: EmailStr
 
 
 @router.get("/setup/status", response_model=SetupStatusResponse)
@@ -78,6 +96,9 @@ def create_admin(data: SetupRequest, db: Session = Depends(get_db)):
         ).order_by(Admin.company_id.desc()).first()
         new_company_id = (max_company.company_id + 1) if max_company and max_company.company_id else 1
 
+        # Gerar código de verificação (6 dígitos)
+        verification_code = str(secrets.randbelow(900000) + 100000)
+
         admin = Admin(
             name=data.name,
             email=data.email,
@@ -87,11 +108,18 @@ def create_admin(data: SetupRequest, db: Session = Depends(get_db)):
             is_active=1,  # Explicitamente definir is_active
             subscription_plan="free",
             subscription_started_at=datetime.utcnow(),
+            email_verification_code=verification_code,
+            email_verification_expires=datetime.utcnow() + timedelta(minutes=10),
+            is_email_verified=False,
         )
         db.add(admin)
         db.commit()
         db.refresh(admin)
-        return {"message": "Conta criada com sucesso"}
+
+        # Enviar código de verificação por email
+        send_signup_code_email(admin.email, verification_code, admin.name)
+
+        return {"message": "Conta criada! Verifique seu email para o código de verificação.", "requires_verification": True}
     except HTTPException:
         raise
     except Exception as e:
@@ -126,6 +154,81 @@ def complete_invite(token: str, data: InviteSetupRequest, db: Session = Depends(
     invite.email = data.email
     invite.password_hash = bcrypt.hashpw(data.password.encode("utf-8"), salt).decode("utf-8")
     invite.invite_token = None  # consume the token
+    invite.is_email_verified = True  # Convites já verificam o email
     db.commit()
 
+    # Enviar email de boas-vindas
+    send_welcome_email(invite.email, invite.name)
+
     return {"message": "Conta criada com sucesso"}
+
+
+@router.post("/setup/verify-code", response_model=VerifyCodeResponse)
+def verify_signup_code(data: VerifyCodeRequest, db: Session = Depends(get_db)):
+    """Verifica código de email e faz login automático."""
+    admin = db.query(Admin).filter(Admin.email == data.email).first()
+
+    if not admin:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+
+    if admin.is_email_verified:
+        raise HTTPException(status_code=400, detail="Email já verificado")
+
+    if not admin.email_verification_code or admin.email_verification_code != data.code:
+        raise HTTPException(status_code=400, detail="Código inválido")
+
+    if not admin.email_verification_expires or admin.email_verification_expires < datetime.utcnow():
+        raise HTTPException(status_code=400, detail="Código expirado. Solicite outro.")
+
+    # Marcar email como verificado
+    admin.is_email_verified = True
+    admin.email_verification_code = None
+    admin.email_verification_expires = None
+    db.commit()
+
+    # Enviar email de boas-vindas
+    send_welcome_email(admin.email, admin.name)
+
+    # Gerar token de acesso automático
+    from api.auth.token import create_access_token
+    access_token = create_access_token({
+        "sub": str(admin.id),
+        "email": admin.email,
+        "role": admin.role.value,
+        "token_version": admin.token_version or 1,
+    })
+
+    return {
+        "message": "Email verificado com sucesso! Bem-vindo ao LomusTrack.",
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": {
+            "id": admin.id,
+            "name": admin.name,
+            "email": admin.email,
+            "role": admin.role.value,
+        }
+    }
+
+
+@router.post("/setup/resend-code", response_model=VerifyCodeResponse)
+def resend_verification_code(data: ResendCodeRequest, db: Session = Depends(get_db)):
+    """Reenvia código de verificação."""
+    admin = db.query(Admin).filter(Admin.email == data.email).first()
+
+    if not admin:
+        # Não revela se email existe
+        return {"message": "Se o email estiver cadastrado, um novo código foi enviado."}
+
+    if admin.is_email_verified:
+        raise HTTPException(status_code=400, detail="Email já verificado")
+
+    # Gerar novo código
+    verification_code = str(secrets.randbelow(900000) + 100000)
+    admin.email_verification_code = verification_code
+    admin.email_verification_expires = datetime.utcnow() + timedelta(minutes=10)
+    db.commit()
+
+    send_signup_code_email(admin.email, verification_code, admin.name)
+
+    return {"message": "Novo código enviado para seu email."}

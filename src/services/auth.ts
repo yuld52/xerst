@@ -30,11 +30,32 @@ interface LoginResponse {
   };
 }
 
+interface VerifyCodeData {
+  email: string;
+  code: string;
+}
+
+interface VerifyCodeResponse {
+  message: string;
+  access_token?: string;
+  token_type?: string;
+  user?: {
+    id: number;
+    name: string;
+    email: string;
+    role: "owner" | "admin" | "viewer" | "superadmin";
+  };
+}
+
+interface ResendCodeData {
+  email: string;
+}
+
 export async function checkSetupStatus(): Promise<SetupStatus> {
   return apiRequest<SetupStatus>("/setup/status");
 }
 
-export async function createAdmin(data: SetupData): Promise<{ message: string }> {
+export async function createAdmin(data: SetupData): Promise<{ message: string; requires_verification?: boolean }> {
   return apiRequest("/setup", { method: "POST", body: data });
 }
 
@@ -65,6 +86,27 @@ export async function requestPasswordReset(email: string): Promise<{ message: st
       message: "Se o e-mail estiver cadastrado, as instruções foram enviadas.",
     };
   }
+}
+
+export async function verifySignupCode(data: VerifyCodeData): Promise<VerifyCodeResponse> {
+  return apiRequest<VerifyCodeResponse>("/setup/verify-code", {
+    method: "POST",
+    body: data,
+  });
+}
+
+export async function resendVerificationCode(data: ResendCodeData): Promise<{ message: string }> {
+  return apiRequest<{ message: string }>("/setup/resend-code", {
+    method: "POST",
+    body: data,
+  });
+}
+
+export async function resetPassword(token: string, password: string, confirm_password: string): Promise<{ message: string }> {
+  return apiRequest<{ message: string }>("/reset-password", {
+    method: "POST",
+    body: { token, password, confirm_password },
+  });
 }
 
 export function logout() {

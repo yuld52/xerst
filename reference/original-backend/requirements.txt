@@ -17,5 +17,6 @@ langchain-core>=0.3.0
 stripe
 pywebpush
 tzdata
+resend
 # LangChain's Pydantic v1 compatibility layer is not supported by Python 3.14.
 # Use Python 3.11-3.13 for the backend runtime.

@@ -32,3 +32,10 @@ class Admin(Base):
     two_factor_secret = Column(String(64), nullable=True)
     two_factor_enabled = Column(Boolean, default=False, nullable=False)
     preferences = Column(JSON, nullable=False, default=dict)
+    # Password reset
+    password_reset_token = Column(String(64), unique=True, nullable=True)
+    password_reset_expires = Column(DateTime, nullable=True)
+    # Email verification
+    email_verification_code = Column(String(6), nullable=True)
+    email_verification_expires = Column(DateTime, nullable=True)
+    is_email_verified = Column(Boolean, default=False, nullable=False)
