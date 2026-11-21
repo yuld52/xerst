@@ -21,7 +21,6 @@ import {
   AnimatedSidebarFooter,
   AnimatedSidebarGroup,
   AnimatedSidebarGroupContent,
-  AnimatedSidebarGroupLabel,
   AnimatedSidebarHeader,
   AnimatedSidebarInset,
   AnimatedSidebarMenu,
@@ -284,8 +283,7 @@ function AppSidebarContent() {
 
       <AnimatedSidebarContent className="px-2 pt-1">
         {visibleGroups.map((group) => (
-          <AnimatedSidebarGroup key={group.label} className="pt-1">
-            <AnimatedSidebarGroupLabel>{group.label}</AnimatedSidebarGroupLabel>
+          <AnimatedSidebarGroup key={group.label} className="pt-0.5">
             <AnimatedSidebarGroupContent>
               <AnimatedSidebarMenu>
                 {group.items.map((item) => (
