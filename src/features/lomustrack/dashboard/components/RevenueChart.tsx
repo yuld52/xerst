@@ -51,7 +51,7 @@ function CustomTooltip({ active, payload, label }: any) {
               <div className="flex flex-1 items-center justify-between gap-4">
                 <span className="text-xs text-muted-foreground">{chartConfig[key]?.label}</span>
                 <span className="text-sm font-semibold tabular-nums">
-                  {convertAndFormatMZN(Number(entry.value), 0).replace(/\s*MT\b/gi, "")}
+                  {convertAndFormatMZN(Number(entry.value), 0)}
                 </span>
               </div>
             </div>
@@ -130,7 +130,7 @@ export function RevenueChart({ data }: RevenueChartProps) {
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
-                tickFormatter={(value) => withSymbol(`${(convertFromBRL(value) / 1000).toFixed(0)}k`).replace(/\s*MT\b/gi, "")}
+                tickFormatter={(value) => withSymbol(`${(convertFromBRL(value) / 1000).toFixed(0)}k`)}
               />
               <ChartTooltip content={<CustomTooltip />} cursor={false} />
               <Area

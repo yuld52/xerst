@@ -34,7 +34,7 @@ export function PaymentMethodChart({ data = [] }: PaymentMethodChartProps) {
     value: data.find((item) => item.name.toLowerCase() === method.name.toLowerCase())?.value ?? 0,
   }));
   const total = values.reduce((sum, item) => sum + item.value, 0);
-  const totalLabel = total > 0 ? convertAndFormatMZN(total, 0).replace(/\s*MT\b/gi, "") : "0";
+  const totalLabel = convertAndFormatMZN(total, 0);
   const totalLabelClass = totalLabel.length > 10 ? "text-xs sm:text-sm lg:text-base" : "text-sm sm:text-base lg:text-xl";
 
   return (

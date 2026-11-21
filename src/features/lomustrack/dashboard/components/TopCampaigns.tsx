@@ -7,7 +7,7 @@ import type { TopCampaign } from "@/types/dashboard";
 import { convertAndFormatMZN } from "@/utils/format";
 
 function fmt(v: number): string {
-  return convertAndFormatMZN(v, 0).replace(/\s*MT\b/gi, "");
+  return convertAndFormatMZN(v, 0);
 }
 
 interface TopCampaignsProps {

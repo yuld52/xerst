@@ -429,7 +429,7 @@ export function BuyersLocationCard({
               <p className="text-center text-[11px] text-muted-foreground mt-2 font-medium tracking-tight">
                 {selectedLocation.city}, {selectedLocation.state} — {selectedLocation.sales}{" "}
                 {selectedLocation.sales === 1 ? "venda" : "vendas"} (
-                {convertAndFormatMZN(selectedLocation.revenue).replace(/\s*MT\b/gi, "")})
+                {convertAndFormatMZN(selectedLocation.revenue)})
               </p>
             </motion.div>
           ) : (
@@ -458,7 +458,7 @@ export function BuyersLocationCard({
               <div className="flex items-center justify-between text-[11px] text-muted-foreground px-1 font-medium">
                 <span>{filteredLocations.length} cidades mapeadas</span>
                 <span>
-                  Total: {totalLocSales} {totalLocSales === 1 ? "venda" : "vendas"} ({convertAndFormatMZN(totalLocRevenue).replace(/\s*MT\b/gi, "")})
+                  Total: {totalLocSales} {totalLocSales === 1 ? "venda" : "vendas"} ({convertAndFormatMZN(totalLocRevenue)})
                 </span>
               </div>
 
@@ -517,7 +517,7 @@ export function BuyersLocationCard({
                               {loc.sales} {loc.sales === 1 ? "venda" : "vendas"}
                             </p>
                             <p className="text-[10px] text-muted-foreground">
-                              {convertAndFormatMZN(loc.revenue).replace(/\s*MT\b/gi, "")}
+                              {convertAndFormatMZN(loc.revenue)}
                             </p>
                           </div>
 

@@ -35,10 +35,8 @@ export function KpiCard({
   variant = "default",
 }: KpiCardProps) {
   const { showFull } = useValueDisplay();
-  const rawFormatted = showFull && rawValue != null ? fmtFull(rawValue) : value;
-  const displayValue = rawFormatted.replace(/\s*MT\b/gi, "");
-  const titleAttr = rawValue != null ? (showFull ? value : fmtFull(rawValue)).replace(/\s*MT\b/gi, "") : value.replace(/\s*MT\b/gi, "");
-  const cleanSubtitle = subtitle ? subtitle.replace(/\s*MT\b/gi, "") : undefined;
+  const displayValue = showFull && rawValue != null ? fmtFull(rawValue) : value;
+  const titleAttr = rawValue != null ? (showFull ? value : fmtFull(rawValue)) : value;
   const isLongValue = displayValue.length > 13;
 
   return (
@@ -70,7 +68,7 @@ export function KpiCard({
       </div>
 
       <div className="h-4 flex items-center justify-between text-[11px] text-muted-foreground">
-        {cleanSubtitle && <span className="truncate">{cleanSubtitle}</span>}
+        {subtitle && <span className="truncate">{subtitle}</span>}
         {trend && (
           <span
             className={cn(
