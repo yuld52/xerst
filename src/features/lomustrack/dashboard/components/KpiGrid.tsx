@@ -43,7 +43,7 @@ export function KpiGrid({ kpis, taxEnabled, taxRate, opCostsEnabled, opCostsTota
   const kpiCards = [
     {
       title: revenueLabel,
-      value: fmtCompact(revenue),
+      value: fmtCompact(revenue).replace(/\s*MT\b/gi, ""),
       rawValue: revenue,
       tooltip: "Faturamento Líquido total",
       icon: RiMoneyDollarBoxLine,
@@ -51,11 +51,11 @@ export function KpiGrid({ kpis, taxEnabled, taxRate, opCostsEnabled, opCostsTota
     },
     {
       title: "Gastos com anúncios",
-      value: fmtCompact(kpis.total_spend),
+      value: fmtCompact(kpis.total_spend).replace(/\s*MT\b/gi, ""),
       rawValue: kpis.total_spend,
       tooltip: "Total investido em anúncios",
       icon: RiBarChartLine,
-      subtitle: kpis.cpa > 0 ? `CPA: ${fmtCompact(kpis.cpa)}` : undefined,
+      subtitle: kpis.cpa > 0 ? `CPA: ${fmtCompact(kpis.cpa).replace(/\s*MT\b/gi, "")}` : undefined,
       variant: "default" as const,
     },
     {
@@ -67,7 +67,7 @@ export function KpiGrid({ kpis, taxEnabled, taxRate, opCostsEnabled, opCostsTota
     },
     {
       title: profitLabel,
-      value: fmtCompact(profit),
+      value: fmtCompact(profit).replace(/\s*MT\b/gi, ""),
       rawValue: profit,
       tooltip: "Lucro líquido final",
       icon: RiLineChartLine,
@@ -78,7 +78,7 @@ export function KpiGrid({ kpis, taxEnabled, taxRate, opCostsEnabled, opCostsTota
       value: kpis.total_sales.toLocaleString("pt-BR"),
       tooltip: "Total de pedidos aprovados",
       icon: RiShoppingBagLine,
-      subtitle: `Ticket Médio: ${fmtCompact(kpis.average_ticket)}`,
+      subtitle: `Ticket Médio: ${fmtCompact(kpis.average_ticket).replace(/\s*MT\b/gi, "")}`,
       variant: "success" as const,
     },
     {
@@ -98,7 +98,7 @@ export function KpiGrid({ kpis, taxEnabled, taxRate, opCostsEnabled, opCostsTota
     },
     {
       title: "Chargebacks",
-      value: fmtCompact(kpis.chargeback_amount),
+      value: fmtCompact(kpis.chargeback_amount).replace(/\s*MT\b/gi, ""),
       rawValue: kpis.chargeback_amount,
       tooltip: "Total e percentual de chargebacks",
       icon: RiErrorWarningLine,
