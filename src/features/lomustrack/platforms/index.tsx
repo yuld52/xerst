@@ -44,7 +44,7 @@ export default function PlatformsPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="min-h-screen bg-[#0f1420] p-6">
       <div className="grid gap-6 lg:grid-cols-2">
         <PlatformsTable
           endpoints={endpoints}

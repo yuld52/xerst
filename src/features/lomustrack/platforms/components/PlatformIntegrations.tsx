@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { RiDeleteBinLine, RiFileCopyLine } from "@remixicon/react";
+import { RiMore2Line, RiFileCopyLine, RiCloudLine } from "@remixicon/react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
@@ -158,14 +158,18 @@ export function PlatformIntegrations({
 
   return (
     <>
-      <Card className="bg-card border-border/40">
-        <CardContent className="p-6 space-y-5">
-          <div>
-            <h3 className="text-base font-semibold mb-1.5">Credenciais de API</h3>
-            <p className="text-sm text-muted-foreground">
-              Adicione credenciais de API para integrar com outras ferramentas:
-            </p>
-          </div>
+      <Card className="bg-[#1e2533] border-[#2c3648] rounded-lg overflow-hidden flex flex-col">
+        {/* Header */}
+        <div className="flex items-center gap-2 px-5 py-3.5 border-b border-[#2a3344]">
+          <RiCloudLine className="size-4 text-[#64748b]" />
+          <h3 className="text-[15px] font-semibold text-[#e5e7eb]">Credenciais de API</h3>
+        </div>
+
+        {/* Body */}
+        <div className="p-5 space-y-4">
+          <p className="text-[13.5px] leading-relaxed text-[#cbd5e1]">
+            Adicione credenciais de API para integrar com outras ferramentas:
+          </p>
 
           {loading && (
             <div className="space-y-2">
@@ -173,43 +177,40 @@ export function PlatformIntegrations({
             </div>
           )}
 
-          {!loading && credentials.length === 0 && (
-            <p className="text-sm text-muted-foreground py-4">
-              Nenhuma credencial criada ainda.
-            </p>
-          )}
-
           {!loading && credentials.length > 0 && (
-            <div className="space-y-2">
+            <div className="space-y-4">
               {credentials.map((credential) => (
                 <div
                   key={credential.id}
-                  className="flex items-start justify-between rounded-lg border border-border/60 bg-muted/30 px-4 py-3 gap-3"
+                  className="flex items-center justify-between rounded-md border border-[#374151] bg-transparent px-4 py-3"
                 >
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm mb-0.5">{credential.name}</p>
-                    <p className="text-xs text-muted-foreground">
+                  <div className="flex-1">
+                    <p className="font-semibold text-[13.5px] text-[#e2e8f0] mb-0.5">
+                      {credential.name}
+                    </p>
+                    <p className="text-[12.5px] text-[#94a3b8]">
                       Status: {credential.active ? "Ativado" : "Desativado"}
                     </p>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
+                  <button
                     onClick={() => void deleteCredential(credential.id)}
-                    title="Excluir credencial"
-                    className="h-7 w-7"
+                    className="text-[#94a3b8] hover:text-[#cbd5e1] transition-colors p-1"
+                    title="Menu"
                   >
-                    <RiDeleteBinLine className="size-3.5 text-destructive" />
-                  </Button>
+                    <RiMore2Line className="size-4" />
+                  </button>
                 </div>
               ))}
             </div>
           )}
 
-          <Button onClick={() => setCredentialOpen(true)} className="w-full">
+          <Button
+            onClick={() => setCredentialOpen(true)}
+            className="w-full bg-[#0d6efd] hover:bg-[#0b5ed7] text-white font-semibold text-[13.5px] px-[18px] py-[10px] rounded-md h-auto"
+          >
             Adicionar Credencial
           </Button>
-        </CardContent>
+        </div>
       </Card>
       <CredentialModal
         open={credentialOpen}
