@@ -29,6 +29,9 @@ Set these as Vercel environment variables for the backend service:
 | `VAPID_CLAIM_EMAIL` | Optional for push | Contact email used in VAPID claims; defaults to `admin@lomustrack.app`. |
 | `META_GRAPH_API_VERSION` | Optional | Meta Graph API version; defaults to `v25.0`. Meta app ID/secret and redirect URI are not read by the current backend. |
 | `CORS_ALLOWED_ORIGINS` | Only for cross-origin clients | Comma-separated trusted origins. Same-origin frontend/API traffic needs no CORS entry. |
+| `RESEND_API_KEY` | Required | Resend API key for email sending (get from resend.com dashboard). |
+| `FROM_EMAIL` | Optional | Sender address; must be a verified domain in Resend. Defaults to `LomusTrack <noreply@lomustrack.app>`. |
+| `BASE_URL` | Optional | Base URL for password-reset email links. Defaults to `https://www.lomustrack.online`. |
 
 Configure these on the `app` service, all pointing to the same Supabase project as `DATABASE_URL`:
 

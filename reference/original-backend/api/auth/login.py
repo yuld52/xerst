@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import os
 import uuid
 import secrets
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -113,7 +114,7 @@ def forgot_password(data: ForgotPasswordRequest, db: Session = Depends(get_db)):
     db.commit()
 
     # Enviar email
-    base_url = "https://www.lomustrack.online"
+    base_url = os.getenv("BASE_URL", "https://www.lomustrack.online")
     send_password_reset_email(admin.email, reset_token, base_url)
 
     return {"message": "Se o e-mail estiver cadastrado, as instruções foram enviadas."}
