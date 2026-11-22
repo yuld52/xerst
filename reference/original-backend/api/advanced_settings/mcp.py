@@ -31,7 +31,8 @@ def _get_or_create_settings(db: Session, company_id: int) -> CompanySettings:
 
 
 def _new_mcp_key() -> str:
-    return "mcp_live_" + secrets.token_hex(20)
+    # "mcp_live_" (9) + token_hex(19) (38) = 47 chars — fits in VARCHAR(48)
+    return "mcp_live_" + secrets.token_hex(19)
 
 
 @router.get("/mcp", response_model=McpResponse)
