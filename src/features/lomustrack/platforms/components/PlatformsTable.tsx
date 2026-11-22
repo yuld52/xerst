@@ -37,75 +37,57 @@ export function PlatformsTable({ endpoints, isLoading, onDelete, onCreateNew }: 
   };
 
   return (
-    <Card className="bg-[#1e2533] border-[#2c3648] rounded-lg overflow-hidden flex flex-col">
+    <Card className="rounded-lg border-border/40">
       {/* Header */}
-      <div className="flex items-center justify-between px-5 pt-4 pb-3">
-        <h3 className="text-[15px] font-semibold text-[#e5e7eb]">Webhooks</h3>
-        <RiRadioButtonLine className="size-4 text-[#64748b]" />
+      <div className="flex items-center gap-3 px-5 py-3.5 border-b border-border/40">
+        <h4 className="text-base font-semibold">Webhooks</h4>
+        <RiRadioButtonLine className="size-5 text-muted-foreground mb-[1px]" />
       </div>
 
       {/* Body */}
-      <div className="px-5 pb-5 space-y-4">
-        <p className="text-[13.5px] leading-relaxed text-[#9ca3af]">
+      <div className="pt-2 pb-0 px-5 space-y-6">
+        <p className="text-sm text-muted-foreground">
           Adicione webhooks para se conectar com as plataformas de venda:
         </p>
 
         {isLoading && <TableSkeleton />}
 
         {!isLoading && endpoints.length > 0 && (
-          <div className="space-y-2">
+          <div className="space-y-5">
             {endpoints.map((ep) => (
               <div
                 key={ep.id}
-                className="flex items-start justify-between rounded-md border border-[#374151] bg-[#1b212e] px-4 py-3 gap-3"
+                className="flex items-start justify-between rounded-md border border-border px-4 py-3 gap-3"
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <p className="font-semibold text-[13.5px] text-[#e2e8f0]">{ep.name}</p>
-                    <Badge
-                      variant="outline"
-                      className="text-[10px] font-medium border-[#374151] gap-1 px-1.5 py-0"
-                    >
+                    <p className="font-semibold text-sm">{ep.name}</p>
+                    <Badge variant="outline" className="text-[10px] font-medium gap-1 px-1.5 py-0">
                       <PlatformLogo platform={ep.platform as "kiwify" | "payt" | "hotmart" | "api"} size="sm" />
                     </Badge>
                   </div>
-                  <code className="text-[12px] text-[#6b7280] font-mono block truncate">
+                  <code className="text-xs text-muted-foreground font-mono block truncate">
                     {window.location.origin}
                     {buildWebhookUrl(ep)}
                   </code>
                 </div>
                 <div className="flex items-center gap-0.5">
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    onClick={() => handleCopy(ep)}
-                    title="Copiar URL"
-                    className="h-7 w-7 text-[#6b7280] hover:text-[#cbd5e1] hover:bg-transparent"
-                  >
+                  <Button variant="ghost" size="icon-sm" onClick={() => handleCopy(ep)} title="Copiar URL" className="h-7 w-7 hover:bg-transparent">
                     <RiFileCopyLine className="size-3.5" />
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    onClick={() => onDelete(ep)}
-                    title="Excluir webhook"
-                    className="h-7 w-7 text-[#6b7280] hover:text-[#ef4444] hover:bg-transparent"
-                  >
+                  <Button variant="ghost" size="icon-sm" onClick={() => onDelete(ep)} title="Excluir webhook" className="h-7 w-7 text-destructive hover:bg-transparent">
                     <RiDeleteBinLine className="size-3.5" />
                   </Button>
                 </div>
                 {copiedId === ep.id && (
-                  <span className="absolute text-[10px] text-emerald-400 mt-16">Copiado!</span>
+                  <span className="absolute text-[10px] text-emerald-500 mt-16">Copiado!</span>
                 )}
               </div>
             ))}
           </div>
         )}
 
-        <Button
-          onClick={onCreateNew}
-          className="w-full bg-[#0d6efd] hover:bg-[#0b5ed7] text-white font-semibold text-[13.5px] px-4 py-2.5 rounded-md h-auto"
-        >
+        <Button onClick={onCreateNew} className="w-full mb-6">
           Adicionar Webhook
         </Button>
       </div>
