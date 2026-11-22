@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { RiCloudLine, RiFileCopyLine, RiDeleteBinLine, RiKey2Line } from "@remixicon/react";
+import { RiDeleteBinLine, RiFileCopyLine } from "@remixicon/react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -157,52 +158,59 @@ export function PlatformIntegrations({
 
   return (
     <>
-      <div className="grid gap-6">
-        <Card className="border-border/40 shadow-sm">
-          <CardHeader className="border-b py-5">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <RiCloudLine className="size-5" />
-              Credenciais de API
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-5 p-5">
+      <Card className="bg-card border-border/40">
+        <CardContent className="p-6 space-y-5">
+          <div>
+            <h3 className="text-base font-semibold mb-1.5">Credenciais de API</h3>
             <p className="text-sm text-muted-foreground">
               Adicione credenciais de API para integrar com outras ferramentas:
             </p>
-            {loading && <p className="text-sm text-muted-foreground">Carregando credenciais...</p>}
-            {credentials.length > 0 && (
-              <div className="space-y-2">
-                {credentials.map((credential) => (
-                  <div
-                    key={credential.id}
-                    className="flex items-center justify-between rounded-md border px-4 py-3"
-                  >
-                    <div>
-                      <p className="font-medium">{credential.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        Status: {credential.active ? "Ativado" : "Desativado"} ·{" "}
-                        {credential.token_prefix}
-                      </p>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => void deleteCredential(credential.id)}
-                      title="Excluir credencial"
-                    >
-                      <RiDeleteBinLine className="size-4 text-destructive" />
-                    </Button>
+          </div>
+
+          {loading && (
+            <div className="space-y-2">
+              <Skeleton className="h-16 w-full" />
+            </div>
+          )}
+
+          {!loading && credentials.length === 0 && (
+            <p className="text-sm text-muted-foreground py-4">
+              Nenhuma credencial criada ainda.
+            </p>
+          )}
+
+          {!loading && credentials.length > 0 && (
+            <div className="space-y-2">
+              {credentials.map((credential) => (
+                <div
+                  key={credential.id}
+                  className="flex items-start justify-between rounded-lg border border-border/60 bg-muted/30 px-4 py-3 gap-3"
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm mb-0.5">{credential.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Status: {credential.active ? "Ativado" : "Desativado"}
+                    </p>
                   </div>
-                ))}
-              </div>
-            )}
-            <Button onClick={() => setCredentialOpen(true)} className="gap-1.5">
-              <RiKey2Line className="size-4" />
-              Adicionar Credencial
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => void deleteCredential(credential.id)}
+                    title="Excluir credencial"
+                    className="h-7 w-7"
+                  >
+                    <RiDeleteBinLine className="size-3.5 text-destructive" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <Button onClick={() => setCredentialOpen(true)} className="w-full">
+            Adicionar Credencial
+          </Button>
+        </CardContent>
+      </Card>
       <CredentialModal
         open={credentialOpen}
         onOpenChange={setCredentialOpen}
