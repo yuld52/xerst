@@ -969,6 +969,23 @@ export async function getMockData(endpoint: string, _options?: any): Promise<any
     return { enabled: true, api_key: `mcp_live_${rand}` };
   }
 
+  if (path === "/dashboard/sales-by-country") {
+    return [
+      { country_code: "BR", country_name: "Brasil",          sales: 712, revenue: 1_423_580 },
+      { country_code: "PT", country_name: "Portugal",         sales: 134, revenue: 268_490 },
+      { country_code: "AO", country_name: "Angola",           sales:  89, revenue: 178_210 },
+      { country_code: "MZ", country_name: "Moçambique",       sales:  67, revenue: 134_050 },
+      { country_code: "US", country_name: "Estados Unidos",   sales:  41, revenue:  82_180 },
+      { country_code: "DE", country_name: "Alemanha",         sales:  18, revenue:  36_070 },
+      { country_code: "FR", country_name: "França",           sales:  15, revenue:  30_040 },
+      { country_code: "ES", country_name: "Espanha",          sales:  12, revenue:  24_020 },
+      { country_code: "GB", country_name: "Reino Unido",      sales:   9, revenue:  18_010 },
+      { country_code: "AR", country_name: "Argentina",        sales:   7, revenue:  14_010 },
+      { country_code: "CO", country_name: "Colômbia",         sales:   5, revenue:  10_010 },
+      { country_code: "MX", country_name: "México",           sales:   4, revenue:   8_020 },
+    ];
+  }
+
   // Return undefined to fallback to normal fetch if endpoint is not mocked
   return undefined;
 }

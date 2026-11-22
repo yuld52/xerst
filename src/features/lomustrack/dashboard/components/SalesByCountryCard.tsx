@@ -30,20 +30,29 @@ function countryFlag(code: string): string {
   }
 }
 
-// ─── ISO numeric → ISO alpha-2 mapping (top countries for sales context) ─────
+// ─── ISO numeric → ISO alpha-2 (comprehensive, 180+ countries) ───────────────
 const NUM_TO_A2: Record<string, string> = {
-  "076": "BR", "620": "PT", "024": "AO", "508": "MZ", "840": "US",
-  "276": "DE", "250": "FR", "724": "ES", "826": "GB", "032": "AR",
-  "170": "CO", "484": "MX", "380": "IT", "528": "NL", "756": "CH",
-  "056": "BE", "040": "AT", "752": "SE", "578": "NO", "208": "DK",
-  "246": "FI", "616": "PL", "203": "CZ", "348": "HU", "642": "RO",
-  "792": "TR", "682": "SA", "784": "AE", "818": "EG", "566": "NG",
-  "710": "ZA", "404": "KE", "356": "IN", "156": "CN", "392": "JP",
-  "410": "KR", "036": "AU", "554": "NZ", "124": "CA", "152": "CL",
-  "604": "PE", "858": "UY", "591": "PA", "188": "CR", "214": "DO",
-  "600": "PY", "068": "BO", "218": "EC", "862": "VE", "192": "CU",
-  "104": "MM", "764": "TH", "360": "ID", "458": "MY", "608": "PH",
-  "704": "VN", "050": "BD", "586": "PK", "144": "LK", "586": "PK",
+  "004":"AF","008":"AL","012":"DZ","024":"AO","032":"AR","036":"AU","040":"AT",
+  "050":"BD","056":"BE","068":"BO","076":"BR","100":"BG","104":"MM","116":"KH",
+  "120":"CM","124":"CA","144":"LK","152":"CL","156":"CN","170":"CO","188":"CR",
+  "191":"HR","192":"CU","196":"CY","203":"CZ","204":"BJ","208":"DK","214":"DO",
+  "218":"EC","818":"EG","222":"SV","246":"FI","250":"FR","266":"GA","276":"DE",
+  "288":"GH","300":"GR","320":"GT","332":"HT","340":"HN","348":"HU","356":"IN",
+  "360":"ID","364":"IR","368":"IQ","372":"IE","376":"IL","380":"IT","388":"JM",
+  "392":"JP","400":"JO","404":"KE","408":"KP","410":"KR","414":"KW","418":"LA",
+  "422":"LB","426":"LS","434":"LY","442":"LU","450":"MG","454":"MW","458":"MY",
+  "466":"ML","484":"MX","504":"MA","508":"MZ","516":"NA","524":"NP","528":"NL",
+  "554":"NZ","558":"NI","566":"NG","578":"NO","586":"PK","591":"PA","600":"PY",
+  "604":"PE","608":"PH","616":"PL","620":"PT","630":"PR","634":"QA","642":"RO",
+  "643":"RU","646":"RW","682":"SA","686":"SN","694":"SL","706":"SO","710":"ZA",
+  "724":"ES","729":"SD","752":"SE","756":"CH","760":"SY","762":"TJ","764":"TH",
+  "780":"TT","788":"TN","792":"TR","800":"UG","804":"UA","784":"AE","826":"GB",
+  "840":"US","858":"UY","860":"UZ","862":"VE","704":"VN","887":"YE","894":"ZM",
+  "716":"ZW","012":"DZ","031":"AZ","051":"AM","112":"BY","398":"KZ","496":"MN",
+  "417":"KG","795":"TM","703":"SK","705":"SI","070":"BA","807":"MK","499":"ME",
+  "688":"RS","008":"AL","020":"AD","470":"MT","492":"MC","674":"SM","336":"VA",
+  "233":"EE","428":"LV","440":"LT","096":"BN","090":"SB","242":"FJ","548":"VU",
+  "598":"PG","316":"GU","540":"NC","258":"PF","024":"AO",
 };
 
 // ─── Tooltip state ─────────────────────────────────────────────────────────
@@ -138,14 +147,18 @@ function WorldCountryMapSVG({ data, totalSales }: WorldCountryMapSVGProps) {
           const a2 = NUM_TO_A2[id];
           const entry = a2 ? salesByA2[a2] : undefined;
           const fraction = entry ? entry.sales / maxSales : 0;
+          const isHovered = tooltip?.country.country_code === a2;
 
-          // Colour: base slate → bright blue based on sales intensity
+          // Base: dark slate. With sales: blue gradient. Hovered: brighter.
           let fill = "#1e3a5c";
           if (entry && fraction > 0) {
-            const r = Math.round(30 + fraction * 29);   // 30→59
-            const g = Math.round(58 + fraction * 60);   // 58→118
-            const b = Math.round(92 + fraction * 150);  // 92→242
+            const boost = isHovered ? 1.2 : 1;
+            const r = Math.round(Math.min(255, (30 + fraction * 29) * boost));
+            const g = Math.round(Math.min(255, (58 + fraction * 60) * boost));
+            const b = Math.round(Math.min(255, (92 + fraction * 150) * boost));
             fill = `rgb(${r},${g},${b})`;
+          } else if (isHovered) {
+            fill = "#2a4f7a";
           }
 
           return (
@@ -155,7 +168,7 @@ function WorldCountryMapSVG({ data, totalSales }: WorldCountryMapSVGProps) {
               fill={fill}
               stroke="#0d1829"
               strokeWidth={0.5}
-              style={{ cursor: entry ? "pointer" : "default", transition: "fill 0.15s" }}
+              style={{ cursor: entry ? "pointer" : "default", transition: "fill 0.12s" }}
               onMouseEnter={(e) => {
                 if (!entry) return;
                 const rect = wrapperRef.current?.getBoundingClientRect();
@@ -238,7 +251,7 @@ export function SalesByCountryCard({ startDate, endDate }: SalesByCountryCardPro
   );
 
   return (
-    <Card className="rounded-xl bg-card border border-white/[0.08] shadow-sm flex flex-col overflow-hidden">
+    <Card className="rounded-xl bg-card border border-white/[0.08] shadow-sm flex flex-col overflow-hidden min-h-[400px]">
       {/* Header */}
       <CardHeader className="px-4 py-3 sm:px-5 sm:py-3.5 border-b border-white/[0.04]">
         <div className="flex items-center justify-between gap-2">
@@ -301,8 +314,38 @@ export function SalesByCountryCard({ startDate, endDate }: SalesByCountryCardPro
 
         {/* Map view */}
         {!loading && !error && data.length > 0 && viewMode === "mapa" && (
-          <div className="rounded-xl overflow-hidden border border-white/[0.06] shadow-inner">
-            <WorldCountryMapSVG data={sorted} totalSales={totalSales} />
+          <div className="flex flex-col gap-2">
+            <div className="rounded-xl overflow-hidden border border-white/[0.06] shadow-inner">
+              <WorldCountryMapSVG data={sorted} totalSales={totalSales} />
+            </div>
+            {/* Legend */}
+            <div className="flex items-center gap-2 px-1">
+              <span className="text-[10px] text-muted-foreground shrink-0">Sem vendas</span>
+              <div className="flex-1 h-1.5 rounded-full" style={{
+                background: "linear-gradient(to right, #1e3a5c, #1e4080, #1a5fbf, #3b82f6, #93c5fd)"
+              }} />
+              <span className="text-[10px] text-muted-foreground shrink-0">Mais vendas</span>
+            </div>
+            {/* Summary */}
+            <div className="flex items-center justify-between px-1 pt-1 border-t border-white/[0.04]">
+              <div className="flex items-center gap-4">
+                <div>
+                  <p className="text-[10px] text-muted-foreground">Países</p>
+                  <p className="text-xs font-bold text-foreground">{data.length}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted-foreground">Total vendas</p>
+                  <p className="text-xs font-bold text-foreground">{totalSales.toLocaleString("pt-BR")}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted-foreground">Faturamento</p>
+                  <p className="text-xs font-bold text-foreground">
+                    {convertAndFormatMZN(data.reduce((s, d) => s + d.revenue, 0))}
+                  </p>
+                </div>
+              </div>
+              <p className="text-[10px] text-muted-foreground">Passe o rato sobre um país</p>
+            </div>
           </div>
         )}
 
