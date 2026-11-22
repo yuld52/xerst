@@ -14,6 +14,8 @@ import {
   RiTerminalBoxLine,
 } from "@remixicon/react";
 import { toast } from "sonner";
+import { apiRequest } from "@/services/api";
+import { isImportDemo } from "@/lib/import-demo";
 
 const STORAGE_KEY = "lomus_mcp_config";
 
@@ -42,17 +44,42 @@ export function McpCard() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       setOrigin(window.location.origin);
-      try {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved) {
-          const parsed = JSON.parse(saved) as McpConfig;
-          setEnabled(parsed.enabled ?? false);
-          setApiKey(parsed.apiKey || generateApiKey());
-        } else {
+
+      if (isImportDemo()) {
+        // Demo mode: use localStorage only
+        try {
+          const saved = localStorage.getItem(STORAGE_KEY);
+          if (saved) {
+            const parsed = JSON.parse(saved) as McpConfig;
+            setEnabled(parsed.enabled ?? false);
+            setApiKey(parsed.apiKey || generateApiKey());
+          } else {
+            setApiKey(generateApiKey());
+          }
+        } catch {
           setApiKey(generateApiKey());
         }
-      } catch {
-        setApiKey(generateApiKey());
+      } else {
+        // Production: load from API, fall back to localStorage on error
+        apiRequest<{ enabled: boolean; api_key: string | null }>("/advanced-settings/mcp")
+          .then((data) => {
+            setEnabled(data.enabled);
+            setApiKey(data.api_key || "");
+          })
+          .catch(() => {
+            try {
+              const saved = localStorage.getItem(STORAGE_KEY);
+              if (saved) {
+                const parsed = JSON.parse(saved) as McpConfig;
+                setEnabled(parsed.enabled ?? false);
+                setApiKey(parsed.apiKey || generateApiKey());
+              } else {
+                setApiKey(generateApiKey());
+              }
+            } catch {
+              setApiKey(generateApiKey());
+            }
+          });
       }
     }
   }, []);
@@ -71,18 +98,60 @@ export function McpCard() {
   };
 
   const handleToggle = (checked: boolean) => {
-    saveConfig(checked, apiKey || generateApiKey());
-    if (checked) {
-      toast.success("Servidor MCP habilitado para agentes de IA");
-    } else {
-      toast.info("Servidor MCP desabilitado");
+    if (isImportDemo()) {
+      saveConfig(checked, apiKey || generateApiKey());
+      if (checked) {
+        toast.success("Servidor MCP habilitado para agentes de IA");
+      } else {
+        toast.info("Servidor MCP desabilitado");
+      }
+      return;
     }
+
+    apiRequest<{ enabled: boolean; api_key: string | null }>("/advanced-settings/mcp", {
+      method: "PUT",
+      body: { enabled: checked },
+    })
+      .then((data) => {
+        setEnabled(data.enabled);
+        setApiKey(data.api_key || "");
+        if (data.enabled) {
+          toast.success("Servidor MCP habilitado para agentes de IA");
+        } else {
+          toast.info("Servidor MCP desabilitado");
+        }
+      })
+      .catch(() => {
+        saveConfig(checked, apiKey || generateApiKey());
+        if (checked) {
+          toast.success("Servidor MCP habilitado para agentes de IA");
+        } else {
+          toast.info("Servidor MCP desabilitado");
+        }
+      });
   };
 
   const handleRegenerateKey = () => {
-    const newKey = generateApiKey();
-    saveConfig(enabled, newKey);
-    toast.success("Nova chave de API gerada com sucesso");
+    if (isImportDemo()) {
+      const newKey = generateApiKey();
+      saveConfig(enabled, newKey);
+      toast.success("Nova chave de API gerada com sucesso");
+      return;
+    }
+
+    apiRequest<{ enabled: boolean; api_key: string | null }>("/advanced-settings/mcp/regenerate", {
+      method: "POST",
+    })
+      .then((data) => {
+        setEnabled(data.enabled);
+        setApiKey(data.api_key || "");
+        toast.success("Nova chave de API gerada com sucesso");
+      })
+      .catch(() => {
+        const newKey = generateApiKey();
+        saveConfig(enabled, newKey);
+        toast.success("Nova chave de API gerada com sucesso");
+      });
   };
 
   const endpointUrl = `${origin}/api/mcp`;

@@ -62,6 +62,7 @@ from api.subscriptions.metrics import router as subscriptions_metrics_router
 from api.company.settings import router as company_settings_router
 from api.company.dashboard import router as company_dashboard_router
 from api.advanced_settings.features import router as advanced_settings_router
+from api.advanced_settings.mcp import router as mcp_settings_router
 from api.advanced_settings.reset_sales import router as reset_sales_router
 from api.notifications.subscriptions import router as notifications_router
 from api.superadmin.companies import router as superadmin_router
@@ -172,6 +173,7 @@ ROUTERS = [
     company_dashboard_router,
     advanced_settings_router,
     reset_sales_router,
+    mcp_settings_router,
     notifications_router,
     superadmin_router,
     superadmin_settings_router,

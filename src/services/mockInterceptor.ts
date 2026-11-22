@@ -937,6 +937,44 @@ export async function getMockData(endpoint: string, _options?: any): Promise<any
     };
   }
 
+  if (path === "/company/notification-preferences") {
+    const method = _options?.method ?? "GET";
+    if (method === "GET") {
+      return {
+        pendingSales: "hide",
+        approvedSales: "show",
+        productName: "hide",
+        campaignValue: "hide",
+        reportHours: { "08:00": false },
+        template: "profit",
+        timezone: "Africa/Maputo",
+      };
+    }
+    if (method === "PUT") {
+      // Echo back whatever was sent — UI writes to localStorage independently
+      return _options?.body ?? {};
+    }
+  }
+
+  if (path === "/advanced-settings/mcp") {
+    const method = _options?.method ?? "GET";
+    const DEMO_KEY = "mcp_live_demo00000000000000000000000000000000000";
+    if (method === "GET") {
+      return { enabled: false, api_key: DEMO_KEY };
+    }
+    if (method === "PUT") {
+      const body = (_options?.body || {}) as any;
+      return { enabled: body.enabled, api_key: DEMO_KEY };
+    }
+  }
+
+  if (path === "/advanced-settings/mcp/regenerate") {
+    const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+    let rand = "";
+    for (let i = 0; i < 40; i++) rand += chars.charAt(Math.floor(Math.random() * chars.length));
+    return { enabled: true, api_key: `mcp_live_${rand}` };
+  }
+
   // Return undefined to fallback to normal fetch if endpoint is not mocked
   return undefined;
 }

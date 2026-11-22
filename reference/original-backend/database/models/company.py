@@ -37,6 +37,8 @@ class CompanySettings(Base):
     notification_preferences = Column(JSON, nullable=True, default=dict)
     display_currency = Column(String(3), nullable=False, default="MZN", server_default="MZN")
     stripe_enabled = Column(Boolean, default=False, nullable=False, server_default="false")
+    mcp_api_key = Column(String(48), nullable=True, unique=True, index=True)
+    mcp_enabled = Column(Boolean, default=False, nullable=False, server_default="false")
     updated_at = Column(
         DateTime,
         server_default=UPDATED_AT_DEFAULT,
