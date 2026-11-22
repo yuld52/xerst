@@ -9,7 +9,6 @@ export interface FunnelStage {
   getRateFromClicks: (c: CampaignData) => number;
   rateLabel: string;
   rateLabelClicks: string;
-  requiresVturb?: boolean;
 }
 
 export const allFunnelStages: FunnelStage[] = [
@@ -28,21 +27,6 @@ export const allFunnelStages: FunnelStage[] = [
     getRateFromClicks: (c) => (c.clicks > 0 ? (c.landing_page_views / c.clicks) * 100 : 0),
     rateLabel: "Connect",
     rateLabelClicks: "LPV/Cliques",
-  },
-  {
-    label: "Plays VSL",
-    getValue: (c) => c.plays_vsl ?? 0,
-    getRate: (c) => {
-      const plays = c.plays_vsl ?? 0;
-      return c.clicks > 0 ? (plays / c.clicks) * 100 : 0;
-    },
-    getRateFromClicks: (c) => {
-      const plays = c.plays_vsl ?? 0;
-      return c.clicks > 0 ? (plays / c.clicks) * 100 : 0;
-    },
-    rateLabel: "Play",
-    rateLabelClicks: "Play/Cliques",
-    requiresVturb: true,
   },
   {
     label: "Checkout",

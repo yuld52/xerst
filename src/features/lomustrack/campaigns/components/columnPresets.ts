@@ -39,8 +39,6 @@ export const allColumns: Record<string, string> = {
   lpv: "LPV",
   ic: "IC",
   connectRate: "Connect Rate",
-  playsVsl: "Plays VSL",
-  playRate: "Play Rate",
   checkoutConversion: "Conv. Checkout",
   checkoutToSaleRate: "Conv. Venda",
   budget: "Orçamento",

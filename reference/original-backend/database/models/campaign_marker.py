@@ -13,7 +13,7 @@ class MarkerType(str, enum.Enum):
 
 class CampaignMarker(Base):
     """
-    Marcador que associa uma campanha a um vídeo (player VTurb)
+    Marcador que associa uma campanha a um vídeo
     ou a um checkout (URL de checkout de um produto).
     """
     __tablename__ = "campaign_markers"
@@ -22,7 +22,7 @@ class CampaignMarker(Base):
     company_id = Column(Integer, nullable=True, index=True)
     campaign_id = Column(String(100), nullable=False, index=True)
     marker_type = Column(Enum(MarkerType), nullable=False)
-    # Para VIDEO: player_id do VTurb. Para CHECKOUT: id do checkout.
+    # Para VIDEO: player_id do vídeo. Para CHECKOUT: id do checkout.
     reference_id = Column(String(255), nullable=False)
     # Nome legível para exibição rápida
     reference_label = Column(String(500), nullable=False, default="")

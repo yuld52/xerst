@@ -28,8 +28,6 @@ export function campaignToMetricRow(c: CampaignData): MetricRow & {
     connectRate: c.connect_rate,
     profit: c.profit,
     noIdSales: c.no_id_sales,
-    playsVsl: c.plays_vsl ?? 0,
-    playRate: c.play_rate ?? 0,
   };
 }
 
@@ -62,8 +60,6 @@ export function adsetToMetricRow(a: CampaignAdSetData): MetricRow & {
     connectRate: a.connect_rate,
     profit: a.profit,
     noIdSales: a.no_id_sales,
-    playsVsl: a.plays_vsl ?? 0,
-    playRate: a.play_rate ?? 0,
   };
 }
 
@@ -96,7 +92,5 @@ export function adToMetricRow(a: CampaignAdData): MetricRow & {
     connectRate: a.connect_rate,
     profit: a.profit,
     noIdSales: a.no_id_sales,
-    playsVsl: a.plays_vsl ?? 0,
-    playRate: a.play_rate ?? 0,
   };
 }

@@ -27,7 +27,7 @@ Em poucos segundos, um CEO consegue visualizar a saúde financeira da operação
 - **Inteligência Artificial (Google Gemini):** A IA nativa analisa seus dados, identifica padrões de compra, sugere otimizações e envia relatórios diários automáticos detalhando a saúde da operação.
 - **Acompanhamento de Recuperação de Carrinho:** Módulo dedicado para monitorar leads que abandonaram compras, facilitando as ações ativas de recuperação e aumentando o faturamento.
 - **Tracking Transparente (Webhooks & Vendas):** Controle centralizado de transações. Receba eventos em tempo real (PayT, Kiwify, Stripe) e unifique a jornada de compra e assinaturas sem perder rastreio.
-- **Gestão Avançada de Operação:** Controle unificado de clientes, mapeamento e aliases de produtos, acompanhamento de assinaturas, rastreio de reembolsos e integração com VTurb.
+- **Gestão Avançada de Operação:** Controle unificado de clientes, mapeamento e aliases de produtos, acompanhamento de assinaturas e rastreio de reembolsos.
 
 ---
 

@@ -317,18 +317,6 @@ CREATE TABLE facebook_accounts (
 );
 
 -- ============================================================
--- TABELA: vturb_accounts
--- Contas VTurb conectadas
--- ============================================================
-
-CREATE TABLE vturb_accounts (
-    id SERIAL PRIMARY KEY,
-    label VARCHAR(255) NOT NULL,
-    api_token VARCHAR(500) NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- ============================================================
 -- TABELA: gemini_accounts
 -- Contas Google Gemini (IA) conectadas
 -- ============================================================

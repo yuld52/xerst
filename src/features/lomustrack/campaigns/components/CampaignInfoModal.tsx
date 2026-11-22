@@ -27,10 +27,6 @@ interface CampaignInfoModalProps {
   productMarker?: CampaignMarkerAPI;
 }
 
-function buildVturbUrl(videoId: string): string {
-  return `https://app.vturb.com/players/${videoId}/edit`;
-}
-
 export function CampaignInfoModal({
   open,
   onOpenChange,
@@ -59,7 +55,7 @@ export function CampaignInfoModal({
         <div className="space-y-4 pt-1">
           <InfoSection
             icon={<RiVideoLine className="size-4" />}
-            label="Vídeo VTurb"
+            label="Vídeo"
             hasData={hasVideo}
             emptyText="Nenhum vídeo definido"
           >
@@ -67,8 +63,6 @@ export function CampaignInfoModal({
               <InfoCard
                 title={videoMarker.reference_label}
                 subtitle={`ID: ${videoMarker.reference_id}`}
-                actionLabel="Abrir no VTurb"
-                actionUrl={buildVturbUrl(videoMarker.reference_id)}
               />
             )}
           </InfoSection>

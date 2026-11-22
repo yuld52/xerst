@@ -30,8 +30,6 @@ function metricRow(overrides: Partial<MetricRow> = {}): MetricRow {
     connectRate: 50,
     profit: -500,
     budget: 1000,
-    playsVsl: 0,
-    playRate: 0,
     ...overrides,
   };
 }

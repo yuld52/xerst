@@ -20,10 +20,6 @@ export const columnDescriptions: Record<string, string> = {
   ic: "Initiate Checkout\nInício de checkout. Quantidade de usuários que iniciaram o processo de compra.",
   connectRate:
     "Connect Rate\nTaxa de conexão entre o clique e a Landing Page. Percentual de cliques que resultaram em visualização da LP. (LPV ÷ Cliques) × 100.",
-  playsVsl:
-    "Plays VSL\nQuantidade de reproduções do VSL (Video Sales Letter) na página de destino.",
-  playRate:
-    "Play Rate\nTaxa de reprodução do VSL. Percentual de visitantes da LP que iniciaram o vídeo. (Plays ÷ LPV) × 100.",
   checkoutConversion:
     "Conversão Checkout\nTaxa de conversão da LP para checkout. Percentual de visitantes que iniciaram o checkout. (IC ÷ LPV) × 100.",
   checkoutToSaleRate:

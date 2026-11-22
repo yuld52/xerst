@@ -79,7 +79,7 @@ export function AccountStep({
           {/* Vídeo + Checkout */}
           <div className="grid grid-cols-2 gap-4">
             <SelectableField
-              label="Vídeo VTurb (Opcional)"
+              label="Vídeo (Opcional)"
               hint="VSL ou vídeo utilizado na campanha."
               icon={<RiVideoLine className="size-4" />}
               selectedId={form.videoId}

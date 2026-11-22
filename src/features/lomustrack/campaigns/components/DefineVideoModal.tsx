@@ -11,16 +11,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { RiCheckLine, RiSearchLine, RiVideoLine, RiPlayLine } from "@remixicon/react";
 
-interface VturbPlayer {
-  id: string;
-  name: string;
-  duration: number;
-  pitch_time: number;
-  created_at: string;
-  account_name: string;
-  plays_30d: number;
-}
-
 interface DefineVideoModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -50,7 +40,7 @@ export function DefineVideoModal({
   currentVideoId,
   onSave,
 }: DefineVideoModalProps) {
-  const [players, setPlayers] = useState<VturbPlayer[]>([]);
+  const [players, setPlayers] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState("");
   const [saving, setSaving] = useState(false);
@@ -60,7 +50,7 @@ export function DefineVideoModal({
     if (!open) return;
     setLoading(true);
     setSearch("");
-    // VTurb was removed - return empty array
+    // Players list is empty - video functionality was removed
     Promise.resolve([])
       .then(setPlayers)
       .finally(() => setLoading(false));
@@ -130,7 +120,7 @@ export function DefineVideoModal({
             ) : filtered.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 gap-2">
                 <RiVideoLine className="size-8 text-muted-foreground/40" />
-                <p className="text-sm text-muted-foreground">Funcionalidade VTurb removida</p>
+                <p className="text-sm text-muted-foreground">Nenhum vídeo disponível</p>
               </div>
             ) : (
               filtered.map((p) => {

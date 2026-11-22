@@ -17,17 +17,16 @@ import { allFunnelStages, type FunnelStage } from "./funnelStages";
 
 interface BottleneckTableProps {
   data: CampaignData[];
-  hasVturb: boolean;
 }
 
-export function BottleneckTable({ data, hasVturb }: BottleneckTableProps) {
+export function BottleneckTable({ data }: BottleneckTableProps) {
   const [showLosses, setShowLosses] = useState(false);
   const [rateMode, setRateMode] = useState<RateMode>("previous");
   const [hiddenStages, setHiddenStages] = useState<string[]>([]);
 
   const availableStages = useMemo(
-    () => allFunnelStages.filter((s) => !s.requiresVturb || hasVturb),
-    [hasVturb],
+    () => allFunnelStages,
+    [],
   );
 
   const stageLabels = useMemo(() => availableStages.map((s) => s.label), [availableStages]);

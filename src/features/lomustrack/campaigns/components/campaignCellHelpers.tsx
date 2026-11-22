@@ -22,8 +22,6 @@ export interface MetricRow {
   connectRate: number;
   profit: number;
   budget: number;
-  playsVsl: number;
-  playRate: number;
 }
 
 /** Returns the CSS class for a KPI value given its color entry config */
@@ -132,8 +130,6 @@ export function getCellValue(
     lpv: c.landingPageViews.toLocaleString("pt-BR"),
     ic: c.initiateCheckout,
     connectRate: `${c.connectRate.toFixed(1)}%`,
-    playsVsl: c.playsVsl > 0 ? c.playsVsl.toLocaleString("pt-BR") : "—",
-    playRate: c.playRate > 0 ? `${c.playRate.toFixed(1)}%` : "—",
     checkoutConversion: `${checkoutConv.toFixed(1)}%`,
     checkoutToSaleRate: `${saleRate.toFixed(1)}%`,
     budget: fmt(c.budget),
@@ -159,7 +155,6 @@ export function getFooterValue(data: MetricRow[], col: string): React.ReactNode 
     clicks: () => data.reduce((s, c) => s + c.clicks, 0).toLocaleString("pt-BR"),
     lpv: () => data.reduce((s, c) => s + c.landingPageViews, 0).toLocaleString("pt-BR"),
     ic: () => String(data.reduce((s, c) => s + c.initiateCheckout, 0)),
-    playsVsl: () => data.reduce((s, c) => s + c.playsVsl, 0).toLocaleString("pt-BR"),
   };
   return sums[col]?.() ?? "—";
 }

@@ -7,12 +7,11 @@ import { fetchCampaignConversion } from "@/services/campaigns";
 
 interface BottleneckTabsProps {
   data: CampaignData[];
-  hasVturb: boolean;
   dateStart: string;
   dateEnd: string;
 }
 
-export function BottleneckTabs({ data, hasVturb, dateStart, dateEnd }: BottleneckTabsProps) {
+export function BottleneckTabs({ data, dateStart, dateEnd }: BottleneckTabsProps) {
   const [conversionData, setConversionData] = useState<CampaignConversionData[]>([]);
   const [loadingConversion, setLoadingConversion] = useState(false);
   const [tab, setTab] = useState("operacional");
@@ -33,7 +32,7 @@ export function BottleneckTabs({ data, hasVturb, dateStart, dateEnd }: Bottlenec
       </TabsList>
 
       <TabsContent value="operacional">
-        <BottleneckTable data={data} hasVturb={hasVturb} />
+        <BottleneckTable data={data} />
       </TabsContent>
 
       <TabsContent value="conversao">

@@ -196,8 +196,6 @@ export async function getMockData(endpoint: string, _options?: any): Promise<any
       roas: ad.roas,
       cpa: ad.cpa,
       no_id_sales: Math.floor((ad.sales || 0) * 0.1),
-      plays_vsl: Math.floor((ad.landingPageViews || 0) * 0.42),
-      play_rate: ad.landingPageViews ? 42.0 : 0,
     });
 
     const mapAdSet = (as_: any) => ({
@@ -220,8 +218,6 @@ export async function getMockData(endpoint: string, _options?: any): Promise<any
       roas: as_.roas,
       cpa: as_.cpa,
       no_id_sales: Math.floor((as_.sales || 0) * 0.1),
-      plays_vsl: Math.floor((as_.landingPageViews || 0) * 0.42),
-      play_rate: as_.landingPageViews ? 42.0 : 0,
       ads: adsData.filter((ad) => ad.adSetId === as_.id).map(mapAd),
     });
 
@@ -232,8 +228,6 @@ export async function getMockData(endpoint: string, _options?: any): Promise<any
       initiate_checkout: c.initiateCheckout,
       connect_rate: c.connectRate,
       no_id_sales: Math.floor((c.sales || 0) * 0.1),
-      plays_vsl: Math.floor((c.landingPageViews || 0) * 0.42),
-      play_rate: c.landingPageViews ? 42.5 + i : 0,
       adsets: adSetsData.filter((as_) => as_.campaignId === c.id).map(mapAdSet),
     });
 
