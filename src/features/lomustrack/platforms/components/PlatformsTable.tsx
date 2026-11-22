@@ -39,14 +39,14 @@ export function PlatformsTable({ endpoints, isLoading, onDelete, onCreateNew }: 
   return (
     <Card className="bg-[#1e2533] border-[#2c3648] rounded-lg overflow-hidden flex flex-col">
       {/* Header */}
-      <div className="flex items-center gap-2 px-5 py-3.5 border-b border-[#2a3344]">
-        <RiRadioButtonLine className="size-4 text-[#64748b]" />
+      <div className="flex items-center justify-between px-5 pt-4 pb-3">
         <h3 className="text-[15px] font-semibold text-[#e5e7eb]">Webhooks</h3>
+        <RiRadioButtonLine className="size-4 text-[#64748b]" />
       </div>
 
       {/* Body */}
-      <div className="p-5 space-y-4">
-        <p className="text-[13.5px] leading-relaxed text-[#cbd5e1]">
+      <div className="px-5 pb-5 space-y-4">
+        <p className="text-[13.5px] leading-relaxed text-[#9ca3af]">
           Adicione webhooks para se conectar com as plataformas de venda:
         </p>
 
@@ -69,7 +69,7 @@ export function PlatformsTable({ endpoints, isLoading, onDelete, onCreateNew }: 
                       <PlatformLogo platform={ep.platform as "kiwify" | "payt" | "hotmart" | "api"} size="sm" />
                     </Badge>
                   </div>
-                  <code className="text-[12px] text-[#94a3b8] font-mono block truncate">
+                  <code className="text-[12px] text-[#6b7280] font-mono block truncate">
                     {window.location.origin}
                     {buildWebhookUrl(ep)}
                   </code>
@@ -80,7 +80,7 @@ export function PlatformsTable({ endpoints, isLoading, onDelete, onCreateNew }: 
                     size="icon-sm"
                     onClick={() => handleCopy(ep)}
                     title="Copiar URL"
-                    className="h-7 w-7 text-[#94a3b8] hover:text-[#cbd5e1]"
+                    className="h-7 w-7 text-[#6b7280] hover:text-[#cbd5e1] hover:bg-transparent"
                   >
                     <RiFileCopyLine className="size-3.5" />
                   </Button>
@@ -89,7 +89,7 @@ export function PlatformsTable({ endpoints, isLoading, onDelete, onCreateNew }: 
                     size="icon-sm"
                     onClick={() => onDelete(ep)}
                     title="Excluir webhook"
-                    className="h-7 w-7 text-[#94a3b8] hover:text-[#ef4444]"
+                    className="h-7 w-7 text-[#6b7280] hover:text-[#ef4444] hover:bg-transparent"
                   >
                     <RiDeleteBinLine className="size-3.5" />
                   </Button>
@@ -104,7 +104,7 @@ export function PlatformsTable({ endpoints, isLoading, onDelete, onCreateNew }: 
 
         <Button
           onClick={onCreateNew}
-          className="w-full bg-[#0d6efd] hover:bg-[#0b5ed7] text-white font-semibold text-[13.5px] px-[18px] py-[10px] rounded-md h-auto"
+          className="w-full bg-[#0d6efd] hover:bg-[#0b5ed7] text-white font-semibold text-[13.5px] px-4 py-2.5 rounded-md h-auto"
         >
           Adicionar Webhook
         </Button>

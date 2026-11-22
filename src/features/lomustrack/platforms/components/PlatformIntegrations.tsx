@@ -160,14 +160,14 @@ export function PlatformIntegrations({
     <>
       <Card className="bg-[#1e2533] border-[#2c3648] rounded-lg overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center gap-2 px-5 py-3.5 border-b border-[#2a3344]">
-          <RiCloudLine className="size-4 text-[#64748b]" />
+        <div className="flex items-center justify-between px-5 pt-4 pb-3">
           <h3 className="text-[15px] font-semibold text-[#e5e7eb]">Credenciais de API</h3>
+          <RiCloudLine className="size-4 text-[#64748b]" />
         </div>
 
         {/* Body */}
-        <div className="p-5 space-y-4">
-          <p className="text-[13.5px] leading-relaxed text-[#cbd5e1]">
+        <div className="px-5 pb-5 space-y-4">
+          <p className="text-[13.5px] leading-relaxed text-[#9ca3af]">
             Adicione credenciais de API para integrar com outras ferramentas:
           </p>
 
@@ -178,23 +178,23 @@ export function PlatformIntegrations({
           )}
 
           {!loading && credentials.length > 0 && (
-            <div className="space-y-4">
+            <div className="space-y-0">
               {credentials.map((credential) => (
                 <div
                   key={credential.id}
-                  className="flex items-center justify-between rounded-md border border-[#374151] bg-transparent px-4 py-3"
+                  className="flex items-center justify-between rounded-md border border-[#374151]/40 bg-transparent px-4 py-3"
                 >
                   <div className="flex-1">
                     <p className="font-semibold text-[13.5px] text-[#e2e8f0] mb-0.5">
                       {credential.name}
                     </p>
-                    <p className="text-[12.5px] text-[#94a3b8]">
+                    <p className="text-[12.5px] text-[#6b7280]">
                       Status: {credential.active ? "Ativado" : "Desativado"}
                     </p>
                   </div>
                   <button
                     onClick={() => void deleteCredential(credential.id)}
-                    className="text-[#94a3b8] hover:text-[#cbd5e1] transition-colors p-1"
+                    className="text-[#6b7280] hover:text-[#9ca3af] transition-colors p-1"
                     title="Menu"
                   >
                     <RiMore2Line className="size-4" />
@@ -206,7 +206,7 @@ export function PlatformIntegrations({
 
           <Button
             onClick={() => setCredentialOpen(true)}
-            className="w-full bg-[#0d6efd] hover:bg-[#0b5ed7] text-white font-semibold text-[13.5px] px-[18px] py-[10px] rounded-md h-auto"
+            className="w-full bg-[#0d6efd] hover:bg-[#0b5ed7] text-white font-semibold text-[13.5px] px-4 py-2.5 rounded-md h-auto"
           >
             Adicionar Credencial
           </Button>
