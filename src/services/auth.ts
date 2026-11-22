@@ -75,17 +75,10 @@ export async function requestPasswordReset(email: string): Promise<{ message: st
   if (isImportDemo()) {
     return { message: "Instruções de recuperação enviadas para seu e-mail." };
   }
-  try {
-    return await apiRequest<{ message: string }>("/forgot-password", {
-      method: "POST",
-      body: { email },
-    });
-  } catch (error) {
-    // Se o backend não tiver endpoint configurado, simula sucesso para segurança
-    return {
-      message: "Se o e-mail estiver cadastrado, as instruções foram enviadas.",
-    };
-  }
+  return await apiRequest<{ message: string }>("/forgot-password", {
+    method: "POST",
+    body: { email },
+  });
 }
 
 export async function verifySignupCode(data: VerifyCodeData): Promise<VerifyCodeResponse> {

@@ -17,7 +17,7 @@ export function AppGuard({ children }: AppGuardProps) {
     async function check() {
       try {
         // Rotas públicas sempre permitidas
-        const publicPaths = ["/login", "/setup", "/admin-login", "/documentation", "/forgot-password"];
+        const publicPaths = ["/login", "/setup", "/admin-login", "/documentation", "/forgot-password", "/verify-email", "/reset-password"];
         const isPublicPath = publicPaths.includes(location.pathname);
 
         // Se está em rota pública, permitir acesso
