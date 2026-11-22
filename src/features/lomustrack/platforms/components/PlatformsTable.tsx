@@ -1,16 +1,8 @@
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { RiFileCopyLine, RiDeleteBinLine } from "@remixicon/react";
+import { RiFileCopyLine, RiDeleteBinLine, RiWebhookLine } from "@remixicon/react";
 import { useState } from "react";
 import type { WebhookEndpointAPI } from "@/services/integrations";
 import { PlatformLogo } from "@/components/PlatformLogo";
@@ -19,19 +11,16 @@ interface PlatformsTableProps {
   endpoints: WebhookEndpointAPI[];
   isLoading: boolean;
   onDelete: (endpoint: WebhookEndpointAPI) => void;
+  onCreateNew: () => void;
 }
 
 function TableSkeleton() {
   return (
-    <Card className="border-border/40 premium-table">
-      <CardContent className="p-0">
-        <div className="p-4 space-y-3">
-          {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-10 w-full" />
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+    <div className="p-4 space-y-3">
+      {[1, 2, 3].map((i) => (
+        <Skeleton key={i} className="h-16 w-full" />
+      ))}
+    </div>
   );
 }
 
@@ -39,7 +28,7 @@ function buildWebhookUrl(endpoint: WebhookEndpointAPI): string {
   return `/api/webhook/${endpoint.platform}/${endpoint.slug}`;
 }
 
-export function PlatformsTable({ endpoints, isLoading, onDelete }: PlatformsTableProps) {
+export function PlatformsTable({ endpoints, isLoading, onDelete, onCreateNew }: PlatformsTableProps) {
   const [copiedId, setCopiedId] = useState<number | null>(null);
 
   const handleCopy = (endpoint: WebhookEndpointAPI) => {
@@ -49,87 +38,79 @@ export function PlatformsTable({ endpoints, isLoading, onDelete }: PlatformsTabl
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  if (isLoading) return <TableSkeleton />;
-
-  if (endpoints.length === 0) {
-    return (
-      <Card className="border-border/40 border-dashed">
-        <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-          <p className="text-sm text-muted-foreground">
-            Nenhum endpoint criado. Clique em "Novo Endpoint" para começar.
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const platformBadge = (platform: string) => {
-    return (
-      <Badge
-        variant="outline"
-        className="text-[10px] font-medium border border-border/50 gap-1 px-2 py-0.5"
-      >
-        <PlatformLogo platform={platform as "kiwify" | "payt" | "hotmart" | "api"} size="sm" />
-      </Badge>
-    );
-  };
-
   return (
-    <Card className="border-border/40 premium-table">
-      <CardContent className="p-0">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>Plataforma</TableHead>
-                <TableHead>URL do Webhook</TableHead>
-                <TableHead>Criado em</TableHead>
-                <TableHead className="text-center">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {endpoints.map((ep) => {
-                const webhookUrl = buildWebhookUrl(ep);
-                return (
-                  <TableRow key={ep.id}>
-                    <TableCell className="font-medium">{ep.name}</TableCell>
-                    <TableCell>{platformBadge(ep.platform)}</TableCell>
-                    <TableCell>
-                      <code className="font-mono text-muted-foreground bg-muted/50 px-2 py-1 rounded text-xs">
-                        {window.location.origin}
-                        {webhookUrl}
-                      </code>
-                    </TableCell>
-                    <TableCell className="tabular-nums text-muted-foreground">
-                      {ep.created_at ? new Date(ep.created_at).toLocaleDateString("pt-BR") : "—"}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center justify-center gap-1">
-                        <Button variant="ghost" size="icon-sm" onClick={() => handleCopy(ep)}>
-                          <RiFileCopyLine className="size-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          className="text-destructive hover:text-destructive"
-                          onClick={() => onDelete(ep)}
-                        >
-                          <RiDeleteBinLine className="size-4" />
-                        </Button>
-                      </div>
-                      {copiedId === ep.id && (
-                        <p className="text-[10px] text-[var(--color-success)] text-center mt-0.5">
-                          Copiado!
-                        </p>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </div>
+    <Card className="border-border/40 shadow-sm">
+      <CardHeader className="border-b py-5">
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <RiWebhookLine className="size-5" />
+          Webhooks
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-5 p-5">
+        <p className="text-sm text-muted-foreground">
+          Adicione webhooks para se conectar com as plataformas de venda:
+        </p>
+
+        {isLoading && <TableSkeleton />}
+
+        {!isLoading && endpoints.length === 0 && (
+          <p className="text-sm text-muted-foreground py-4 text-center">
+            Nenhum webhook criado ainda.
+          </p>
+        )}
+
+        {!isLoading && endpoints.length > 0 && (
+          <div className="space-y-2">
+            {endpoints.map((ep) => (
+              <div
+                key={ep.id}
+                className="flex items-center justify-between rounded-md border px-4 py-3"
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="font-medium">{ep.name}</p>
+                    <Badge
+                      variant="outline"
+                      className="text-[10px] font-medium border border-border/50 gap-1 px-2 py-0.5"
+                    >
+                      <PlatformLogo platform={ep.platform as "kiwify" | "payt" | "hotmart" | "api"} size="sm" />
+                    </Badge>
+                  </div>
+                  <code className="text-xs text-muted-foreground font-mono">
+                    {window.location.origin}
+                    {buildWebhookUrl(ep)}
+                  </code>
+                </div>
+                <div className="flex items-center gap-1 ml-3">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleCopy(ep)}
+                    title="Copiar URL"
+                  >
+                    <RiFileCopyLine className="size-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onDelete(ep)}
+                    title="Excluir webhook"
+                  >
+                    <RiDeleteBinLine className="size-4 text-destructive" />
+                  </Button>
+                </div>
+                {copiedId === ep.id && (
+                  <p className="absolute text-[10px] text-emerald-600 mt-14 ml-4">Copiado!</p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        <Button onClick={onCreateNew} className="gap-1.5">
+          <RiWebhookLine className="size-4" />
+          Adicionar Webhook
+        </Button>
       </CardContent>
     </Card>
   );

@@ -1,8 +1,6 @@
 import { useState } from "react";
-import { PlatformsHeader } from "./components/PlatformsHeader";
 import { PlatformsTable } from "./components/PlatformsTable";
 import { CreateWebhookModal } from "./components/CreateWebhookModal";
-import { ImportModal } from "./components/ImportModal";
 import { ConfirmDeleteModal } from "@/components/ConfirmDeleteModal";
 import { useWebhooks } from "@/hooks/useWebhooks";
 import type { WebhookEndpointAPI } from "@/services/integrations";
@@ -11,7 +9,6 @@ import { PlatformIntegrations } from "./components/PlatformIntegrations";
 export default function PlatformsPage() {
   const { endpoints, isLoading, addWebhook, removeWebhook } = useWebhooks();
   const [modalOpen, setModalOpen] = useState(false);
-  const [importOpen, setImportOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<WebhookEndpointAPI | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
@@ -48,19 +45,21 @@ export default function PlatformsPage() {
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      <PlatformsHeader
-        onCreateNew={() => setModalOpen(true)}
-        onImport={() => setImportOpen(true)}
-      />
-      <PlatformIntegrations />
-      <PlatformsTable endpoints={endpoints} isLoading={isLoading} onDelete={handleDeleteClick} />
+      <div className="grid gap-6 lg:grid-cols-2">
+        <PlatformsTable
+          endpoints={endpoints}
+          isLoading={isLoading}
+          onDelete={handleDeleteClick}
+          onCreateNew={() => setModalOpen(true)}
+        />
+        <PlatformIntegrations />
+      </div>
       <CreateWebhookModal
         open={modalOpen}
         onOpenChange={setModalOpen}
         onCreate={handleCreate}
         isLoading={isCreating}
       />
-      <ImportModal open={importOpen} onOpenChange={setImportOpen} />
       <ConfirmDeleteModal
         open={!!deleteTarget}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
