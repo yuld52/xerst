@@ -17,7 +17,9 @@ import { Route as AdminLoginRouteImport } from './routes/admin-login'
 import { Route as DocumentationRouteImport } from './routes/documentation'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SetupRouteImport } from './routes/setup'
+import { Route as VerifyEmailRouteImport } from './routes/verify-email'
 import { Route as DashboardAdvancedSettingsRouteImport } from './routes/_dashboard.advanced-settings'
 import { Route as DashboardCampaignsRouteImport } from './routes/_dashboard.campaigns'
 import { Route as DashboardCustomersRouteImport } from './routes/_dashboard.customers'
@@ -82,9 +84,19 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SetupRoute = SetupRouteImport.update({
   id: '/setup',
   path: '/setup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VerifyEmailRoute = VerifyEmailRouteImport.update({
+  id: '/verify-email',
+  path: '/verify-email',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardAdvancedSettingsRoute =
@@ -226,7 +238,9 @@ export interface FileRoutesByFullPath {
   '/documentation': typeof DocumentationRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/setup': typeof SetupRoute
+  '/verify-email': typeof VerifyEmailRoute
   '/advanced-settings': typeof DashboardAdvancedSettingsRoute
   '/campaigns': typeof DashboardCampaignsRoute
   '/customers': typeof DashboardCustomersRoute
@@ -260,7 +274,9 @@ export interface FileRoutesByTo {
   '/documentation': typeof DocumentationRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/setup': typeof SetupRoute
+  '/verify-email': typeof VerifyEmailRoute
   '/advanced-settings': typeof DashboardAdvancedSettingsRoute
   '/campaigns': typeof DashboardCampaignsRoute
   '/customers': typeof DashboardCustomersRoute
@@ -297,7 +313,9 @@ export interface FileRoutesById {
   '/documentation': typeof DocumentationRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/setup': typeof SetupRoute
+  '/verify-email': typeof VerifyEmailRoute
   '/_dashboard/advanced-settings': typeof DashboardAdvancedSettingsRoute
   '/_dashboard/campaigns': typeof DashboardCampaignsRoute
   '/_dashboard/customers': typeof DashboardCustomersRoute
@@ -333,7 +351,9 @@ export interface FileRouteTypes {
     | '/documentation'
     | '/forgot-password'
     | '/login'
+    | '/reset-password'
     | '/setup'
+    | '/verify-email'
     | '/advanced-settings'
     | '/campaigns'
     | '/customers'
@@ -367,7 +387,9 @@ export interface FileRouteTypes {
     | '/documentation'
     | '/forgot-password'
     | '/login'
+    | '/reset-password'
     | '/setup'
+    | '/verify-email'
     | '/advanced-settings'
     | '/campaigns'
     | '/customers'
@@ -403,7 +425,9 @@ export interface FileRouteTypes {
     | '/documentation'
     | '/forgot-password'
     | '/login'
+    | '/reset-password'
     | '/setup'
+    | '/verify-email'
     | '/_dashboard/advanced-settings'
     | '/_dashboard/campaigns'
     | '/_dashboard/customers'
@@ -440,7 +464,9 @@ export interface RootRouteChildren {
   DocumentationRoute: typeof DocumentationRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SetupRoute: typeof SetupRoute
+  VerifyEmailRoute: typeof VerifyEmailRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -501,11 +527,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/setup': {
       id: '/setup'
       path: '/setup'
       fullPath: '/setup'
       preLoaderRoute: typeof SetupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/verify-email': {
+      id: '/verify-email'
+      path: '/verify-email'
+      fullPath: '/verify-email'
+      preLoaderRoute: typeof VerifyEmailRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_dashboard/advanced-settings': {
@@ -765,7 +805,9 @@ const rootRouteChildren: RootRouteChildren = {
   DocumentationRoute: DocumentationRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SetupRoute: SetupRoute,
+  VerifyEmailRoute: VerifyEmailRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
