@@ -38,7 +38,7 @@ def _send_email(to: str, subject: str, html: str, text: Optional[str] = None) ->
         return False
 
 
-def send_password_reset_email(to: str, reset_token: str, base_url: str = "https://lomustrack.online") -> bool:
+def send_password_reset_email(to: str, reset_token: str, base_url: str = "https://www.lomustrack.online") -> bool:
     """Envia email de recuperação de senha."""
     reset_url = f"{base_url}/reset-password?token={reset_token}"
 
@@ -74,7 +74,7 @@ def send_password_reset_email(to: str, reset_token: str, base_url: str = "https:
     return _send_email(to, subject, html, text)
 
 
-def send_welcome_email(to: str, name: str, base_url: str = "https://lomustrack.online") -> bool:
+def send_welcome_email(to: str, name: str, base_url: str = "https://www.lomustrack.online") -> bool:
     """Envia email de boas-vindas após cadastro."""
     login_url = f"{base_url}/login"
 
