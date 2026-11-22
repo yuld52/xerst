@@ -97,7 +97,9 @@ export function applyDataToForm(
     updateField("ageMax", (targeting.age_max as number) ?? 65);
     updateField("gender", (targeting.genders as number) ?? 0);
     updateField("interests", (targeting.interests as CampaignFormState["interests"]) ?? []);
-    updateField("country", (targeting.country as string) ?? "BR");
+    updateField("country", Array.isArray(targeting.country)
+      ? (targeting.country as string[])
+      : [(targeting.country as string) ?? "BR"]);
     updateField("locales", (targeting.locales as number[]) ?? []);
   }
 

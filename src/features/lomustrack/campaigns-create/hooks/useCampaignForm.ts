@@ -30,7 +30,7 @@ const INITIAL_STATE: CampaignFormState = {
   ageMin: 18,
   ageMax: 65,
   gender: 0,
-  country: DEFAULT_COUNTRY,
+  country: [DEFAULT_COUNTRY],
   locales: [...DEFAULT_LOCALES],
   interests: [],
   pageId: "",

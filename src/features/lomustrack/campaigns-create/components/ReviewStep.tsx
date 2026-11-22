@@ -6,7 +6,7 @@ import type { CampaignFormState } from "../hooks/useCampaignForm";
 import type { FacebookAccountAPI } from "@/services/integrations";
 import { BID_STRATEGY_OPTIONS, CTA_OPTIONS, bidFieldLabel } from "../utils/defaults";
 import { formatScheduleDisplay } from "../utils/schedule";
-import { getCountryLabel, getLocaleLabels } from "../utils/targeting";
+import { getCountriesLabel, getLocaleLabels } from "../utils/targeting";
 import { RiRocketLine, RiMegaphoneLine, RiFocus2Line, RiBrushLine } from "@remixicon/react";
 import { AccountsReviewCard, ReviewRow, truncateText } from "./ReviewHelpers";
 import { convertAndFormatMZN } from "@/utils/format";
@@ -145,7 +145,7 @@ export function ReviewStep({ form, onUpdate, accounts }: ReviewStepProps) {
             </div>
           )}
           <ReviewRow label="Programação" value={formatScheduleDisplay(form.startTime)} />
-          <ReviewRow label="País" value={getCountryLabel(form.country)} />
+          <ReviewRow label="País" value={getCountriesLabel(Array.isArray(form.country) ? form.country : [form.country])} />
           <ReviewRow label="Idioma" value={getLocaleLabels(form.locales)} />
           <ReviewRow
             label="Idade"

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,8 +15,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import type { CampaignFormState } from "../hooks/useCampaignForm";
 import type { InterestData } from "@/services/campaignCreator";
-import { RiCloseLine, RiSearchLine, RiArrowDownSLine } from "@remixicon/react";
-import { COUNTRY_OPTIONS, LOCALE_OPTIONS, getLocaleLabels } from "../utils/targeting";
+import { RiCloseLine, RiSearchLine, RiArrowDownSLine, RiEarthLine } from "@remixicon/react";
+import { COUNTRY_OPTIONS, LOCALE_OPTIONS, getLocaleLabels, getCountriesLabel } from "../utils/targeting";
 
 interface TargetingSectionProps {
   form: CampaignFormState;
@@ -32,6 +32,45 @@ export function TargetingSection({
   onSearchInterest,
 }: TargetingSectionProps) {
   const [interestQuery, setInterestQuery] = useState("");
+  const [countrySearch, setCountrySearch] = useState("");
+  const [countryOpen, setCountryOpen] = useState(false);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  // Focus search when popover opens
+  useEffect(() => {
+    if (countryOpen) {
+      setTimeout(() => searchRef.current?.focus(), 50);
+    } else {
+      setCountrySearch("");
+    }
+  }, [countryOpen]);
+
+  const selectedCountries: string[] = Array.isArray(form.country) ? form.country : [form.country];
+
+  const toggleCountry = (value: string) => {
+    // "WORLDWIDE" é exclusivo
+    if (value === "WORLDWIDE") {
+      onUpdate("country", ["WORLDWIDE"]);
+      return;
+    }
+    const current = selectedCountries.filter((c) => c !== "WORLDWIDE");
+    if (current.includes(value)) {
+      const next = current.filter((c) => c !== value);
+      onUpdate("country", next.length > 0 ? next : ["BR"]);
+    } else {
+      onUpdate("country", [...current, value]);
+    }
+  };
+
+  const removeCountry = (value: string) => {
+    const next = selectedCountries.filter((c) => c !== value);
+    onUpdate("country", next.length > 0 ? next : ["BR"]);
+  };
+
+  const filteredCountries = COUNTRY_OPTIONS.filter((c) =>
+    c.label.toLowerCase().includes(countrySearch.toLowerCase()) ||
+    c.value.toLowerCase().includes(countrySearch.toLowerCase())
+  );
 
   const handleInterestSearch = (q: string) => {
     setInterestQuery(q);
@@ -46,23 +85,14 @@ export function TargetingSection({
   };
 
   const removeInterest = (id: string) => {
-    onUpdate(
-      "interests",
-      form.interests.filter((i) => i.id !== id),
-    );
+    onUpdate("interests", form.interests.filter((i) => i.id !== id));
   };
 
   const toggleLocale = (localeKey: number) => {
-    if (localeKey === 0) {
-      onUpdate("locales", []);
-      return;
-    }
+    if (localeKey === 0) { onUpdate("locales", []); return; }
     const current = form.locales;
     if (current.includes(localeKey)) {
-      onUpdate(
-        "locales",
-        current.filter((l) => l !== localeKey),
-      );
+      onUpdate("locales", current.filter((l) => l !== localeKey));
     } else {
       onUpdate("locales", [...current, localeKey]);
     }
@@ -78,30 +108,93 @@ export function TargetingSection({
       <CardContent className="space-y-4">
         {/* País + Idioma */}
         <div className="grid grid-cols-2 gap-4">
+          {/* Multi-select de países */}
           <div className="space-y-2">
             <Label>País</Label>
-            <Select value={form.country} onValueChange={(v) => onUpdate("country", v)}>
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {COUNTRY_OPTIONS.map((c) => (
-                  <SelectItem key={c.value} value={c.value}>
-                    {c.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label>Idioma</Label>
-            <Popover>
+            <Popover open={countryOpen} onOpenChange={setCountryOpen}>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
                   role="combobox"
                   className="w-full justify-between font-normal h-9 px-3"
                 >
+                  <span className="flex items-center gap-1.5 truncate text-sm">
+                    <RiEarthLine className="size-3.5 shrink-0 text-muted-foreground" />
+                    <span className="truncate">{getCountriesLabel(selectedCountries)}</span>
+                  </span>
+                  <RiArrowDownSLine className="size-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[280px] p-0" align="start">
+                {/* Search */}
+                <div className="p-2 border-b">
+                  <div className="relative">
+                    <RiSearchLine className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
+                    <input
+                      ref={searchRef}
+                      value={countrySearch}
+                      onChange={(e) => setCountrySearch(e.target.value)}
+                      placeholder="Pesquisar país..."
+                      className="w-full pl-8 pr-3 py-1.5 text-sm bg-muted/40 rounded-md border border-transparent focus:border-primary focus:outline-none"
+                    />
+                  </div>
+                </div>
+                {/* List */}
+                <div className="max-h-56 overflow-y-auto py-1">
+                  {filteredCountries.length === 0 ? (
+                    <p className="text-xs text-muted-foreground text-center py-4">Nenhum país encontrado</p>
+                  ) : filteredCountries.map((c) => {
+                    const isSelected = selectedCountries.includes(c.value);
+                    return (
+                      <button
+                        key={c.value}
+                        onClick={() => toggleCountry(c.value)}
+                        className="flex items-center gap-2.5 w-full px-3 py-1.5 text-sm hover:bg-accent transition-colors cursor-pointer"
+                      >
+                        <Checkbox checked={isSelected} tabIndex={-1} className="pointer-events-none shrink-0" />
+                        <span className="text-base leading-none">{c.flag}</span>
+                        <span className="truncate">{c.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                {/* Footer */}
+                {selectedCountries.length > 0 && !selectedCountries.includes("WORLDWIDE") && (
+                  <div className="p-2 border-t">
+                    <p className="text-xs text-muted-foreground">
+                      {selectedCountries.length} {selectedCountries.length === 1 ? "país selecionado" : "países selecionados"}
+                    </p>
+                  </div>
+                )}
+              </PopoverContent>
+            </Popover>
+            {/* Badges dos países seleccionados */}
+            {selectedCountries.length > 1 || (selectedCountries.length === 1 && selectedCountries[0] !== "BR") ? (
+              <div className="flex flex-wrap gap-1 mt-1">
+                {selectedCountries.map((v) => {
+                  const opt = COUNTRY_OPTIONS.find((o) => o.value === v);
+                  return (
+                    <Badge key={v} variant="secondary" className="gap-1 pr-1 text-xs">
+                      <span>{opt?.flag}</span>
+                      <span>{opt?.label ?? v}</span>
+                      {selectedCountries.length > 1 && (
+                        <button onClick={() => removeCountry(v)} className="hover:text-destructive ml-0.5">
+                          <RiCloseLine className="size-3" />
+                        </button>
+                      )}
+                    </Badge>
+                  );
+                })}
+              </div>
+            ) : null}
+          </div>
+
+          {/* Idioma */}
+          <div className="space-y-2">
+            <Label>Idioma</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" role="combobox" className="w-full justify-between font-normal h-9 px-3">
                   <span className="truncate text-sm">{getLocaleLabels(form.locales)}</span>
                   <RiArrowDownSLine className="size-4 shrink-0 opacity-50" />
                 </Button>
@@ -130,34 +223,17 @@ export function TargetingSection({
         <div className="grid grid-cols-3 gap-4">
           <div className="space-y-2">
             <Label>Idade Mínima</Label>
-            <Input
-              type="number"
-              min={18}
-              max={64}
-              value={form.ageMin}
-              onChange={(e) => onUpdate("ageMin", parseInt(e.target.value) || 18)}
-            />
+            <Input type="number" min={18} max={64} value={form.ageMin} onChange={(e) => onUpdate("ageMin", parseInt(e.target.value) || 18)} />
           </div>
           <div className="space-y-2">
             <Label>Idade Máxima</Label>
-            <Input
-              type="number"
-              min={18}
-              max={65}
-              value={form.ageMax}
-              onChange={(e) => onUpdate("ageMax", parseInt(e.target.value) || 65)}
-            />
+            <Input type="number" min={18} max={65} value={form.ageMax} onChange={(e) => onUpdate("ageMax", parseInt(e.target.value) || 65)} />
             <p className="text-xs text-muted-foreground">65 = 65+</p>
           </div>
           <div className="space-y-2">
             <Label>Gênero</Label>
-            <Select
-              value={form.gender.toString()}
-              onValueChange={(v) => onUpdate("gender", Number(v))}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
+            <Select value={form.gender.toString()} onValueChange={(v) => onUpdate("gender", Number(v))}>
+              <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="0">Todos</SelectItem>
                 <SelectItem value="1">Masculino</SelectItem>
@@ -183,15 +259,9 @@ export function TargetingSection({
           {interestResults.length > 0 && interestQuery && (
             <div className="border rounded-lg max-h-40 overflow-y-auto bg-popover">
               {interestResults.map((i) => (
-                <button
-                  key={i.id}
-                  onClick={() => addInterest(i)}
-                  className="w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors flex justify-between"
-                >
+                <button key={i.id} onClick={() => addInterest(i)} className="w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors flex justify-between">
                   <span>{i.name}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {i.audience_size > 0 ? `~${(i.audience_size / 1e6).toFixed(1)}M` : ""}
-                  </span>
+                  <span className="text-xs text-muted-foreground">{i.audience_size > 0 ? `~${(i.audience_size / 1e6).toFixed(1)}M` : ""}</span>
                 </button>
               ))}
             </div>
@@ -201,9 +271,7 @@ export function TargetingSection({
               {form.interests.map((i) => (
                 <Badge key={i.id} variant="secondary" className="gap-1 pr-1">
                   {i.name}
-                  <button onClick={() => removeInterest(i.id)} className="hover:text-destructive">
-                    <RiCloseLine className="size-3.5" />
-                  </button>
+                  <button onClick={() => removeInterest(i.id)} className="hover:text-destructive"><RiCloseLine className="size-3.5" /></button>
                 </Badge>
               ))}
             </div>

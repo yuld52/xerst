@@ -3,12 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import type { FacebookAccountAPI } from "@/services/integrations";
 import type { CampaignFormState } from "../hooks/useCampaignForm";
-import { DefineVideoModal } from "@/features/lomustrack/campaigns/components/DefineVideoModal";
 import { DefineCheckoutModal } from "@/features/lomustrack/campaigns/components/DefineCheckoutModal";
 import { DefineProductModal } from "@/features/lomustrack/campaigns/components/DefineProductModal";
 import { SelectableField } from "./SelectableField";
 import { AccountMultiSelect } from "./AccountMultiSelect";
-import { RiVideoLine, RiShoppingCart2Line, RiBox3Line } from "@remixicon/react";
+import { RiShoppingCart2Line, RiBox3Line } from "@remixicon/react";
 
 interface AccountStepProps {
   accounts: FacebookAccountAPI[];
@@ -31,7 +30,6 @@ export function AccountStep({
   form,
   isLoading,
 }: AccountStepProps) {
-  const [videoModalOpen, setVideoModalOpen] = useState(false);
   const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
   const [productModalOpen, setProductModalOpen] = useState(false);
 
@@ -76,21 +74,8 @@ export function AccountStep({
             />
           </div>
 
-          {/* Vídeo + Checkout */}
-          <div className="grid grid-cols-2 gap-4">
-            <SelectableField
-              label="Vídeo (Opcional)"
-              hint="VSL ou vídeo utilizado na campanha."
-              icon={<RiVideoLine className="size-4" />}
-              selectedId={form.videoId}
-              selectedLabel={form.videoLabel}
-              placeholder="Selecionar vídeo"
-              onOpen={() => setVideoModalOpen(true)}
-              onClear={() => {
-                onUpdate("videoId", "");
-                onUpdate("videoLabel", "");
-              }}
-            />
+          {/* Checkout */}
+          <div className="grid grid-cols-1 gap-4">
             <SelectableField
               label="Checkout (Opcional)"
               hint="Ao definir, o produto é vinculado automaticamente."
