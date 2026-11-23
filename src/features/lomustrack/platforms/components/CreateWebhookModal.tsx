@@ -25,18 +25,6 @@ const PLATFORMS = [
     requiresToken: true,
   },
   { 
-    value: "kiwify", 
-    label: "Kiwify", 
-    description: "Integração nativa com parser dedicado",
-    requiresToken: false,
-  },
-  { 
-    value: "payt", 
-    label: "Payt", 
-    description: "Integração nativa com parser dedicado",
-    requiresToken: false,
-  },
-  { 
     value: "api", 
     label: "API Genérica", 
     description: "Para qualquer plataforma via credencial API",
