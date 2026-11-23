@@ -2,18 +2,18 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "@/lib/import-navigation";
 import { DashboardHeader } from "./components/DashboardHeader";
 import { DashboardEditor, type DashboardConfig } from "./components/DashboardEditor";
-import { KpiGrid } from "./components/KpiGrid";
-import { RevenueChart } from "./components/RevenueChart";
-import { PaymentMethodChart } from "./components/PaymentMethodChart";
-import { TopCampaigns } from "./components/TopCampaigns";
-import { HourlySalesChart } from "./components/HourlySalesChart";
-import { SalesByCountryCard } from "./components/SalesByCountryCard";
+import { DashboardGrid } from "./components/DashboardGrid";
 import { GlobalFilterBar } from "@/components/layout/GlobalFilterBar";
 import { useDashboard } from "@/hooks/use-dashboard";
+import { useGridLayout } from "./hooks/useGridLayout";
 import { fetchCustomersFilterOptions } from "@/services/customers";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import type { UpsellOption } from "@/types/sale";
+import type { WidgetType } from "./types/widget";
+import "react-grid-layout/css/styles.css";
+import "react-resizable/css/styles.css";
+import "./styles/grid-overrides.css";
 
 const STORAGE_KEY = "dashboard-config";
 
@@ -28,7 +28,10 @@ export default function DashboardPage() {
   // Dashboard editor state
   const [editorOpen, setEditorOpen] = useState(false);
   
-  // Dashboard configuration
+  // Use grid layout hook for widget management
+  const { widgets, handleLayoutChange, handleAddWidgetFromSidebar, removeWidget, resetToDefault } = useGridLayout();
+  
+  // Dashboard configuration (legacy - kept for backward compatibility with DashboardEditor)
   const [dashboardConfig, setDashboardConfig] = useState<DashboardConfig>(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
@@ -67,6 +70,10 @@ export default function DashboardPage() {
   const handleConfigChange = (config: DashboardConfig) => {
     setDashboardConfig(config);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+  };
+
+  const handleAddWidget = (widgetType: WidgetType) => {
+    handleAddWidgetFromSidebar(widgetType);
   };
 
   useEffect(() => {
@@ -114,6 +121,7 @@ export default function DashboardPage() {
         accounts={accounts}
         showEditButton={true}
         onEditClick={() => setEditorOpen(true)}
+        isEditing={editorOpen}
       />
       {loading || !data ? (
         <div className="grid gap-2.5 sm:gap-3 grid-cols-2 lg:grid-cols-4">
@@ -122,55 +130,20 @@ export default function DashboardPage() {
           ))}
         </div>
       ) : (
-        <>
-          {dashboardConfig.activeCards.map((cardId) => {
-            if (cardId === "kpis") {
-              return (
-                <KpiGrid
-                  key="kpis"
-                  kpis={data.kpis}
-                  taxEnabled={filters.taxEnabled}
-                  taxRate={settings?.tax_rate ?? 0}
-                  opCostsEnabled={filters.opCostsEnabled}
-                  opCostsTotal={settings?.operational_costs.reduce((s, c) => s + c.amount, 0) ?? 0}
-                />
-              );
-            }
-            
-            if (cardId === "revenueChart") {
-              return (
-                <div key="revenueChart" className="lg:col-span-2">
-                  <RevenueChart data={data.daily_revenue} />
-                </div>
-              );
-            }
-            
-            if (cardId === "paymentMethodChart") {
-              return <PaymentMethodChart key="paymentMethodChart" data={data.payment_distribution} />;
-            }
-            
-            if (cardId === "topCampaigns") {
-              return <TopCampaigns key="topCampaigns" data={data.top_campaigns} />;
-            }
-            
-            if (cardId === "hourlySalesChart") {
-              return <HourlySalesChart key="hourlySalesChart" data={data.hourly_sales} />;
-            }
-            
-            if (cardId === "salesByCountry") {
-              return (
-                <div key="salesByCountry" className="lg:col-span-2">
-                  <SalesByCountryCard
-                    startDate={filters.datePreset === "custom" ? filters.dateStart : undefined}
-                    endDate={filters.datePreset === "custom" ? filters.dateEnd : undefined}
-                  />
-                </div>
-              );
-            }
-            
-            return null;
-          })}
-        </>
+        <DashboardGrid
+          widgets={widgets}
+          isEditing={editorOpen}
+          onLayoutChange={handleLayoutChange}
+          kpis={data.kpis}
+          data={data}
+          settings={settings}
+          filters={filters}
+          taxEnabled={filters.taxEnabled}
+          taxRate={settings?.tax_rate ?? 0}
+          opCostsEnabled={filters.opCostsEnabled}
+          opCostsTotal={settings?.operational_costs.reduce((s, c) => s + c.amount, 0) ?? 0}
+          onRemoveWidget={removeWidget}
+        />
       )}
       
       <DashboardEditor 
@@ -178,6 +151,7 @@ export default function DashboardPage() {
         onConfigChange={handleConfigChange}
         open={editorOpen}
         onOpenChange={setEditorOpen}
+        onAddWidget={handleAddWidget}
       />
     </div>
   );

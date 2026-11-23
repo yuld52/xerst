@@ -1,0 +1,36 @@
+{
+  "id": "FEAT-002",
+  "type": "feat",
+  "description": "Integrate react-grid-layout for dashboard grid system with drag-drop positioning, resizing, and implement enhanced sidebar with drag-to-canvas functionality. This feature builds on FEAT-001's widget system to enable full visual customization of the dashboard layout.",
+  "status": "completed",
+  "steps": [
+    "Install react-grid-layout types if missing: verify @types/react-grid-layout exists in package.json devDependencies (already present per package.json), if not present add via npm install --save-dev @types/react-grid-layout",
+    "Create src/features/lomustrack/dashboard/components/DashboardGrid.tsx component that wraps ReactGridLayout from 'react-grid-layout': (1) accepts widgets prop (WidgetConfig[]), isEditing boolean, onLayoutChange callback, (2) configures 12-column grid with responsive breakpoints (lg: 1200px, md: 996px, sm: 768px, xs: 480px), (3) renders WidgetWrapper for each widget with draggable/resizable enabled when isEditing=true, (4) applies drag handle to widget header in edit mode, (5) includes empty state when no widgets exist with 'Arraste métricas da barra lateral' message",
+    "Update src/features/lomustrack/dashboard/components/DashboardEditor.tsx: (1) add isDraggingFromSidebar state, (2) modify SortableCardItem to support drag start/end events using @dnd-kit's useDraggable for inactive (available) cards, (3) add onDragStart callback that sets isDraggingFromSidebar true and stores dragged widget type, (4) add onDragEnd callback that emits widget type to parent via onAddWidget prop, (5) update Sheet to show 'Arraste para o dashboard' hint when dragging, (6) keep existing sortable behavior for active cards list",
+    "Create src/features/lomustrack/dashboard/hooks/useGridLayout.ts hook that: (1) manages react-grid-layout's layout array (array of {i: string, x: number, y: number, w: number, h: number}), (2) syncs with WidgetConfig[] from useDashboardLayout, (3) provides handleLayoutChange callback that updates widget positions in useDashboardLayout, (4) provides handleAddWidgetFromSidebar(type, dropPosition) that generates new WidgetConfig with unique ID and adds to layout at drop position or first available space, (5) handles collision detection to find first empty grid cell",
+    "Update src/features/lomustrack/dashboard/index.tsx to: (1) replace current conditional rendering of activeCards.map() with <DashboardGrid widgets={widgets} isEditing={editorOpen} onLayoutChange={handleLayoutChange} /> using the new DashboardGrid component, (2) integrate useGridLayout hook, (3) pass handleAddWidgetFromSidebar to DashboardEditor via onAddWidget prop, (4) ensure GlobalFilterBar's showEditButton and onEditClick props correctly toggle editorOpen state",
+    "Add CSS imports for react-grid-layout in src/features/lomustrack/dashboard/index.tsx: import 'react-grid-layout/css/styles.css' and import 'react-resizable/css/styles.css', then create src/features/lomustrack/dashboard/styles/grid-overrides.css with custom styles matching LomusTrack design (widget borders, drag handles, resize handles, hover states) and import it",
+    "Update GlobalFilterBar.tsx to show 'Editando Dashboard' badge with colored background when isEditing prop is true, and modify edit button icon to show RiCloseLine when editing (to exit edit mode) instead of RiPencilLine"
+  ],
+  "acceptance_criteria": [
+    "DashboardGrid renders all widgets in a 12-column responsive grid using react-grid-layout",
+    "In edit mode, widgets are draggable by their header and resizable by corner handles",
+    "Dragging a widget template from the sidebar into the dashboard grid adds a new widget instance at the drop position",
+    "Layout changes (position and size) persist to localStorage via useDashboardLayout hook",
+    "Edit mode shows visual indicators: drag handles, resize handles, highlighted drop zones, 'Editando Dashboard' badge in filter bar",
+    "Non-edit mode: widgets are static, no drag/resize handles visible, clean read-only dashboard view",
+    "Empty dashboard shows helpful message: 'Arraste métricas da barra lateral para começar'"
+  ],
+  "verification": [
+    "Run `npm run dev`, navigate to /dashboard route, click 'Editar' button in GlobalFilterBar",
+    "Verify DashboardEditor sidebar opens on the left showing categorized widget templates",
+    "Drag a widget template (e.g., 'Faturamento Bruto') from sidebar onto dashboard grid and verify new widget appears",
+    "Drag an existing widget to a new position and verify it moves smoothly with animated transitions",
+    "Resize a widget by dragging its corner handle and verify size updates",
+    "Refresh the page and verify layout persists (positions and sizes unchanged)",
+    "Toggle edit mode off and verify drag/resize handles disappear",
+    "Open browser devtools localStorage and confirm 'dashboard-layout-v2' contains array of WidgetConfig objects with correct x/y/w/h values"
+  ],
+  "blocked_reason": null,
+  "findings": "Successfully integrated react-grid-layout v2 with responsive grid system. DashboardGrid component uses useContainerWidth hook for proper width measurement. DashboardEditor now supports drag-to-canvas functionality using @dnd-kit's useDraggable for inactive sidebar items while preserving useSortable for active cards. useGridLayout hook manages bidirectional layout synchronization between react-grid-layout and WidgetConfig state. GlobalFilterBar displays 'Editando Dashboard' badge and toggles edit/close icons. All acceptance criteria met: widgets are draggable/resizable in edit mode, sidebar drag-to-canvas works, layout persists to localStorage, visual indicators present, clean read-only view when not editing. Build successful, all 26 tests passing."
+}

@@ -8,6 +8,8 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
+  DragStartEvent,
+  useDraggable,
 } from "@dnd-kit/core";
 import {
   arrayMove,
@@ -26,6 +28,7 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { WidgetType } from "../types/widget";
 
 export interface DashboardConfig {
   activeCards: string[];
@@ -39,30 +42,36 @@ const DEFAULT_CONFIG: DashboardConfig = {
 
 const ALL_CARDS = ["kpis", "revenueChart", "paymentMethodChart", "topCampaigns", "hourlySalesChart", "salesByCountry"];
 
-const CARD_LABELS: Record<string, { title: string; category: string }> = {
+const CARD_LABELS: Record<string, { title: string; category: string; widgetType: WidgetType }> = {
   kpis: {
     title: "Resumo (KPIs)",
     category: "general",
+    widgetType: WidgetType.KPI,
   },
   revenueChart: {
     title: "Faturamento Líquido",
     category: "charts",
+    widgetType: WidgetType.REVENUE_CHART,
   },
   paymentMethodChart: {
     title: "Meios de Pagamento",
     category: "charts",
+    widgetType: WidgetType.PAYMENT_METHOD_CHART,
   },
   hourlySalesChart: {
     title: "Vendas por Horário",
     category: "charts",
+    widgetType: WidgetType.HOURLY_SALES_CHART,
   },
   salesByCountry: {
     title: "Vendas por País",
     category: "charts",
+    widgetType: WidgetType.SALES_BY_COUNTRY,
   },
   topCampaigns: {
     title: "Top Campanhas",
     category: "rankings",
+    widgetType: WidgetType.TOP_CAMPAIGNS,
   },
 };
 
@@ -76,17 +85,34 @@ interface SortableCardItemProps {
   id: string;
   isActive: boolean;
   onClick?: () => void;
+  onDragStart?: () => void;
+  onDragEnd?: () => void;
 }
 
-function SortableCardItem({ id, isActive, onClick }: SortableCardItemProps) {
+function SortableCardItem({ id, isActive, onClick, onDragStart, onDragEnd }: SortableCardItemProps) {
+  const sortable = useSortable({ id, disabled: !isActive });
+  const draggable = useDraggable({ id: `draggable-${id}`, disabled: isActive });
+
   const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id, disabled: !isActive });
+    attributes: sortAttributes,
+    listeners: sortListeners,
+    setNodeRef: setSortNodeRef,
+    transform: sortTransform,
+    transition: sortTransition,
+    isDragging: isSortDragging,
+  } = sortable;
+
+  const {
+    attributes: dragAttributes,
+    listeners: dragListeners,
+    setNodeRef: setDragNodeRef,
+    transform: dragTransform,
+    isDragging: isDragDragging,
+  } = draggable;
+
+  const isDragging = isSortDragging || isDragDragging;
+  const transform = isActive ? sortTransform : dragTransform;
+  const transition = isActive ? sortTransition : undefined;
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -96,17 +122,34 @@ function SortableCardItem({ id, isActive, onClick }: SortableCardItemProps) {
 
   const cardInfo = CARD_LABELS[id];
 
+  const handleDragStart = () => {
+    if (onDragStart) onDragStart();
+  };
+
+  const handleDragEnd = () => {
+    if (onDragEnd) onDragEnd();
+  };
+
+  // Use sortable for active cards, draggable for inactive cards
+  const ref = isActive ? setSortNodeRef : setDragNodeRef;
+  const attributes = isActive ? sortAttributes : dragAttributes;
+  const listeners = isActive ? sortListeners : {
+    ...dragListeners,
+    onDragStart: handleDragStart,
+    onDragEnd: handleDragEnd,
+  };
+
   return (
     <div
-      ref={setNodeRef}
+      ref={ref}
       style={style}
-      {...(isActive ? attributes : {})}
-      {...(isActive ? listeners : {})}
+      {...attributes}
+      {...listeners}
       onClick={!isActive ? onClick : undefined}
       className={`flex items-center gap-2 px-3 py-2.5 rounded transition-colors ${
         isActive 
           ? "cursor-grab active:cursor-grabbing text-foreground hover:bg-accent" 
-          : "cursor-pointer text-muted-foreground hover:bg-accent/50 hover:text-foreground"
+          : "cursor-grab active:cursor-grabbing text-muted-foreground hover:bg-accent/50 hover:text-foreground"
       } ${isDragging ? "bg-primary/20" : ""}`}
     >
       <span className="text-sm flex-1">{cardInfo.title}</span>
@@ -119,15 +162,18 @@ interface DashboardEditorProps {
   onOpenChange: (open: boolean) => void;
   config: DashboardConfig;
   onConfigChange: (config: DashboardConfig) => void;
+  onAddWidget?: (widgetType: WidgetType) => void;
 }
 
-export function DashboardEditor({ open, onOpenChange, config, onConfigChange }: DashboardEditorProps) {
+export function DashboardEditor({ open, onOpenChange, config, onConfigChange, onAddWidget }: DashboardEditorProps) {
   const [localConfig, setLocalConfig] = useState(config);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     general: true,
     charts: true,
     rankings: true,
   });
+  const [isDraggingFromSidebar, setIsDraggingFromSidebar] = useState(false);
+  const [draggedWidgetType, setDraggedWidgetType] = useState<WidgetType | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -142,8 +188,28 @@ export function DashboardEditor({ open, onOpenChange, config, onConfigChange }: 
     }
   }, [open, config]);
 
+  const handleDragStart = (event: DragStartEvent) => {
+    const cardId = event.active.id.toString().replace("draggable-", "");
+    const cardInfo = CARD_LABELS[cardId];
+    if (cardInfo && !localConfig.activeCards.includes(cardId)) {
+      setIsDraggingFromSidebar(true);
+      setDraggedWidgetType(cardInfo.widgetType);
+    }
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
+
+    // Check if dragging from sidebar
+    if (isDraggingFromSidebar && draggedWidgetType) {
+      // Emit to parent to add widget
+      if (onAddWidget) {
+        onAddWidget(draggedWidgetType);
+      }
+      setIsDraggingFromSidebar(false);
+      setDraggedWidgetType(null);
+      return;
+    }
 
     if (over && active.id !== over.id) {
       setLocalConfig((prev) => {
@@ -207,11 +273,17 @@ export function DashboardEditor({ open, onOpenChange, config, onConfigChange }: 
         <div className="flex flex-col h-full">
           <SheetHeader className="p-6 pb-4">
             <SheetTitle>Métricas Disponíveis</SheetTitle>
+            {isDraggingFromSidebar && (
+              <SheetDescription className="text-primary">
+                Arraste para o dashboard →
+              </SheetDescription>
+            )}
           </SheetHeader>
 
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
           >
             <div className="flex-1 overflow-y-auto px-6 pb-6">
@@ -245,6 +317,17 @@ export function DashboardEditor({ open, onOpenChange, config, onConfigChange }: 
                                 id={cardId}
                                 isActive={isActive}
                                 onClick={() => handleCardClick(cardId)}
+                                onDragStart={() => {
+                                  const cardInfo = CARD_LABELS[cardId];
+                                  if (cardInfo && !isActive) {
+                                    setIsDraggingFromSidebar(true);
+                                    setDraggedWidgetType(cardInfo.widgetType);
+                                  }
+                                }}
+                                onDragEnd={() => {
+                                  setIsDraggingFromSidebar(false);
+                                  setDraggedWidgetType(null);
+                                }}
                               />
                             );
                           })}

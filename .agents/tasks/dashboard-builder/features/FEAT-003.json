@@ -1,0 +1,43 @@
+{
+  "id": "FEAT-003",
+  "type": "feat",
+  "description": "Implement widget configuration system, dashboard editing toolbar with save/cancel/reset actions, widget controls (configure/remove buttons), and responsive mobile adaptations. This completes the dashboard builder with full editing capabilities and polish.",
+  "status": "pending",
+  "steps": [
+    "Create src/features/lomustrack/dashboard/components/DashboardToolbar.tsx component for editing mode: (1) show 'Editando dashboard' indicator with info icon and tooltip, (2) add 'Restaurar padrão' button (with RiRefreshLine icon) that calls resetToDefault from useDashboardLayout and shows confirmation dialog, (3) add 'Cancelar' button (variant=outline) that discards unsaved changes and exits edit mode, (4) add 'Salvar' button (variant=primary) that persists layout and exits edit mode, (5) sticky positioning at top of dashboard during scroll with backdrop blur, (6) responsive: stack buttons vertically on mobile screens",
+    "Create src/features/lomustrack/dashboard/components/WidgetConfigDialog.tsx: (1) Dialog component with Sheet or Dialog from ui, (2) accepts widget prop (WidgetConfig) and onSave callback, (3) renders widget-specific configuration form based on widget type (initially just title editor for all widgets, with extensibility for future widget-specific options like chart type, data source filters, color schemes), (4) includes form validation and error states, (5) 'Cancelar' and 'Salvar configuração' buttons in footer",
+    "Update src/features/lomustrack/dashboard/components/WidgetWrapper.tsx to: (1) add widget action buttons in header (configure icon button with RiSettings4Line, remove icon button with RiDeleteBinLine) visible only when isEditing prop is true, (2) add onClick handler for configure button that opens WidgetConfigDialog, (3) add onClick handler for remove button that shows confirmation alert then calls removeWidget from useDashboardLayout, (4) add drag handle area in header (left side, RiDraggable icon) visible only in edit mode, (5) apply hover effects and transitions matching existing card styles",
+    "Update src/features/lomustrack/dashboard/index.tsx to: (1) integrate DashboardToolbar above DashboardGrid when editorOpen is true, (2) implement save/cancel/reset handlers: saveLayout saves to localStorage and closes editor, cancelLayout discards changes by reloading from localStorage and closes editor, resetLayout calls resetToDefault from useDashboardLayout, (3) track isDirty state to show unsaved changes indicator, (4) add confirmation dialog for 'Restaurar padrão' action warning user that this will reset to default layout",
+    "Create src/features/lomustrack/dashboard/components/DashboardMobileView.tsx for responsive mobile layout: (1) detects screen width < 768px, (2) renders widgets in single-column vertical stack (overrides grid layout), (3) disables drag/resize on mobile, (4) shows DashboardEditor as bottom sheet (drawer) instead of left sidebar on mobile, (5) implements touch-friendly controls with larger tap targets",
+    "Update src/features/lomustrack/dashboard/hooks/useDashboardLayout.ts to: (1) add saveLayout method that persists current state to localStorage with version increment, (2) add cancelLayout method that reloads from localStorage, (3) add isDirty computed property comparing current state with localStorage, (4) emit layout change events for undo/redo system (future enhancement, stub only)",
+    "Add src/features/lomustrack/dashboard/styles/widget-animations.css with: (1) smooth transitions for widget drag/drop (transform, opacity), (2) pulse animation for empty drop zones, (3) shake animation for invalid drop attempts, (4) fade-in for newly added widgets, (5) slide-out for removed widgets. Import in index.tsx",
+    "Update GlobalFilterBar.tsx: (1) add isEditing boolean prop, (2) when isEditing is true, show amber badge with 'Editando' label next to 'Filtros' label, (3) reduce filter controls opacity slightly to visually deprioritize during editing, (4) show 'Sair sem salvar?' confirmation if user tries to change filters while in edit mode with unsaved changes"
+  ],
+  "acceptance_criteria": [
+    "DashboardToolbar appears at top of dashboard when in edit mode with 'Editando dashboard' indicator, 'Restaurar padrão', 'Cancelar', and 'Salvar' buttons",
+    "Each widget in edit mode shows configure and remove icon buttons in its header",
+    "Clicking configure button opens WidgetConfigDialog where user can edit widget title and save changes",
+    "Clicking remove button shows confirmation dialog then removes widget from dashboard",
+    "Clicking 'Restaurar padrão' shows confirmation dialog then resets dashboard to default 6-widget layout",
+    "Clicking 'Cancelar' discards all unsaved changes and exits edit mode",
+    "Clicking 'Salvar' persists current layout to localStorage and exits edit mode",
+    "On mobile screens (< 768px), dashboard renders as single-column stack, sidebar becomes bottom drawer, drag/resize are disabled",
+    "Widget animations work smoothly: fade-in on add, slide-out on remove, smooth drag transitions",
+    "isDirty state tracks unsaved changes and shows appropriate UI indicators"
+  ],
+  "verification": [
+    "Run `npm run dev`, navigate to /dashboard, enter edit mode",
+    "Verify DashboardToolbar renders with all three buttons at top of dashboard",
+    "Hover over a widget and verify configure/remove buttons appear in header",
+    "Click configure button on a widget, edit its title in dialog, save, and verify title updates on dashboard",
+    "Click remove button on a widget, confirm removal, and verify widget disappears",
+    "Make changes to layout (move/resize widgets), click 'Cancelar', verify changes are discarded",
+    "Make changes again, click 'Salvar', verify changes persist after page refresh",
+    "Click 'Restaurar padrão', confirm, verify dashboard resets to default 6-widget layout",
+    "Resize browser to mobile width (< 768px), verify single-column layout and bottom drawer sidebar",
+    "Test on actual mobile device (iOS/Android) to verify touch interactions work correctly",
+    "Run `npm test` to ensure no regressions in existing dashboard tests"
+  ],
+  "blocked_reason": null,
+  "findings": "Current GlobalFilterBar already has showEditButton and onEditClick props working correctly. Need to extend it with isEditing prop for visual state changes. WidgetWrapper needs isEditing prop passed down from DashboardGrid which gets it from index.tsx. Toolbar should use existing Button and Dialog components from ui/. Mobile responsiveness must preserve existing mobile-filter-scroll class and responsive behavior of GlobalFilterBar. Confirmation dialogs should use existing AlertDialog from @radix-ui/react-alert-dialog (already in package.json). Widget animations should be subtle and professional, matching existing card hover transitions."
+}

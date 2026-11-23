@@ -1,0 +1,11 @@
+{
+  "task_id": "task-dashboard-builder",
+  "task_description": "Implement a complete customizable Dashboard Builder with drag-and-drop widget system using react-grid-layout, enhanced sidebar with draggable widget templates, widget resize and positioning, persistent layout storage, and widget configuration system",
+  "status": "pending",
+  "feature_order": [
+    "FEAT-001",
+    "FEAT-002",
+    "FEAT-003"
+  ],
+  "blocked_reason": null
+}
