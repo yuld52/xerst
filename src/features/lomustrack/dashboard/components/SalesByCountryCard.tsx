@@ -13,10 +13,12 @@ import { convertAndFormatMZN } from "@/utils/format";
 import { cn } from "@/lib/utils";
 import { fetchSalesByCountry } from "@/services/dashboard";
 import type { SalesByCountry } from "@/services/dashboard";
+import { parseProductFilterValue } from "@/utils/product-filter";
+
+import type { DashboardFilters } from "@/hooks/use-dashboard";
 
 interface SalesByCountryCardProps {
-  startDate?: string;
-  endDate?: string;
+  filters: DashboardFilters;
 }
 
 // ─── Flag emoji helper ────────────────────────────────────────────────────────
@@ -219,7 +221,7 @@ function WorldCountryMapSVG({ data, totalSales }: WorldCountryMapSVGProps) {
 }
 
 // ─── Main card ────────────────────────────────────────────────────────────────
-export function SalesByCountryCard({ startDate, endDate }: SalesByCountryCardProps) {
+export function SalesByCountryCard({ filters }: SalesByCountryCardProps) {
   const [viewMode, setViewMode] = useState<"mapa" | "ranking">("mapa");
   const [data, setData] = useState<SalesByCountry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -228,7 +230,35 @@ export function SalesByCountryCard({ startDate, endDate }: SalesByCountryCardPro
   useEffect(() => {
     setLoading(true);
     setError(null);
-    fetchSalesByCountry({ start_date: startDate, end_date: endDate })
+    
+    // Construir parâmetros baseados nos filtros
+    const params: any = {
+      preset: filters.datePreset,
+    };
+    
+    if (filters.datePreset === "custom") {
+      params.start_date = filters.dateStart;
+      params.end_date = filters.dateEnd;
+    }
+    
+    if (filters.platform !== "all") {
+      params.platform = filters.platform;
+    }
+    
+    // Parse product filter (pode ser product_id ou upsell_id)
+    const pf = parseProductFilterValue(filters.product);
+    if (pf.product_id) {
+      params.product_id = pf.product_id;
+    }
+    if (pf.upsell_id) {
+      params.upsell_id = pf.upsell_id;
+    }
+    
+    if (filters.accountSlug !== "all") {
+      params.account_slug = filters.accountSlug;
+    }
+    
+    fetchSalesByCountry(params)
       .then((result) => {
         setData(result);
       })
@@ -238,7 +268,7 @@ export function SalesByCountryCard({ startDate, endDate }: SalesByCountryCardPro
       .finally(() => {
         setLoading(false);
       });
-  }, [startDate, endDate]);
+  }, [filters]);
 
   const sorted = useMemo(
     () => [...data].sort((a, b) => b.sales - a.sales),

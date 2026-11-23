@@ -90,10 +90,7 @@ export default function DashboardPage() {
           <div className="grid gap-3 sm:gap-4 lg:gap-5 lg:grid-cols-3">
             <TopCampaigns data={data.top_campaigns} />
             <HourlySalesChart data={data.hourly_sales} />
-            <SalesByCountryCard
-              startDate={filters.datePreset === "custom" ? filters.dateStart : undefined}
-              endDate={filters.datePreset === "custom" ? filters.dateEnd : undefined}
-            />
+            <SalesByCountryCard filters={filters} />
           </div>
         </>
       )}

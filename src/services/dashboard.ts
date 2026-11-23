@@ -31,8 +31,13 @@ export interface SalesByCountry {
 }
 
 interface SalesByCountryParams {
+  preset?: string;
   start_date?: string;
   end_date?: string;
+  platform?: string;
+  product_id?: number;
+  upsell_id?: number;
+  account_slug?: string;
 }
 
 export async function fetchSalesByCountry(params: SalesByCountryParams): Promise<SalesByCountry[]> {
