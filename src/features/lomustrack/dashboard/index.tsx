@@ -33,7 +33,12 @@ export default function DashboardPage() {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       try {
-        return JSON.parse(stored);
+        const parsed = JSON.parse(stored);
+        // Ensure order exists, add it if missing
+        if (!parsed.order) {
+          parsed.order = ["kpis", "revenueChart", "paymentMethodChart", "topCampaigns", "hourlySalesChart", "salesByCountry"];
+        }
+        return parsed;
       } catch {
         return {
           kpis: true,
@@ -42,6 +47,7 @@ export default function DashboardPage() {
           topCampaigns: true,
           hourlySalesChart: true,
           salesByCountry: true,
+          order: ["kpis", "revenueChart", "paymentMethodChart", "topCampaigns", "hourlySalesChart", "salesByCountry"],
         };
       }
     }
@@ -52,6 +58,7 @@ export default function DashboardPage() {
       topCampaigns: true,
       hourlySalesChart: true,
       salesByCountry: true,
+      order: ["kpis", "revenueChart", "paymentMethodChart", "topCampaigns", "hourlySalesChart", "salesByCountry"],
     };
   });
 
@@ -114,47 +121,67 @@ export default function DashboardPage() {
         </div>
       ) : (
         <>
-          {dashboardConfig.kpis && (
-            <KpiGrid
-              kpis={data.kpis}
-              taxEnabled={filters.taxEnabled}
-              taxRate={settings?.tax_rate ?? 0}
-              opCostsEnabled={filters.opCostsEnabled}
-              opCostsTotal={settings?.operational_costs.reduce((s, c) => s + c.amount, 0) ?? 0}
-            />
-          )}
-          
-          {(dashboardConfig.revenueChart || dashboardConfig.paymentMethodChart) && (
-            <div className="grid gap-3 sm:gap-4 lg:gap-5 lg:grid-cols-3">
-              {dashboardConfig.revenueChart && (
-                <div className="lg:col-span-2">
-                  <RevenueChart data={data.daily_revenue} />
+          {dashboardConfig.order.map((cardId) => {
+            if (cardId === "kpis" && dashboardConfig.kpis) {
+              return (
+                <KpiGrid
+                  key="kpis"
+                  kpis={data.kpis}
+                  taxEnabled={filters.taxEnabled}
+                  taxRate={settings?.tax_rate ?? 0}
+                  opCostsEnabled={filters.opCostsEnabled}
+                  opCostsTotal={settings?.operational_costs.reduce((s, c) => s + c.amount, 0) ?? 0}
+                />
+              );
+            }
+            
+            if (cardId === "revenueChart" && (dashboardConfig.revenueChart || dashboardConfig.paymentMethodChart)) {
+              const hasRevenueChart = dashboardConfig.revenueChart;
+              const hasPaymentChart = dashboardConfig.paymentMethodChart;
+              
+              if (!hasRevenueChart && !hasPaymentChart) return null;
+              
+              return (
+                <div key="charts-row-1" className="grid gap-3 sm:gap-4 lg:gap-5 lg:grid-cols-3">
+                  {hasRevenueChart && (
+                    <div className="lg:col-span-2">
+                      <RevenueChart data={data.daily_revenue} />
+                    </div>
+                  )}
+                  {hasPaymentChart && <PaymentMethodChart data={data.payment_distribution} />}
                 </div>
-              )}
-              {dashboardConfig.paymentMethodChart && (
-                <PaymentMethodChart data={data.payment_distribution} />
-              )}
-            </div>
-          )}
-
-          {(dashboardConfig.topCampaigns || dashboardConfig.hourlySalesChart || dashboardConfig.salesByCountry) && (
-            <div className="grid gap-3 sm:gap-4 lg:gap-5 lg:grid-cols-3">
-              {(dashboardConfig.topCampaigns || dashboardConfig.hourlySalesChart) && (
-                <div className="flex flex-col gap-3 sm:gap-4 lg:gap-5">
-                  {dashboardConfig.topCampaigns && <TopCampaigns data={data.top_campaigns} />}
-                  {dashboardConfig.hourlySalesChart && <HourlySalesChart data={data.hourly_sales} />}
+              );
+            }
+            
+            if (cardId === "topCampaigns" && (dashboardConfig.topCampaigns || dashboardConfig.hourlySalesChart || dashboardConfig.salesByCountry)) {
+              const hasTopCampaigns = dashboardConfig.topCampaigns;
+              const hasHourlySales = dashboardConfig.hourlySalesChart;
+              const hasSalesByCountry = dashboardConfig.salesByCountry;
+              
+              if (!hasTopCampaigns && !hasHourlySales && !hasSalesByCountry) return null;
+              
+              return (
+                <div key="charts-row-2" className="grid gap-3 sm:gap-4 lg:gap-5 lg:grid-cols-3">
+                  {(hasTopCampaigns || hasHourlySales) && (
+                    <div className="flex flex-col gap-3 sm:gap-4 lg:gap-5">
+                      {hasTopCampaigns && <TopCampaigns data={data.top_campaigns} />}
+                      {hasHourlySales && <HourlySalesChart data={data.hourly_sales} />}
+                    </div>
+                  )}
+                  {hasSalesByCountry && (
+                    <div className="lg:col-span-2">
+                      <SalesByCountryCard
+                        startDate={filters.datePreset === "custom" ? filters.dateStart : undefined}
+                        endDate={filters.datePreset === "custom" ? filters.dateEnd : undefined}
+                      />
+                    </div>
+                  )}
                 </div>
-              )}
-              {dashboardConfig.salesByCountry && (
-                <div className="lg:col-span-2">
-                  <SalesByCountryCard
-                    startDate={filters.datePreset === "custom" ? filters.dateStart : undefined}
-                    endDate={filters.datePreset === "custom" ? filters.dateEnd : undefined}
-                  />
-                </div>
-              )}
-            </div>
-          )}
+              );
+            }
+            
+            return null;
+          })}
         </>
       )}
       
