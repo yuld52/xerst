@@ -67,11 +67,11 @@ export function DashboardEditor({ config, onConfigChange }: DashboardEditorProps
 
   return (
     <>
-      {/* Floating Edit Button */}
+      {/* Floating Edit Button - Always Visible */}
       <Button
         onClick={handleOpen}
         size="icon"
-        className="fixed bottom-6 right-6 h-12 w-12 rounded-full shadow-lg z-50"
+        className="fixed bottom-6 right-6 h-12 w-12 rounded-full shadow-lg z-50 hover:scale-110 transition-transform"
         title="Editar Dashboard"
       >
         <RiPencilLine className="size-5" />
