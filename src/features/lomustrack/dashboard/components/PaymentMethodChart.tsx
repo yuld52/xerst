@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { RiInformationLine } from "@remixicon/react";
-import { Cell, Pie, PieChart } from "recharts";
+import { Cell, Pie, PieChart, Sector } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, type ChartConfig } from "@/components/ui/chart";
 import { convertAndFormatMZN } from "@/utils/format";
@@ -29,6 +30,8 @@ interface PaymentMethodChartProps {
 }
 
 export function PaymentMethodChart({ data = [] }: PaymentMethodChartProps) {
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  
   const values = PAYMENT_METHODS.map((method) => ({
     ...method,
     value: data.find((item) => item.name.toLowerCase() === method.name.toLowerCase())?.value ?? 0,
@@ -36,6 +39,24 @@ export function PaymentMethodChart({ data = [] }: PaymentMethodChartProps) {
   const total = values.reduce((sum, item) => sum + item.value, 0);
   const totalLabel = convertAndFormatMZN(total, 0);
   const totalLabelClass = totalLabel.length > 10 ? "text-xs sm:text-sm lg:text-base" : "text-sm sm:text-base lg:text-xl";
+
+  const renderActiveShape = (props: any) => {
+    const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
+    
+    return (
+      <g>
+        <Sector
+          cx={cx}
+          cy={cy}
+          innerRadius={innerRadius}
+          outerRadius={outerRadius + 8}
+          startAngle={startAngle}
+          endAngle={endAngle}
+          fill={fill}
+        />
+      </g>
+    );
+  };
 
   return (
     <Card className="h-full min-h-[320px] lg:min-h-[360px] rounded-lg bg-white dark:bg-card border border-slate-200/80 dark:border-white/[0.08] shadow-sm flex flex-col justify-between py-0 gap-0">
@@ -71,21 +92,39 @@ export function PaymentMethodChart({ data = [] }: PaymentMethodChartProps) {
                   outerRadius="82%"
                   stroke="transparent"
                   strokeWidth={0}
+                  activeIndex={activeIndex ?? undefined}
+                  activeShape={renderActiveShape}
+                  onMouseEnter={(_, index) => setActiveIndex(index)}
+                  onMouseLeave={() => setActiveIndex(null)}
                 >
                   {values.map((item) => (
-                    <Cell key={item.name} fill={item.color} />
+                    <Cell key={item.name} fill={item.color} className="cursor-pointer" />
                   ))}
                 </Pie>
               </PieChart>
             </ChartContainer>
           )}
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
-            <p className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">Total</p>
-            <p
-              className={`mt-0.5 whitespace-nowrap font-bold text-slate-900 dark:text-white tabular-nums ${totalLabelClass}`}
-            >
-              {totalLabel}
-            </p>
+            {activeIndex !== null ? (
+              <>
+                <p className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">
+                  {values[activeIndex].name}
+                </p>
+                <p className={`mt-0.5 whitespace-nowrap font-bold text-slate-900 dark:text-white tabular-nums ${totalLabelClass}`}>
+                  {convertAndFormatMZN(values[activeIndex].value, 0)}
+                </p>
+                <p className="text-[10px] sm:text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+                  {((values[activeIndex].value / total) * 100).toFixed(1)}% do total
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">Total</p>
+                <p className={`mt-0.5 whitespace-nowrap font-bold text-slate-900 dark:text-white tabular-nums ${totalLabelClass}`}>
+                  {totalLabel}
+                </p>
+              </>
+            )}
           </div>
         </div>
         <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground pt-2">
