@@ -34,8 +34,8 @@ const statusConfig: Record<string, { label: string; className: string }> = {
 };
 
 const platformColors: Record<string, string> = {
-  kiwify: "bg-chart-1/15 text-chart-1 border-chart-1/20",
-  payt: "bg-chart-2/15 text-chart-2 border-chart-2/20",
+  hotmart: "bg-chart-1/15 text-chart-1 border-chart-1/20",
+  api: "bg-chart-2/15 text-chart-2 border-chart-2/20",
 };
 
 interface SalesTableProps {

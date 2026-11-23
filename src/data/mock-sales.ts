@@ -4,7 +4,7 @@ export interface SaleRow {
   id: string;
   date: string;
   product: string;
-  platform: "kiwify" | "payt";
+  platform: "hotmart" | "api";
   status: "approved" | "refunded" | "chargeback" | "pending" | "trial";
   amount: number;
   customerEmail: string;
@@ -21,7 +21,7 @@ export const salesData: SaleRow[] = [
     id: "TXN-001",
     date: "2026-03-09T14:32:00",
     product: "Ebook Fitness Premium",
-    platform: "kiwify",
+    platform: "hotmart",
     status: "approved",
     amount: 197.0,
     customerEmail: "jo***@gmail.com",
@@ -36,7 +36,7 @@ export const salesData: SaleRow[] = [
     id: "TXN-002",
     date: "2026-03-09T13:15:00",
     product: "Curso Marketing Digital",
-    platform: "kiwify",
+    platform: "hotmart",
     status: "approved",
     amount: 297.0,
     customerEmail: "ma***@hotmail.com",
@@ -66,7 +66,7 @@ export const salesData: SaleRow[] = [
     id: "TXN-004",
     date: "2026-03-09T11:20:00",
     product: "PLR Bundle Pack",
-    platform: "kiwify",
+    platform: "hotmart",
     status: "refunded",
     amount: 97.0,
     customerEmail: "ca***@gmail.com",
@@ -81,7 +81,7 @@ export const salesData: SaleRow[] = [
     id: "TXN-005",
     date: "2026-03-09T10:05:00",
     product: "Ebook Fitness Premium",
-    platform: "kiwify",
+    platform: "hotmart",
     status: "approved",
     amount: 197.0,
     customerEmail: "lu***@gmail.com",
@@ -111,7 +111,7 @@ export const salesData: SaleRow[] = [
     id: "TXN-007",
     date: "2026-03-09T08:12:00",
     product: "Lançamento VIP",
-    platform: "kiwify",
+    platform: "hotmart",
     status: "approved",
     amount: 147.0,
     customerEmail: "fe***@gmail.com",

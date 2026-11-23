@@ -276,8 +276,8 @@ export async function getMockData(endpoint: string, _options?: any): Promise<any
       return {
         products: productsData.map((p, i) => ({ id: i + 1, name: p.name })),
         platforms: [
-          { value: "kiwify", label: "Kiwify" },
-          { value: "payt", label: "PayT" },
+          { value: "hotmart", label: "Hotmart" },
+          { value: "api", label: "API" },
         ],
         accounts: [
           { slug: "act_123456789", name: "Lomus - Oficial", platform: "facebook" },
@@ -384,8 +384,8 @@ export async function getMockData(endpoint: string, _options?: any): Promise<any
       return {
         products: productsData.map((p, i) => ({ id: i + 1, name: p.name })),
         platforms: [
-          { value: "kiwify", label: "Kiwify" },
-          { value: "payt", label: "PayT" },
+          { value: "hotmart", label: "Hotmart" },
+          { value: "api", label: "API" },
         ],
         accounts: [
           { slug: "act_123456789", name: "Lomus - Oficial", platform: "facebook" },
@@ -473,7 +473,7 @@ export async function getMockData(endpoint: string, _options?: any): Promise<any
             id: i + 1,
             url: c.url,
             price: c.price,
-            platform: c.platform || "kiwify",
+            platform: c.platform || "hotmart",
             checkout_code: null,
             name: c.id,
           }))

@@ -32,7 +32,7 @@ export interface Product {
   name: string;
   ticket: number;
   idealCpa: number;
-  platform: "kiwify" | "payt";
+  platform: "hotmart" | "api";
   checkouts: Checkout[];
   orderBumps: OrderBump[];
   upsells: Upsell[];
@@ -41,15 +41,15 @@ export interface Product {
 export const productsData: Product[] = [
   {
     id: "p1",
-    externalId: "KW-12345",
+    externalId: "HT-12345",
     name: "Ebook Fitness Premium",
     ticket: 197,
     idealCpa: 45,
-    platform: "kiwify",
+    platform: "hotmart",
     checkouts: [
       {
         id: "ch1",
-        url: "https://pay.kiwify.com.br/checkout-a",
+        url: "https://pay.hotmart.com/checkout-a",
         price: 197,
         sales: 120,
         revenue: 23640,
@@ -58,7 +58,7 @@ export const productsData: Product[] = [
       },
       {
         id: "ch2",
-        url: "https://pay.kiwify.com.br/checkout-b",
+        url: "https://pay.hotmart.com/checkout-b",
         price: 197,
         sales: 69,
         revenue: 13593,
@@ -89,15 +89,15 @@ export const productsData: Product[] = [
   },
   {
     id: "p2",
-    externalId: "KW-67890",
+    externalId: "HT-67890",
     name: "Curso Marketing Digital",
     ticket: 297,
     idealCpa: 55,
-    platform: "kiwify",
+    platform: "hotmart",
     checkouts: [
       {
         id: "ch3",
-        url: "https://pay.kiwify.com.br/checkout-mkt",
+        url: "https://pay.hotmart.com/checkout-mkt",
         price: 297,
         sales: 234,
         revenue: 69498,
@@ -136,15 +136,15 @@ export const productsData: Product[] = [
   },
   {
     id: "p3",
-    externalId: "PT-11111",
+    externalId: "API-11111",
     name: "Mentoria Premium",
     ticket: 497,
     idealCpa: 80,
-    platform: "payt",
+    platform: "api",
     checkouts: [
       {
         id: "ch4",
-        url: "https://app.payt.com/checkout-mentoria",
+        url: "https://api.lomustrack.com/checkout-mentoria",
         price: 497,
         sales: 124,
         revenue: 61628,

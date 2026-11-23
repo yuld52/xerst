@@ -48,8 +48,8 @@ export const dailyRevenueData = [
 
 // Mock data for platform distribution (pie chart)
 export const platformData = [
-  { name: "Kiwify", value: 78500, sales: 523, fill: "var(--color-chart-1)" },
-  { name: "PayT", value: 48950, sales: 324, fill: "var(--color-chart-2)" },
+  { name: "Hotmart", value: 78500, sales: 523, fill: "var(--color-chart-1)" },
+  { name: "API", value: 48950, sales: 324, fill: "var(--color-chart-2)" },
 ];
 
 // Distribuição demonstrativa usada no cartão "Vendas por Pagamento".
