@@ -3,11 +3,9 @@ import {
   RiCalendarLine,
   RiFilterLine,
   RiCloseLine,
-  RiPencilLine,
 } from "@remixicon/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -38,9 +36,6 @@ interface GlobalFilterBarProps {
   upsells?: UpsellOption[];
   platforms?: { value: string; label: string }[];
   accounts?: { slug: string; name: string; platform: string }[];
-  onEditClick?: () => void;
-  showEditButton?: boolean;
-  isEditing?: boolean;
 }
 
 export function GlobalFilterBar({
@@ -51,9 +46,6 @@ export function GlobalFilterBar({
   upsells = [],
   platforms = [],
   accounts = [],
-  onEditClick,
-  showEditButton = false,
-  isEditing = false,
 }: GlobalFilterBarProps) {
   const [isSticky, setIsSticky] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -107,12 +99,6 @@ export function GlobalFilterBar({
             </span>
           )}
         </div>
-        
-        {isEditing && (
-          <Badge variant="default" className="bg-primary text-primary-foreground">
-            Editando Dashboard
-          </Badge>
-        )}
         {/* Date Preset */}
         <div className="flex items-center gap-1.5">
           <RiCalendarLine className="size-3.5 text-muted-foreground" />
@@ -200,24 +186,6 @@ export function GlobalFilterBar({
             <RiCloseLine className="size-3.5" />
             Limpar
           </Button>
-        )}
-        
-        {showEditButton && onEditClick && (
-          <div className="ml-auto">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onEditClick}
-              className={`h-9 w-9 ${isEditing ? "text-primary hover:text-primary/80" : "hover:bg-transparent hover:text-primary"}`}
-              title={isEditing ? "Fechar Editor" : "Editar Dashboard"}
-            >
-              {isEditing ? (
-                <RiCloseLine className="size-5" />
-              ) : (
-                <RiPencilLine className="size-5" />
-              )}
-            </Button>
-          </div>
         )}
       </div>
     </>
