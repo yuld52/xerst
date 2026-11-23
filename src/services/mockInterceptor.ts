@@ -986,6 +986,48 @@ export async function getMockData(endpoint: string, _options?: any): Promise<any
     ];
   }
 
+  // ─── Platforms / Webhooks ────────────────────────────────────────────
+
+  if (path === "/platforms/webhooks") {
+    return [
+      {
+        id: 1,
+        slug: "abc123de",
+        platform: "hotmart",
+        name: "Webhook Hotmart Principal",
+        created_at: "2026-01-15T10:30:00",
+      },
+      {
+        id: 2,
+        slug: "xyz789fg",
+        platform: "api",
+        name: "Webhook API Genérica",
+        created_at: "2026-02-20T14:45:00",
+      },
+    ];
+  }
+
+  if (path === "/platforms/credentials") {
+    return [
+      {
+        id: 1,
+        name: "Credencial Principal",
+        token_prefix: "mcp_live_abc",
+        active: true,
+        created_at: "2026-01-10T08:00:00",
+        last_used_at: "2026-03-15T16:30:00",
+      },
+      {
+        id: 2,
+        name: "Credencial Teste",
+        token_prefix: "mcp_live_xyz",
+        active: false,
+        created_at: "2026-02-05T12:00:00",
+        last_used_at: null,
+      },
+    ];
+  }
+
   // Return undefined to fallback to normal fetch if endpoint is not mocked
   return undefined;
 }
