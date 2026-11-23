@@ -73,3 +73,7 @@ export interface DashboardOverview {
   buyer_locations?: BuyerLocation[];
   meta_error?: string | null;
 }
+
+// ── Widget System Types ──────────────────────────────────────
+
+export type { WidgetType, WidgetConfig, WidgetMetadata } from "@/features/lomustrack/dashboard/types/widget";

@@ -1,0 +1,28 @@
+{
+  "id": "FEAT-001",
+  "type": "feat",
+  "description": "Implement core widget system architecture including widget registry, base widget wrapper component, widget type definitions, and enhanced dashboard configuration storage. This feature establishes the foundational widget architecture that FEAT-002 and FEAT-003 will build upon.",
+  "status": "completed",
+  "steps": [
+    "Create src/features/lomustrack/dashboard/types/widget.ts defining WidgetType enum (kpi, revenueChart, paymentMethodChart, hourlySalesChart, salesByCountry, topCampaigns), WidgetConfig interface with id/type/title/position/size/config fields, WidgetMetadata interface with category/icon/defaultSize/description, and WidgetProps interface for widget component props",
+    "Create src/features/lomustrack/dashboard/config/widget-registry.ts with WIDGET_REGISTRY constant mapping each WidgetType to its metadata (title, category from CARD_LABELS in DashboardEditor.tsx, default grid dimensions, component reference). Include all 6 existing widget types: kpi (category: 'general', 4 columns × 2 rows), revenueChart (category: 'charts', 6 columns × 4 rows), paymentMethodChart (category: 'charts', 3 columns × 3 rows), hourlySalesChart (category: 'charts', 3 columns × 3 rows), salesByCountry (category: 'charts', 6 columns × 4 rows), topCampaigns (category: 'rankings', 3 columns × 3 rows)",
+    "Create src/features/lomustrack/dashboard/components/WidgetWrapper.tsx as a universal widget container that accepts WidgetConfig prop, renders the appropriate component from widget-registry.ts based on type, includes a header with title and action buttons (configure, remove - only visible in edit mode), handles loading/error/empty states, and applies consistent Card styling matching existing dashboard cards",
+    "Update src/types/dashboard.ts to export the new widget types: add 'export type { WidgetType, WidgetConfig, WidgetMetadata } from \"@/features/lomustrack/dashboard/types/widget\";' at the bottom",
+    "Create src/features/lomustrack/dashboard/hooks/useDashboardLayout.ts hook that manages dashboard state: (1) loads widget layout from localStorage key 'dashboard-layout-v2' with schema { widgets: WidgetConfig[], version: 2 }, (2) provides addWidget(type), removeWidget(id), updateWidget(id, updates), resetToDefault functions, (3) handles migration from old activeCards format in localStorage 'dashboard-config' to new WidgetConfig[] format by converting each cardId to a WidgetConfig with auto-generated layout positions, (4) persists changes to localStorage on every update",
+    "Add unit tests in src/features/lomustrack/dashboard/__tests__/widget-registry.test.ts verifying: (1) WIDGET_REGISTRY contains all 6 widget types, (2) each widget has valid metadata with required fields, (3) default sizes are reasonable grid dimensions"
+  ],
+  "acceptance_criteria": [
+    "WidgetConfig interface includes id, type, title, position {x, y}, size {w, h}, and optional config object",
+    "WIDGET_REGISTRY maps all 6 existing dashboard cards to WidgetMetadata with appropriate categories and default sizes",
+    "WidgetWrapper component renders the correct child component based on widget type and passes through necessary props (kpis, data, filters, settings)",
+    "useDashboardLayout hook successfully migrates old localStorage format to new WidgetConfig[] schema",
+    "Unit tests for widget-registry pass with npm test"
+  ],
+  "verification": [
+    "Run `npm test` and confirm widget-registry.test.ts passes all assertions",
+    "Import useDashboardLayout in a test file and verify it returns expected functions and handles localStorage migration",
+    "Render WidgetWrapper with each widget type in Storybook or test harness and confirm correct component loads"
+  ],
+  "blocked_reason": null,
+  "findings": "Successfully implemented core widget system architecture. All 6 widget types (kpi, revenueChart, paymentMethodChart, hourlySalesChart, salesByCountry, topCampaigns) are registered with correct metadata and default grid sizes. WidgetWrapper component correctly maps widget types to existing dashboard components and passes appropriate props from useDashboard data. useDashboardLayout hook successfully handles localStorage migration from V1 (activeCards array) to V2 (WidgetConfig[] with positions). All unit tests pass. Build completes without errors. Ready for FEAT-002 to implement grid layout and FEAT-003 to implement drag-and-drop functionality."
+}
