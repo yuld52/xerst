@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "@/lib/import-navigation";
 import { DashboardHeader } from "./components/DashboardHeader";
+import { DashboardEditor, type DashboardConfig } from "./components/DashboardEditor";
 import { KpiGrid } from "./components/KpiGrid";
 import { RevenueChart } from "./components/RevenueChart";
 import { PaymentMethodChart } from "./components/PaymentMethodChart";
@@ -14,6 +15,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import type { UpsellOption } from "@/types/sale";
 
+const STORAGE_KEY = "dashboard-config";
+
 export default function DashboardPage() {
   const { data, settings, loading, filters, setFilters, reload } = useDashboard();
   const navigate = useNavigate();
@@ -21,6 +24,38 @@ export default function DashboardPage() {
   const [upsells, setUpsells] = useState<UpsellOption[]>([]);
   const [platforms, setPlatforms] = useState<{ value: string; label: string }[]>([]);
   const [accounts, setAccounts] = useState<{ slug: string; name: string; platform: string }[]>([]);
+  
+  // Dashboard configuration
+  const [dashboardConfig, setDashboardConfig] = useState<DashboardConfig>(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch {
+        return {
+          kpis: true,
+          revenueChart: true,
+          paymentMethodChart: true,
+          topCampaigns: true,
+          hourlySalesChart: true,
+          salesByCountry: true,
+        };
+      }
+    }
+    return {
+      kpis: true,
+      revenueChart: true,
+      paymentMethodChart: true,
+      topCampaigns: true,
+      hourlySalesChart: true,
+      salesByCountry: true,
+    };
+  });
+
+  const handleConfigChange = (config: DashboardConfig) => {
+    setDashboardConfig(config);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+  };
 
   useEffect(() => {
     if (data?.meta_error === "token_invalid") {
@@ -74,33 +109,51 @@ export default function DashboardPage() {
         </div>
       ) : (
         <>
-          <KpiGrid
-            kpis={data.kpis}
-            taxEnabled={filters.taxEnabled}
-            taxRate={settings?.tax_rate ?? 0}
-            opCostsEnabled={filters.opCostsEnabled}
-            opCostsTotal={settings?.operational_costs.reduce((s, c) => s + c.amount, 0) ?? 0}
-          />
-          <div className="grid gap-3 sm:gap-4 lg:gap-5 lg:grid-cols-3">
-            <div className="lg:col-span-2">
-              <RevenueChart data={data.daily_revenue} />
+          {dashboardConfig.kpis && (
+            <KpiGrid
+              kpis={data.kpis}
+              taxEnabled={filters.taxEnabled}
+              taxRate={settings?.tax_rate ?? 0}
+              opCostsEnabled={filters.opCostsEnabled}
+              opCostsTotal={settings?.operational_costs.reduce((s, c) => s + c.amount, 0) ?? 0}
+            />
+          )}
+          
+          {(dashboardConfig.revenueChart || dashboardConfig.paymentMethodChart) && (
+            <div className="grid gap-3 sm:gap-4 lg:gap-5 lg:grid-cols-3">
+              {dashboardConfig.revenueChart && (
+                <div className="lg:col-span-2">
+                  <RevenueChart data={data.daily_revenue} />
+                </div>
+              )}
+              {dashboardConfig.paymentMethodChart && (
+                <PaymentMethodChart data={data.payment_distribution} />
+              )}
             </div>
-            <PaymentMethodChart data={data.payment_distribution} />
-          </div>
-          <div className="grid gap-3 sm:gap-4 lg:gap-5 lg:grid-cols-3">
-            <div className="flex flex-col gap-3 sm:gap-4 lg:gap-5">
-              <TopCampaigns data={data.top_campaigns} />
-              <HourlySalesChart data={data.hourly_sales} />
+          )}
+
+          {(dashboardConfig.topCampaigns || dashboardConfig.hourlySalesChart || dashboardConfig.salesByCountry) && (
+            <div className="grid gap-3 sm:gap-4 lg:gap-5 lg:grid-cols-3">
+              {(dashboardConfig.topCampaigns || dashboardConfig.hourlySalesChart) && (
+                <div className="flex flex-col gap-3 sm:gap-4 lg:gap-5">
+                  {dashboardConfig.topCampaigns && <TopCampaigns data={data.top_campaigns} />}
+                  {dashboardConfig.hourlySalesChart && <HourlySalesChart data={data.hourly_sales} />}
+                </div>
+              )}
+              {dashboardConfig.salesByCountry && (
+                <div className="lg:col-span-2">
+                  <SalesByCountryCard
+                    startDate={filters.datePreset === "custom" ? filters.dateStart : undefined}
+                    endDate={filters.datePreset === "custom" ? filters.dateEnd : undefined}
+                  />
+                </div>
+              )}
             </div>
-            <div className="lg:col-span-2">
-              <SalesByCountryCard
-                startDate={filters.datePreset === "custom" ? filters.dateStart : undefined}
-                endDate={filters.datePreset === "custom" ? filters.dateEnd : undefined}
-              />
-            </div>
-          </div>
+          )}
         </>
       )}
+      
+      <DashboardEditor config={dashboardConfig} onConfigChange={handleConfigChange} />
     </div>
   );
 }
