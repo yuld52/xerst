@@ -251,7 +251,7 @@ export function SalesByCountryCard({ startDate, endDate }: SalesByCountryCardPro
   );
 
   return (
-    <Card className="rounded-xl bg-card border border-white/[0.08] shadow-sm flex flex-col overflow-hidden min-h-[400px]">
+    <Card className="rounded-xl bg-card border border-white/[0.08] shadow-sm flex flex-col overflow-hidden min-h-[320px]">
       {/* Header */}
       <CardHeader className="px-4 py-3 sm:px-5 sm:py-3.5 border-b border-white/[0.04]">
         <div className="flex items-center justify-between gap-2">
@@ -351,7 +351,7 @@ export function SalesByCountryCard({ startDate, endDate }: SalesByCountryCardPro
 
         {/* Ranking view */}
         {!loading && !error && data.length > 0 && viewMode === "ranking" && (
-          <div className="flex flex-col gap-1.5 overflow-y-auto max-h-[280px] pr-1">
+          <div className="flex flex-col gap-1.5 overflow-y-auto max-h-[220px] pr-1">
             {sorted.map((entry, idx) => {
               const pct = totalSales > 0 ? (entry.sales / totalSales) * 100 : 0;
               return (
