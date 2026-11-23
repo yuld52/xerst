@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { RiCheckLine, RiDraggable } from "@remixicon/react";
+import { RiCheckLine, RiDraggable, RiArrowDownSLine, RiArrowUpSLine } from "@remixicon/react";
 import {
   DndContext,
   closestCenter,
@@ -28,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 export interface DashboardConfig {
   kpis: boolean;
@@ -49,32 +50,44 @@ const DEFAULT_CONFIG: DashboardConfig = {
   order: ["kpis", "revenueChart", "paymentMethodChart", "topCampaigns", "hourlySalesChart", "salesByCountry"],
 };
 
-const CARD_LABELS: Record<string, { title: string; description: string }> = {
+const CARD_LABELS: Record<string, { title: string; description: string; category: string }> = {
   kpis: {
     title: "Resumo (KPIs)",
     description: "Cards com métricas principais: faturamento, vendas, ticket médio, etc.",
+    category: "general",
   },
   revenueChart: {
     title: "Faturamento Líquido",
     description: "Gráfico de linha com faturamento diário",
+    category: "charts",
   },
   paymentMethodChart: {
     title: "Meios de Pagamento",
     description: "Distribuição por forma de pagamento",
+    category: "charts",
   },
   hourlySalesChart: {
     title: "Vendas por Horário",
     description: "Gráfico de barras com vendas por hora do dia",
+    category: "charts",
   },
   salesByCountry: {
     title: "Vendas por País",
     description: "Mapa interativo com vendas por localização",
+    category: "charts",
   },
   topCampaigns: {
     title: "Top Campanhas",
     description: "Lista das campanhas com melhor desempenho",
+    category: "rankings",
   },
 };
+
+const CATEGORIES = [
+  { id: "general", title: "Geral" },
+  { id: "charts", title: "Gráficos Avançados" },
+  { id: "rankings", title: "Rankings" },
+];
 
 interface SortableCardItemProps {
   id: string;
@@ -120,10 +133,7 @@ function SortableCardItem({ id, checked, onToggle }: SortableCardItemProps) {
         htmlFor={id}
         className="flex flex-col space-y-1 cursor-pointer flex-1"
       >
-        <span className="font-medium">{cardInfo.title}</span>
-        <span className="text-xs text-muted-foreground">
-          {cardInfo.description}
-        </span>
+        <span className="font-medium text-sm">{cardInfo.title}</span>
       </Label>
       
       <Switch
@@ -144,6 +154,11 @@ interface DashboardEditorProps {
 
 export function DashboardEditor({ open, onOpenChange, config, onConfigChange }: DashboardEditorProps) {
   const [localConfig, setLocalConfig] = useState(config);
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    general: true,
+    charts: true,
+    rankings: true,
+  });
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -190,49 +205,79 @@ export function DashboardEditor({ open, onOpenChange, config, onConfigChange }: 
     setLocalConfig((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
+  const toggleSection = (sectionId: string) => {
+    setOpenSections((prev) => ({ ...prev, [sectionId]: !prev[sectionId] }));
+  };
+
+  const getCardsForCategory = (categoryId: string) => {
+    return localConfig.order.filter((cardId) => CARD_LABELS[cardId]?.category === categoryId);
+  };
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent side="right" className="w-[90%] md:w-[500px] overflow-y-auto">
           <SheetHeader className="mb-6">
-            <SheetTitle>Editar Dashboard</SheetTitle>
+            <SheetTitle>Métricas Disponíveis</SheetTitle>
             <SheetDescription>
               Arraste os cards para reordenar e ative/desative os que deseja visualizar
             </SheetDescription>
           </SheetHeader>
 
-          <div className="space-y-4">
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
-            >
-              <SortableContext
-                items={localConfig.order}
-                strategy={verticalListSortingStrategy}
-              >
-                {localConfig.order.map((cardId) => (
-                  <SortableCardItem
-                    key={cardId}
-                    id={cardId}
-                    checked={localConfig[cardId as keyof DashboardConfig] as boolean}
-                    onToggle={() => toggleCard(cardId as keyof DashboardConfig)}
-                  />
-                ))}
-              </SortableContext>
-            </DndContext>
-          </div>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <div className="space-y-4">
+              {CATEGORIES.map((category) => {
+                const cards = getCardsForCategory(category.id);
+                if (cards.length === 0) return null;
+
+                return (
+                  <Collapsible
+                    key={category.id}
+                    open={openSections[category.id]}
+                    onOpenChange={() => toggleSection(category.id)}
+                  >
+                    <div className="space-y-2">
+                      <CollapsibleTrigger className="flex w-full items-center justify-between py-2 text-sm font-semibold hover:text-primary transition-colors">
+                        <span>{category.title}</span>
+                        {openSections[category.id] ? (
+                          <RiArrowUpSLine className="size-5" />
+                        ) : (
+                          <RiArrowDownSLine className="size-5" />
+                        )}
+                      </CollapsibleTrigger>
+                      
+                      <CollapsibleContent className="space-y-2">
+                        <SortableContext
+                          items={cards}
+                          strategy={verticalListSortingStrategy}
+                        >
+                          {cards.map((cardId) => (
+                            <SortableCardItem
+                              key={cardId}
+                              id={cardId}
+                              checked={localConfig[cardId as keyof DashboardConfig] as boolean}
+                              onToggle={() => toggleCard(cardId as keyof DashboardConfig)}
+                            />
+                          ))}
+                        </SortableContext>
+                      </CollapsibleContent>
+                    </div>
+                  </Collapsible>
+                );
+              })}
+            </div>
+          </DndContext>
 
           {/* Footer Actions */}
           <div className="mt-8 space-y-3">
-            <Button onClick={handleReset} variant="outline" className="w-full">
-              Restaurar padrão
-            </Button>
             <div className="flex gap-2">
               <Button onClick={handleCancel} variant="outline" className="flex-1">
                 Cancelar
               </Button>
               <Button onClick={handleSave} className="flex-1">
-                <RiCheckLine className="size-4 mr-2" />
                 Salvar
               </Button>
             </div>

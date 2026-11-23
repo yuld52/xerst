@@ -135,45 +135,47 @@ export default function DashboardPage() {
               );
             }
             
-            if (cardId === "revenueChart" && dashboardConfig.revenueChart) {
+            if (cardId === "revenueChart" && (dashboardConfig.revenueChart || dashboardConfig.paymentMethodChart)) {
+              const hasRevenueChart = dashboardConfig.revenueChart;
+              const hasPaymentChart = dashboardConfig.paymentMethodChart;
+              
+              if (!hasRevenueChart && !hasPaymentChart) return null;
+              
               return (
-                <div key="revenueChart" className="lg:col-span-2">
-                  <RevenueChart data={data.daily_revenue} />
+                <div key="charts-row-1" className="grid gap-3 sm:gap-4 lg:gap-5 lg:grid-cols-3">
+                  {hasRevenueChart && (
+                    <div className="lg:col-span-2">
+                      <RevenueChart data={data.daily_revenue} />
+                    </div>
+                  )}
+                  {hasPaymentChart && <PaymentMethodChart data={data.payment_distribution} />}
                 </div>
               );
             }
             
-            if (cardId === "paymentMethodChart" && dashboardConfig.paymentMethodChart) {
+            if (cardId === "topCampaigns" && (dashboardConfig.topCampaigns || dashboardConfig.hourlySalesChart || dashboardConfig.salesByCountry)) {
+              const hasTopCampaigns = dashboardConfig.topCampaigns;
+              const hasHourlySales = dashboardConfig.hourlySalesChart;
+              const hasSalesByCountry = dashboardConfig.salesByCountry;
+              
+              if (!hasTopCampaigns && !hasHourlySales && !hasSalesByCountry) return null;
+              
               return (
-                <div key="paymentMethodChart">
-                  <PaymentMethodChart data={data.payment_distribution} />
-                </div>
-              );
-            }
-            
-            if (cardId === "topCampaigns" && dashboardConfig.topCampaigns) {
-              return (
-                <div key="topCampaigns">
-                  <TopCampaigns data={data.top_campaigns} />
-                </div>
-              );
-            }
-            
-            if (cardId === "hourlySalesChart" && dashboardConfig.hourlySalesChart) {
-              return (
-                <div key="hourlySalesChart">
-                  <HourlySalesChart data={data.hourly_sales} />
-                </div>
-              );
-            }
-            
-            if (cardId === "salesByCountry" && dashboardConfig.salesByCountry) {
-              return (
-                <div key="salesByCountry">
-                  <SalesByCountryCard
-                    startDate={filters.datePreset === "custom" ? filters.dateStart : undefined}
-                    endDate={filters.datePreset === "custom" ? filters.dateEnd : undefined}
-                  />
+                <div key="charts-row-2" className="grid gap-3 sm:gap-4 lg:gap-5 lg:grid-cols-3">
+                  {(hasTopCampaigns || hasHourlySales) && (
+                    <div className="flex flex-col gap-3 sm:gap-4 lg:gap-5">
+                      {hasTopCampaigns && <TopCampaigns data={data.top_campaigns} />}
+                      {hasHourlySales && <HourlySalesChart data={data.hourly_sales} />}
+                    </div>
+                  )}
+                  {hasSalesByCountry && (
+                    <div className="lg:col-span-2">
+                      <SalesByCountryCard
+                        startDate={filters.datePreset === "custom" ? filters.dateStart : undefined}
+                        endDate={filters.datePreset === "custom" ? filters.dateEnd : undefined}
+                      />
+                    </div>
+                  )}
                 </div>
               );
             }
