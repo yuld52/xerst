@@ -137,7 +137,13 @@ export function SalesTable({
                             variant="outline"
                             className={`text-[10px] font-medium border ${platform}`}
                           >
-                            {sale.platform === "kiwify" ? "Kiwify" : "PayT"}
+                            {sale.platform === "kiwify" 
+                              ? "Kiwify" 
+                              : sale.platform === "hotmart" 
+                              ? "Hotmart"
+                              : sale.platform === "payt"
+                              ? "PayT"
+                              : "API"}
                           </Badge>
                         </TableCell>
                         <TableCell>

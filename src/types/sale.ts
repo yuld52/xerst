@@ -3,7 +3,7 @@
 export interface SaleAPI {
   id: number;
   external_id: string;
-  platform: "kiwify" | "payt" | "hotmart";
+  platform: "kiwify" | "payt" | "hotmart" | "api";
   status: "approved" | "refunded" | "chargeback" | "pending" | "trial";
   amount: number;
   amount_mzn?: number | null;

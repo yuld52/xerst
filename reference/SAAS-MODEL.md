@@ -315,7 +315,7 @@ Authorization: Bearer {token}
 ## 🆘 Suporte
 
 Dúvidas? Entre em contato:
-- Email: suporte@lomustrack.com
+- Email: suporte@lomustrack.online
 - Documentação completa: [em construção]
 
 ---

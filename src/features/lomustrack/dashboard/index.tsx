@@ -6,7 +6,7 @@ import { RevenueChart } from "./components/RevenueChart";
 import { PaymentMethodChart } from "./components/PaymentMethodChart";
 import { TopCampaigns } from "./components/TopCampaigns";
 import { HourlySalesChart } from "./components/HourlySalesChart";
-import { BuyersLocationCard } from "./components/BuyersLocationCard";
+import { SalesByCountryCard } from "./components/SalesByCountryCard";
 import { GlobalFilterBar } from "@/components/layout/GlobalFilterBar";
 import { useDashboard } from "@/hooks/use-dashboard";
 import { fetchCustomersFilterOptions } from "@/services/customers";
@@ -88,13 +88,16 @@ export default function DashboardPage() {
             <PaymentMethodChart data={data.payment_distribution} />
           </div>
           <div className="grid gap-3 sm:gap-4 lg:gap-5 lg:grid-cols-3">
-            <TopCampaigns data={data.top_campaigns} />
-            <HourlySalesChart data={data.hourly_sales} />
-            <BuyersLocationCard
-              data={data.buyer_locations}
-              totalSales={data.kpis?.total_sales}
-              totalRevenue={data.kpis?.total_revenue}
-            />
+            <div className="flex flex-col gap-3 sm:gap-4 lg:gap-5">
+              <TopCampaigns data={data.top_campaigns} />
+              <HourlySalesChart data={data.hourly_sales} />
+            </div>
+            <div className="lg:col-span-2">
+              <SalesByCountryCard
+                startDate={filters.datePreset === "custom" ? filters.dateStart : undefined}
+                endDate={filters.datePreset === "custom" ? filters.dateEnd : undefined}
+              />
+            </div>
           </div>
         </>
       )}

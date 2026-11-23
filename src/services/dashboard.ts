@@ -22,3 +22,19 @@ function buildQuery(params: DashboardParams): string {
 export async function fetchDashboardOverview(params: DashboardParams): Promise<DashboardOverview> {
   return apiRequest<DashboardOverview>(`/dashboard/overview${buildQuery(params)}`);
 }
+
+export interface SalesByCountry {
+  country_code: string;
+  country_name: string;
+  sales: number;
+  revenue: number;
+}
+
+interface SalesByCountryParams {
+  start_date?: string;
+  end_date?: string;
+}
+
+export async function fetchSalesByCountry(params: SalesByCountryParams): Promise<SalesByCountry[]> {
+  return apiRequest<SalesByCountry[]>(`/dashboard/sales-by-country${buildQuery(params)}`);
+}

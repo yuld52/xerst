@@ -38,6 +38,15 @@ export function UtmDetailModal({ sale, onClose }: UtmDetailModalProps) {
               >
                 {sale.external_id}
               </a>
+            ) : sale.platform === "hotmart" ? (
+              <a
+                href={`https://app-vlc.hotmart.com/tools/sales/${sale.external_id}`}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-0.5 text-sm font-medium font-mono text-blue-500 hover:underline"
+              >
+                {sale.external_id}
+              </a>
             ) : (
               <p className="mt-0.5 text-sm font-medium font-mono">{sale.external_id}</p>
             )}

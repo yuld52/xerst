@@ -1,0 +1,18 @@
+{
+  "verdict": "CHANGES_REQUESTED",
+  "findings": [
+    {
+      "id": "KEY_LENGTH_OVERFLOW",
+      "severity": "blocker",
+      "title": "Generated key is 49 chars but column allows only 48",
+      "files": [
+        "reference/original-backend/api/advanced_settings/mcp.py",
+        "reference/original-backend/database/models/company.py",
+        "reference/original-backend/database/migrations/2026_11_22_mcp_api_key.sql"
+      ],
+      "detail": "secrets.token_hex(20) returns 40 hex characters. 'mcp_live_' is 9 characters. Total: 49 characters. The column is defined as String(48) / VARCHAR(48). Every call to _new_mcp_key() — on first enable and on regenerate — will produce a value that exceeds the column limit, causing PostgreSQL to raise DataError (value too long for type character varying(48)) and returning a 500 on those endpoints.",
+      "correction": "Either (a) change String(48) to String(49) in company.py and VARCHAR(48) to VARCHAR(49) in the SQL migration, keeping token_hex(20); or (b) change token_hex(20) to token_hex(19) (yielding 47-char keys) while leaving the 48-char column. The mock DEMO_KEY of 48 chars confirms 48 was the intended column size, so option (b) is the more consistent fix."
+    }
+  ],
+  "reviewDoc": "c:\\Users\\Vendasfg\\Downloads\\soclt-main\\soclt-main\\.agents\\tasks\\mcp-api-key\\review.md"
+}

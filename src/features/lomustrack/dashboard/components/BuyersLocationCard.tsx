@@ -33,66 +33,61 @@ function proj(lng: number, lat: number): [number, number] {
   return [((lng + 180) / 360) * W, ((90 - lat) / 180) * H];
 }
 
-// ─── World map paths (Natural Earth 110m, simplified) ───────────────────────
-// Each string is one country/region path in equirectangular 1000×500 space
+// World land masses as SVG paths in equirectangular 1000×500 projection
+// Coordinates pre-computed: x=((lng+180)/360)*1000, y=((90-lat)/180)*500
 const LAND_PATH = [
-  // North America
-  "M 33 55 L 42 50 L 58 48 L 72 44 L 85 42 L 92 46 L 97 54 L 103 58 L 108 64 L 112 72 L 115 80 L 112 88 L 106 96 L 98 103 L 90 108 L 82 112 L 74 115 L 66 118 L 58 115 L 50 110 L 44 103 L 38 95 L 34 85 L 32 74 Z",
+  // North America (mainland)
+  "M 42,61 L 55,55 L 72,52 L 90,48 L 108,46 L 120,52 L 128,60 L 133,70 L 138,80 L 140,92 L 136,104 L 128,114 L 118,122 L 108,128 L 98,132 L 88,136 L 78,138 L 68,135 L 58,128 L 50,118 L 44,106 L 40,94 L 38,80 L 40,68 Z",
   // Greenland
-  "M 155 20 L 168 15 L 182 14 L 192 18 L 196 26 L 192 34 L 180 38 L 168 38 L 158 32 L 153 24 Z",
-  // Central America + Caribbean
-  "M 112 108 L 118 105 L 123 108 L 125 115 L 120 120 L 113 118 Z",
-  "M 128 108 L 135 105 L 140 108 L 138 114 L 130 113 Z",
-  // South America
-  "M 148 112 L 162 108 L 175 108 L 185 112 L 192 120 L 196 132 L 198 148 L 198 165 L 194 182 L 188 198 L 178 212 L 165 222 L 152 222 L 142 215 L 136 200 L 134 185 L 136 168 L 138 152 L 140 138 L 143 125 Z",
-  // Europe
-  "M 448 60 L 462 56 L 478 55 L 492 58 L 500 65 L 498 74 L 490 80 L 480 85 L 470 88 L 460 86 L 452 80 L 446 72 Z",
-  "M 440 70 L 448 66 L 452 72 L 448 80 L 440 78 Z",
-  "M 462 42 L 472 36 L 482 40 L 486 50 L 480 56 L 470 55 L 462 50 Z",
-  "M 450 55 L 456 52 L 462 56 L 460 64 L 452 62 Z",
-  // UK
-  "M 436 60 L 442 56 L 448 60 L 445 68 L 438 67 Z",
-  // Iceland
-  "M 400 38 L 408 34 L 416 36 L 418 44 L 410 48 L 402 44 Z",
-  // Africa
-  "M 452 112 L 466 106 L 482 106 L 496 110 L 508 118 L 515 132 L 518 148 L 518 166 L 514 182 L 506 196 L 494 208 L 480 214 L 466 212 L 453 204 L 444 190 L 440 174 L 440 158 L 443 142 L 448 128 Z",
-  "M 522 180 L 528 172 L 534 178 L 532 188 L 524 190 Z",
-  // Middle East
-  "M 530 95 L 545 88 L 560 90 L 568 100 L 562 112 L 548 116 L 534 110 Z",
-  // Central Asia / Russia
-  "M 540 42 L 570 35 L 610 32 L 650 34 L 680 38 L 700 45 L 710 55 L 702 65 L 685 70 L 660 72 L 635 70 L 610 68 L 585 65 L 562 60 L 545 52 Z",
-  // South Asia (India)
-  "M 590 110 L 604 105 L 616 108 L 622 118 L 620 132 L 614 144 L 604 152 L 592 148 L 584 136 L 582 122 Z",
-  // Southeast Asia
-  "M 650 112 L 664 106 L 674 110 L 678 122 L 670 132 L 656 130 L 648 120 Z",
-  "M 672 128 L 680 122 L 688 126 L 686 136 L 676 138 Z",
-  // China / East Asia
-  "M 640 60 L 660 54 L 682 55 L 700 62 L 710 72 L 708 85 L 695 95 L 675 100 L 655 98 L 638 90 L 632 76 Z",
-  // Japan
-  "M 718 65 L 726 60 L 732 65 L 730 75 L 722 78 L 716 72 Z",
-  // Korea
-  "M 706 68 L 714 65 L 718 72 L 714 80 L 706 78 Z",
-  // Indonesia / Malaysia
-  "M 660 150 L 672 144 L 684 148 L 686 158 L 674 162 L 662 158 Z",
-  "M 690 155 L 702 150 L 712 154 L 710 164 L 698 166 L 688 162 Z",
-  "M 648 158 L 658 152 L 668 156 L 666 166 L 654 168 Z",
-  // Philippines
-  "M 710 110 L 718 104 L 726 108 L 724 120 L 714 122 Z",
-  // Australia
-  "M 718 215 L 736 206 L 756 204 L 774 208 L 788 218 L 795 232 L 794 248 L 786 262 L 772 272 L 752 276 L 732 272 L 714 260 L 706 244 L 706 228 Z",
-  // New Zealand
-  "M 802 262 L 810 256 L 816 262 L 814 272 L 806 274 Z",
-  "M 806 278 L 812 272 L 816 278 L 812 288 L 806 286 Z",
-  // Madagascar
-  "M 528 192 L 534 184 L 540 188 L 540 200 L 534 206 L 528 200 Z",
-  // Sri Lanka
-  "M 606 150 L 610 146 L 614 150 L 612 156 L 607 155 Z",
-  // Taiwan
-  "M 710 100 L 714 96 L 718 100 L 716 108 L 711 107 Z",
+  "M 158,22 L 172,16 L 188,14 L 200,18 L 206,28 L 202,38 L 190,44 L 176,44 L 164,38 L 156,28 Z",
   // Alaska
-  "M 25 42 L 36 36 L 48 38 L 55 46 L 48 52 L 36 52 Z",
-  // Norway/Scandinavia tip
-  "M 480 32 L 490 26 L 500 30 L 498 42 L 486 44 Z",
+  "M 25,52 L 38,46 L 52,48 L 58,56 L 50,64 L 36,64 Z",
+  // Central America
+  "M 118,122 L 126,118 L 132,122 L 134,130 L 128,136 L 120,132 Z",
+  // Cuba
+  "M 130,118 L 140,114 L 148,116 L 146,122 L 136,124 Z",
+  // South America
+  "M 162,130 L 178,124 L 194,124 L 206,130 L 212,142 L 216,158 L 218,176 L 216,196 L 210,214 L 200,230 L 186,242 L 170,248 L 155,244 L 144,232 L 138,216 L 136,198 L 138,180 L 142,162 L 148,146 L 154,134 Z",
+  // Europe (mainland)
+  "M 448,70 L 462,64 L 480,62 L 496,66 L 506,74 L 504,84 L 494,92 L 480,98 L 466,100 L 452,96 L 444,86 L 444,76 Z",
+  // Iberian Peninsula
+  "M 436,88 L 448,84 L 456,88 L 454,100 L 442,104 L 434,96 Z",
+  // UK + Ireland
+  "M 430,66 L 440,62 L 448,66 L 446,76 L 436,78 L 428,74 Z",
+  // Scandinavia
+  "M 464,52 L 478,44 L 490,48 L 494,60 L 488,72 L 476,76 L 464,70 Z",
+  // Iceland
+  "M 394,46 L 406,40 L 418,42 L 420,52 L 410,58 L 398,54 Z",
+  // Africa
+  "M 448,116 L 466,108 L 486,108 L 504,114 L 516,126 L 522,142 L 524,162 L 520,182 L 512,200 L 500,214 L 484,222 L 468,222 L 452,214 L 441,198 L 437,180 L 438,160 L 442,140 L 446,128 Z",
+  // Madagascar
+  "M 528,186 L 536,178 L 542,184 L 540,198 L 532,204 L 526,196 Z",
+  // Arabian Peninsula
+  "M 536,106 L 552,98 L 568,100 L 574,112 L 568,126 L 552,132 L 537,124 Z",
+  // Russia / Central Asia (simplified)
+  "M 500,54 L 540,42 L 590,36 L 650,34 L 700,38 L 730,46 L 740,58 L 726,68 L 700,74 L 660,76 L 620,74 L 580,70 L 548,68 L 518,66 L 500,62 Z",
+  // India
+  "M 594,110 L 610,104 L 622,108 L 628,120 L 626,136 L 618,148 L 606,156 L 594,150 L 585,138 L 584,122 Z",
+  // Southeast Asia (Indochina)
+  "M 652,114 L 668,108 L 678,112 L 682,124 L 674,136 L 658,138 L 647,128 Z",
+  // China / East Asia
+  "M 630,68 L 656,60 L 684,60 L 706,68 L 716,80 L 712,94 L 696,104 L 672,108 L 650,106 L 632,96 L 626,82 Z",
+  // Japan
+  "M 724,70 L 734,64 L 740,70 L 738,80 L 728,84 L 720,78 Z",
+  // Borneo
+  "M 680,148 L 694,140 L 706,144 L 708,158 L 696,164 L 680,160 Z",
+  // Sumatra
+  "M 648,148 L 662,140 L 674,144 L 672,158 L 658,162 L 646,156 Z",
+  // Java
+  "M 672,164 L 684,160 L 694,162 L 692,170 L 680,172 L 670,168 Z",
+  // Philippines
+  "M 710,112 L 720,106 L 728,110 L 726,122 L 716,124 L 708,118 Z",
+  // Australia
+  "M 718,218 L 740,208 L 762,206 L 782,212 L 795,226 L 798,244 L 790,260 L 774,272 L 752,278 L 730,274 L 712,260 L 705,244 L 706,228 Z",
+  // New Zealand N
+  "M 806,264 L 814,258 L 820,264 L 818,274 L 810,276 Z",
+  // New Zealand S
+  "M 808,278 L 816,272 L 820,278 L 816,290 L 808,288 Z",
 ].join(" ");
 
 interface WorldMapSVGProps {
@@ -153,7 +148,7 @@ function WorldMapSVG({ locations, selectedLocation, onSelectLocation }: WorldMap
       {locations.map((loc) => {
         const [x, y] = proj(loc.lng, loc.lat);
         const isSelected = selectedLocation.city === loc.city;
-        const r = isSelected ? 7 : Math.max(3.5, Math.min(5.5, 3.5 + (loc.sales / maxSales) * 2));
+        const r = isSelected ? 5 : Math.max(2.5, Math.min(4, 2.5 + (loc.sales / maxSales) * 1.5));
 
         return (
           <g
@@ -163,16 +158,12 @@ function WorldMapSVG({ locations, selectedLocation, onSelectLocation }: WorldMap
           >
             {isSelected && (
               <>
-                {/* Outer atmosphere */}
-                <circle cx={x} cy={y} r={r + 16} fill="url(#glow-sel)" />
-                {/* Pulsing rings */}
-                <circle cx={x} cy={y} r={r + 10} fill="none" stroke="#3b82f6" strokeWidth="1" strokeOpacity="0.2" />
-                <circle cx={x} cy={y} r={r + 5} fill="none" stroke="#3b82f6" strokeWidth="1.5" strokeOpacity="0.35" />
+                <circle cx={x} cy={y} r={r + 10} fill="url(#glow-sel)" />
+                <circle cx={x} cy={y} r={r + 6} fill="none" stroke="#3b82f6" strokeWidth="1" strokeOpacity="0.25" />
+                <circle cx={x} cy={y} r={r + 3} fill="none" stroke="#3b82f6" strokeWidth="1.5" strokeOpacity="0.4" />
               </>
             )}
-            {/* Dot shadow */}
-            <circle cx={x + 1} cy={y + 1} r={r} fill="#000" opacity={0.3} />
-            {/* Main dot */}
+            <circle cx={x + 0.5} cy={y + 0.5} r={r} fill="#000" opacity={0.25} />
             <circle
               cx={x} cy={y} r={r}
               fill={isSelected ? "#3b82f6" : "#1d4ed8"}
@@ -180,7 +171,6 @@ function WorldMapSVG({ locations, selectedLocation, onSelectLocation }: WorldMap
               strokeWidth={isSelected ? 1.5 : 1}
               filter={isSelected ? "url(#blur-glow)" : undefined}
             />
-            {/* Bright core */}
             <circle cx={x} cy={y} r={r * 0.38} fill={isSelected ? "#dbeafe" : "#93c5fd"} opacity={0.9} />
           </g>
         );
