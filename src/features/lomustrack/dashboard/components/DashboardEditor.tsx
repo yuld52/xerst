@@ -75,9 +75,10 @@ const CATEGORIES = [
 interface SortableCardItemProps {
   id: string;
   isActive: boolean;
+  onClick?: () => void;
 }
 
-function SortableCardItem({ id, isActive }: SortableCardItemProps) {
+function SortableCardItem({ id, isActive, onClick }: SortableCardItemProps) {
   const {
     attributes,
     listeners,
@@ -85,7 +86,7 @@ function SortableCardItem({ id, isActive }: SortableCardItemProps) {
     transform,
     transition,
     isDragging,
-  } = useSortable({ id });
+  } = useSortable({ id, disabled: !isActive });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -99,15 +100,16 @@ function SortableCardItem({ id, isActive }: SortableCardItemProps) {
     <div
       ref={setNodeRef}
       style={style}
-      {...attributes}
-      {...listeners}
-      className={`flex items-center gap-2 p-3 rounded-lg border cursor-grab active:cursor-grabbing transition-all ${
-        isDragging ? "shadow-lg" : ""
-      } ${isActive ? "bg-primary/10 border-primary" : "bg-card"}`}
+      {...(isActive ? attributes : {})}
+      {...(isActive ? listeners : {})}
+      onClick={!isActive ? onClick : undefined}
+      className={`flex items-center gap-2 px-3 py-2.5 rounded transition-colors ${
+        isActive 
+          ? "cursor-grab active:cursor-grabbing text-foreground hover:bg-accent" 
+          : "cursor-pointer text-muted-foreground hover:bg-accent/50 hover:text-foreground"
+      } ${isDragging ? "bg-primary/20" : ""}`}
     >
-      <RiDraggable className="size-5 text-muted-foreground" />
-      
-      <span className="font-medium text-sm flex-1">{cardInfo.title}</span>
+      <span className="text-sm flex-1">{cardInfo.title}</span>
     </div>
   );
 }
@@ -148,7 +150,7 @@ export function DashboardEditor({ open, onOpenChange, config, onConfigChange }: 
         const activeId = active.id as string;
         const overId = over.id as string;
         
-        // If dragging within activeCards, reorder
+        // Only reorder within activeCards
         if (prev.activeCards.includes(activeId) && prev.activeCards.includes(overId)) {
           const oldIndex = prev.activeCards.indexOf(activeId);
           const newIndex = prev.activeCards.indexOf(overId);
@@ -157,33 +159,28 @@ export function DashboardEditor({ open, onOpenChange, config, onConfigChange }: 
           return { ...prev, activeCards: newActiveCards };
         }
         
-        // If dragging from available to active
-        if (prev.availableCards.includes(activeId) && prev.activeCards.includes(overId)) {
-          const newAvailableCards = prev.availableCards.filter(id => id !== activeId);
-          const targetIndex = prev.activeCards.indexOf(overId);
-          const newActiveCards = [...prev.activeCards];
-          newActiveCards.splice(targetIndex, 0, activeId);
-          
-          return {
-            activeCards: newActiveCards,
-            availableCards: newAvailableCards,
-          };
-        }
-        
-        // If dragging from active to available (remove from dashboard)
-        if (prev.activeCards.includes(activeId) && prev.availableCards.includes(overId)) {
-          const newActiveCards = prev.activeCards.filter(id => id !== activeId);
-          const newAvailableCards = [...prev.availableCards, activeId];
-          
-          return {
-            activeCards: newActiveCards,
-            availableCards: newAvailableCards,
-          };
-        }
-        
         return prev;
       });
     }
+  };
+
+  const handleCardClick = (cardId: string) => {
+    setLocalConfig((prev) => {
+      // If card is active, remove it
+      if (prev.activeCards.includes(cardId)) {
+        return {
+          activeCards: prev.activeCards.filter(id => id !== cardId),
+          availableCards: [...prev.availableCards, cardId],
+        };
+      }
+      // If card is available, add it
+      else {
+        return {
+          activeCards: [...prev.activeCards, cardId],
+          availableCards: prev.availableCards.filter(id => id !== cardId),
+        };
+      }
+    });
   };
 
   const handleSave = () => {
@@ -206,98 +203,70 @@ export function DashboardEditor({ open, onOpenChange, config, onConfigChange }: 
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-[90%] md:w-[500px] overflow-y-auto">
-        <SheetHeader className="mb-6">
-          <SheetTitle>Métricas Disponíveis</SheetTitle>
-          <SheetDescription>
-            Arraste os cards para adicionar ao dashboard ou reordenar
-          </SheetDescription>
-        </SheetHeader>
+      <SheetContent side="left" className="w-[280px] overflow-y-auto p-0">
+        <div className="flex flex-col h-full">
+          <SheetHeader className="p-6 pb-4">
+            <SheetTitle>Métricas Disponíveis</SheetTitle>
+          </SheetHeader>
 
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-        >
-          <div className="space-y-6">
-            {/* Active Cards Section */}
-            <div className="space-y-2">
-              <h3 className="text-sm font-semibold text-primary">No Dashboard</h3>
-              <SortableContext
-                items={localConfig.activeCards}
-                strategy={verticalListSortingStrategy}
-              >
-                <div className="space-y-2 min-h-[100px] p-3 rounded-lg border-2 border-dashed border-primary/30 bg-primary/5">
-                  {localConfig.activeCards.length === 0 ? (
-                    <p className="text-sm text-muted-foreground text-center py-4">
-                      Arraste cards aqui para adicionar ao dashboard
-                    </p>
-                  ) : (
-                    localConfig.activeCards.map((cardId) => (
-                      <SortableCardItem
-                        key={cardId}
-                        id={cardId}
-                        isActive={true}
-                      />
-                    ))
-                  )}
-                </div>
-              </SortableContext>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <div className="flex-1 overflow-y-auto px-6 pb-6">
+              <div className="space-y-1">
+                {CATEGORIES.map((category) => {
+                  const cards = getCardsForCategory(category.id);
+                  
+                  return (
+                    <Collapsible
+                      key={category.id}
+                      open={openSections[category.id]}
+                      onOpenChange={() => toggleSection(category.id)}
+                    >
+                      <div className="space-y-1">
+                        <CollapsibleTrigger className="flex w-full items-center justify-between py-2 text-sm font-medium hover:text-foreground transition-colors text-muted-foreground">
+                          {openSections[category.id] ? (
+                            <RiArrowDownSLine className="size-4 mr-2" />
+                          ) : (
+                            <RiArrowUpSLine className="size-4 mr-2 rotate-180" />
+                          )}
+                          <span className="flex-1 text-left">{category.title}</span>
+                        </CollapsibleTrigger>
+                        
+                        <CollapsibleContent className="space-y-1 pl-6">
+                          {cards.map((cardId) => {
+                            const isActive = localConfig.activeCards.includes(cardId);
+                            
+                            return (
+                              <SortableCardItem
+                                key={cardId}
+                                id={cardId}
+                                isActive={isActive}
+                                onClick={() => handleCardClick(cardId)}
+                              />
+                            );
+                          })}
+                        </CollapsibleContent>
+                      </div>
+                    </Collapsible>
+                  );
+                })}
+              </div>
             </div>
+          </DndContext>
 
-            {/* Available Cards by Category */}
-            {CATEGORIES.map((category) => {
-              const cards = getCardsForCategory(category.id);
-              const availableCardsInCategory = cards.filter(id => localConfig.availableCards.includes(id));
-              
-              if (availableCardsInCategory.length === 0) return null;
-
-              return (
-                <Collapsible
-                  key={category.id}
-                  open={openSections[category.id]}
-                  onOpenChange={() => toggleSection(category.id)}
-                >
-                  <div className="space-y-2">
-                    <CollapsibleTrigger className="flex w-full items-center justify-between py-2 text-sm font-semibold hover:text-primary transition-colors">
-                      <span>{category.title}</span>
-                      {openSections[category.id] ? (
-                        <RiArrowUpSLine className="size-5" />
-                      ) : (
-                        <RiArrowDownSLine className="size-5" />
-                      )}
-                    </CollapsibleTrigger>
-                    
-                    <CollapsibleContent className="space-y-2">
-                      <SortableContext
-                        items={availableCardsInCategory}
-                        strategy={verticalListSortingStrategy}
-                      >
-                        {availableCardsInCategory.map((cardId) => (
-                          <SortableCardItem
-                            key={cardId}
-                            id={cardId}
-                            isActive={false}
-                          />
-                        ))}
-                      </SortableContext>
-                    </CollapsibleContent>
-                  </div>
-                </Collapsible>
-              );
-            })}
-          </div>
-        </DndContext>
-
-        {/* Footer Actions */}
-        <div className="mt-8 space-y-3">
-          <div className="flex gap-2">
-            <Button onClick={handleCancel} variant="outline" className="flex-1">
-              Cancelar
-            </Button>
-            <Button onClick={handleSave} className="flex-1">
-              Salvar
-            </Button>
+          {/* Footer Actions */}
+          <div className="p-6 pt-4 border-t mt-auto">
+            <div className="flex gap-2">
+              <Button onClick={handleCancel} variant="outline" className="flex-1">
+                Cancelar
+              </Button>
+              <Button onClick={handleSave} className="flex-1">
+                Salvar
+              </Button>
+            </div>
           </div>
         </div>
       </SheetContent>
