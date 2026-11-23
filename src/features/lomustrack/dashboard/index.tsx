@@ -88,16 +88,12 @@ export default function DashboardPage() {
             <PaymentMethodChart data={data.payment_distribution} />
           </div>
           <div className="grid gap-3 sm:gap-4 lg:gap-5 lg:grid-cols-3">
-            <div className="lg:col-span-2 flex flex-col gap-3 sm:gap-4 lg:gap-5">
-              <TopCampaigns data={data.top_campaigns} />
-              <HourlySalesChart data={data.hourly_sales} />
-            </div>
-            <div>
-              <SalesByCountryCard
-                startDate={filters.datePreset === "custom" ? filters.dateStart : undefined}
-                endDate={filters.datePreset === "custom" ? filters.dateEnd : undefined}
-              />
-            </div>
+            <TopCampaigns data={data.top_campaigns} />
+            <HourlySalesChart data={data.hourly_sales} />
+            <SalesByCountryCard
+              startDate={filters.datePreset === "custom" ? filters.dateStart : undefined}
+              endDate={filters.datePreset === "custom" ? filters.dateEnd : undefined}
+            />
           </div>
         </>
       )}

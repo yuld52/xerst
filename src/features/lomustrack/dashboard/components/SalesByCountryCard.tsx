@@ -251,7 +251,7 @@ export function SalesByCountryCard({ startDate, endDate }: SalesByCountryCardPro
   );
 
   return (
-    <Card className="rounded-xl bg-card border border-white/[0.08] shadow-sm flex flex-col overflow-hidden min-h-[320px]">
+    <Card className="h-full min-h-[320px] lg:min-h-[360px] rounded-xl bg-card border border-white/[0.08] shadow-sm flex flex-col overflow-hidden">
       {/* Header */}
       <CardHeader className="px-4 py-3 sm:px-5 sm:py-3.5 border-b border-white/[0.04]">
         <div className="flex items-center justify-between gap-2">
