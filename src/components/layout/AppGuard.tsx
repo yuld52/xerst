@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "@/lib/import-navigation";
 import { isAuthenticated, logout } from "@/services/auth";
+import { SubscriptionGuard } from "@/components/SubscriptionGuard";
+import { SubscriptionWarningBanner } from "@/components/SubscriptionWarningBanner";
 
 interface AppGuardProps {
   children: React.ReactNode;
@@ -54,5 +56,12 @@ export function AppGuard({ children }: AppGuardProps) {
     );
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      <SubscriptionGuard>
+        <SubscriptionWarningBanner />
+        {children}
+      </SubscriptionGuard>
+    </>
+  );
 }
