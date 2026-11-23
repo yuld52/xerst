@@ -196,13 +196,13 @@ export function GlobalFilterBar({
         {showEditButton && onEditClick && (
           <div className="ml-auto">
             <Button
-              variant="outline"
+              variant="ghost"
               size="icon"
               onClick={onEditClick}
-              className="h-9 w-9"
+              className="h-9 w-9 hover:bg-transparent hover:text-primary"
               title="Editar Dashboard"
             >
-              <RiPencilLine className="size-4" />
+              <RiPencilLine className="size-5" />
             </Button>
           </div>
         )}
