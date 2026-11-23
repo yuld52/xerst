@@ -43,6 +43,11 @@ const textMap = {
 
 export function PlatformLogo({ platform, size = "md", showLabel = true }: PlatformLogoProps) {
   const config = PLATFORM_CONFIG[platform];
+  
+  if (!config) {
+    console.error(`Invalid platform: ${platform}`);
+    return null;
+  }
 
   if (config.type === "badge") {
     return (
@@ -51,7 +56,7 @@ export function PlatformLogo({ platform, size = "md", showLabel = true }: Platfo
           className={`inline-flex items-center gap-0.5 font-bold tracking-widest uppercase ${textMap[size]} text-primary`}
         >
           <RiCodeSSlashLine className={sizeMap[size]} />
-          {config.label}
+          {showLabel && config.label}
         </span>
       </div>
     );

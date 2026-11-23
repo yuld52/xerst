@@ -56,46 +56,48 @@ export function ProductAccordion({
     <Card className="group/card border-border/40 overflow-hidden hover:border-border/60 transition-colors">
       <Accordion type="single" collapsible>
         <AccordionItem value={String(product.id)} className="border-none">
-          <AccordionTrigger className="px-5 py-4 hover:no-underline hover:bg-muted/20 transition-colors">
-            <div className="flex items-center justify-between w-full pr-3">
-              <div className="flex items-center gap-4">
-                <ProductAvatar name={product.name} logoUrl={product.logoUrl} />
-                <div className="text-left">
-                  <div className="flex items-center gap-2.5">
-                    <span className="font-semibold text-sm">{product.name}</span>
-                    <button
-                      type="button"
-                      className="relative z-10 opacity-0 group-hover/card:opacity-100 transition-opacity p-1 rounded-md hover:bg-muted/60"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        onEditProduct(product);
-                      }}
-                      title="Editar produto"
-                    >
-                      <RiPencilLine className="size-3.5 text-muted-foreground" />
-                    </button>
-                    {platforms.map((p) => (
-                      <Badge
-                        key={p}
-                        variant="outline"
-                        className="text-[10px] font-medium border border-border/50 gap-1 px-2 py-0.5"
-                      >
-                        <PlatformLogo platform={p} size="sm" />
-                      </Badge>
-                    ))}
-                  </div>
-                  <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                    <span>{product.checkouts.length} checkouts</span>
+          <div className="relative">
+            <AccordionTrigger className="px-5 py-4 hover:no-underline hover:bg-muted/20 transition-colors">
+              <div className="flex items-center justify-between w-full pr-3">
+                <div className="flex items-center gap-4">
+                  <ProductAvatar name={product.name} logoUrl={product.logoUrl} />
+                  <div className="text-left">
+                    <div className="flex items-center gap-2.5">
+                      <span className="font-semibold text-sm">{product.name}</span>
+                      {platforms.map((p) => (
+                        <Badge
+                          key={p}
+                          variant="outline"
+                          className="text-[10px] font-medium border border-border/50 gap-1 px-2 py-0.5"
+                        >
+                          <PlatformLogo platform={p} size="sm" showLabel={false} />
+                        </Badge>
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                      <span>{product.checkouts.length} checkouts</span>
+                    </div>
                   </div>
                 </div>
+                <div className="hidden sm:flex items-center gap-8 text-right">
+                  <KpiPill label="Vendas" value={String(totalSales)} />
+                  <KpiPill label="Total" value={fmt(grandTotal)} accent />
+                </div>
               </div>
-              <div className="hidden sm:flex items-center gap-8 text-right">
-                <KpiPill label="Vendas" value={String(totalSales)} />
-                <KpiPill label="Total" value={fmt(grandTotal)} accent />
-              </div>
-            </div>
-          </AccordionTrigger>
+            </AccordionTrigger>
+            <button
+              type="button"
+              className="absolute top-5 left-[180px] z-10 opacity-0 group-hover/card:opacity-100 transition-opacity p-1 rounded-md hover:bg-muted/60"
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                onEditProduct(product);
+              }}
+              title="Editar produto"
+            >
+              <RiPencilLine className="size-3.5 text-muted-foreground" />
+            </button>
+          </div>
           <AccordionContent className="px-5 pb-5">
             <ProductAccordionContent
               product={product}
