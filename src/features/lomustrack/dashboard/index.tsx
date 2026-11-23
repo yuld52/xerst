@@ -34,31 +34,33 @@ export default function DashboardPage() {
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
-        // Ensure order exists, add it if missing
-        if (!parsed.order) {
-          parsed.order = ["kpis", "revenueChart", "paymentMethodChart", "topCampaigns", "hourlySalesChart", "salesByCountry"];
+        // Migrate old format to new format
+        if (parsed.order) {
+          // Old format, convert to new
+          return {
+            activeCards: parsed.order || ["kpis", "revenueChart", "paymentMethodChart", "topCampaigns", "hourlySalesChart", "salesByCountry"],
+            availableCards: [],
+          };
         }
-        return parsed;
+        // Check if already in new format
+        if (parsed.activeCards && parsed.availableCards) {
+          return parsed;
+        }
+        // Fallback to default
+        return {
+          activeCards: ["kpis", "revenueChart", "paymentMethodChart", "topCampaigns", "hourlySalesChart", "salesByCountry"],
+          availableCards: [],
+        };
       } catch {
         return {
-          kpis: true,
-          revenueChart: true,
-          paymentMethodChart: true,
-          topCampaigns: true,
-          hourlySalesChart: true,
-          salesByCountry: true,
-          order: ["kpis", "revenueChart", "paymentMethodChart", "topCampaigns", "hourlySalesChart", "salesByCountry"],
+          activeCards: ["kpis", "revenueChart", "paymentMethodChart", "topCampaigns", "hourlySalesChart", "salesByCountry"],
+          availableCards: [],
         };
       }
     }
     return {
-      kpis: true,
-      revenueChart: true,
-      paymentMethodChart: true,
-      topCampaigns: true,
-      hourlySalesChart: true,
-      salesByCountry: true,
-      order: ["kpis", "revenueChart", "paymentMethodChart", "topCampaigns", "hourlySalesChart", "salesByCountry"],
+      activeCards: ["kpis", "revenueChart", "paymentMethodChart", "topCampaigns", "hourlySalesChart", "salesByCountry"],
+      availableCards: [],
     };
   });
 
@@ -121,8 +123,8 @@ export default function DashboardPage() {
         </div>
       ) : (
         <>
-          {dashboardConfig.order.map((cardId) => {
-            if (cardId === "kpis" && dashboardConfig.kpis) {
+          {dashboardConfig.activeCards.map((cardId) => {
+            if (cardId === "kpis") {
               return (
                 <KpiGrid
                   key="kpis"
@@ -135,47 +137,33 @@ export default function DashboardPage() {
               );
             }
             
-            if (cardId === "revenueChart" && (dashboardConfig.revenueChart || dashboardConfig.paymentMethodChart)) {
-              const hasRevenueChart = dashboardConfig.revenueChart;
-              const hasPaymentChart = dashboardConfig.paymentMethodChart;
-              
-              if (!hasRevenueChart && !hasPaymentChart) return null;
-              
+            if (cardId === "revenueChart") {
               return (
-                <div key="charts-row-1" className="grid gap-3 sm:gap-4 lg:gap-5 lg:grid-cols-3">
-                  {hasRevenueChart && (
-                    <div className="lg:col-span-2">
-                      <RevenueChart data={data.daily_revenue} />
-                    </div>
-                  )}
-                  {hasPaymentChart && <PaymentMethodChart data={data.payment_distribution} />}
+                <div key="revenueChart" className="lg:col-span-2">
+                  <RevenueChart data={data.daily_revenue} />
                 </div>
               );
             }
             
-            if (cardId === "topCampaigns" && (dashboardConfig.topCampaigns || dashboardConfig.hourlySalesChart || dashboardConfig.salesByCountry)) {
-              const hasTopCampaigns = dashboardConfig.topCampaigns;
-              const hasHourlySales = dashboardConfig.hourlySalesChart;
-              const hasSalesByCountry = dashboardConfig.salesByCountry;
-              
-              if (!hasTopCampaigns && !hasHourlySales && !hasSalesByCountry) return null;
-              
+            if (cardId === "paymentMethodChart") {
+              return <PaymentMethodChart key="paymentMethodChart" data={data.payment_distribution} />;
+            }
+            
+            if (cardId === "topCampaigns") {
+              return <TopCampaigns key="topCampaigns" data={data.top_campaigns} />;
+            }
+            
+            if (cardId === "hourlySalesChart") {
+              return <HourlySalesChart key="hourlySalesChart" data={data.hourly_sales} />;
+            }
+            
+            if (cardId === "salesByCountry") {
               return (
-                <div key="charts-row-2" className="grid gap-3 sm:gap-4 lg:gap-5 lg:grid-cols-3">
-                  {(hasTopCampaigns || hasHourlySales) && (
-                    <div className="flex flex-col gap-3 sm:gap-4 lg:gap-5">
-                      {hasTopCampaigns && <TopCampaigns data={data.top_campaigns} />}
-                      {hasHourlySales && <HourlySalesChart data={data.hourly_sales} />}
-                    </div>
-                  )}
-                  {hasSalesByCountry && (
-                    <div className="lg:col-span-2">
-                      <SalesByCountryCard
-                        startDate={filters.datePreset === "custom" ? filters.dateStart : undefined}
-                        endDate={filters.datePreset === "custom" ? filters.dateEnd : undefined}
-                      />
-                    </div>
-                  )}
+                <div key="salesByCountry" className="lg:col-span-2">
+                  <SalesByCountryCard
+                    startDate={filters.datePreset === "custom" ? filters.dateStart : undefined}
+                    endDate={filters.datePreset === "custom" ? filters.dateEnd : undefined}
+                  />
                 </div>
               );
             }
