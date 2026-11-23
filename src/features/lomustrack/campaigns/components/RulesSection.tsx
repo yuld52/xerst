@@ -287,7 +287,15 @@ function RuleForm({
                         ),
                       )
                     }
-                    placeholder="$0.00"
+                    placeholder={
+                      condition.field === "spend" || condition.field === "cpa"
+                        ? "0 MT"
+                        : condition.field === "roas"
+                        ? "0.0x"
+                        : condition.field === "ctr"
+                        ? "0.0%"
+                        : "0"
+                    }
                   />
                   <Button
                     type="button"
