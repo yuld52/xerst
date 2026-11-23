@@ -7,8 +7,8 @@ import { convertAndFormatMZN } from "@/utils/format";
 
 const chartConfig = {
   value: { label: "Faturamento" },
-  Kiwify: { label: "Kiwify", color: "var(--chart-1)" },
-  PayT: { label: "PayT", color: "var(--chart-2)" },
+  Hotmart: { label: "Hotmart", color: "var(--chart-1)" },
+  API: { label: "API", color: "var(--chart-2)" },
 } satisfies ChartConfig;
 
 const COLORS = ["var(--color-chart-1)", "var(--color-chart-2)", "var(--color-chart-3)"];

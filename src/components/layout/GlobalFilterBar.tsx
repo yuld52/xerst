@@ -67,8 +67,6 @@ export function GlobalFilterBar({
     filters.accountSlug !== "all" ? "1" : "",
   ].filter(Boolean).length;
   const platformLabels: Record<string, string> = {
-    kiwify: "Kiwify",
-    payt: "PayT",
     hotmart: "Hotmart",
     api: "API",
   };

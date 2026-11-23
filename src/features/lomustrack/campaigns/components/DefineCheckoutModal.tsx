@@ -33,8 +33,8 @@ interface DefineCheckoutModalProps {
 }
 
 const PLATFORM_LABELS: Record<string, string> = {
-  kiwify: "Kiwify",
-  payt: "PayT",
+  hotmart: "Hotmart",
+  api: "API",
 };
 
 export function DefineCheckoutModal({

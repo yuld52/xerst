@@ -10,8 +10,8 @@ import { Button } from "@/components/ui/button";
 import { RiCheckLine } from "@remixicon/react";
 
 const PLATFORMS = [
-  { value: "kiwify", label: "Kiwify" },
-  { value: "payt", label: "PayT" },
+  { value: "hotmart", label: "Hotmart" },
+  { value: "api", label: "API" },
 ];
 
 interface DefinePlatformModalProps {

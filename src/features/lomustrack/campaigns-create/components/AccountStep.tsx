@@ -110,16 +110,6 @@ export function AccountStep({
         </CardContent>
       </Card>
 
-      <DefineVideoModal
-        open={videoModalOpen}
-        onOpenChange={setVideoModalOpen}
-        campaignName="Nova Campanha"
-        currentVideoId={form.videoId}
-        onSave={async (id, label) => {
-          onUpdate("videoId", id);
-          onUpdate("videoLabel", label);
-        }}
-      />
       <DefineCheckoutModal
         open={checkoutModalOpen}
         onOpenChange={setCheckoutModalOpen}

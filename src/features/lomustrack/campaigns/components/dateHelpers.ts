@@ -48,8 +48,8 @@ export const statusLabels: Record<string, string> = {
 };
 
 export const platformLabels: Record<string, string> = {
-  kiwify: "Kiwify",
-  payt: "PayT",
+  hotmart: "Hotmart",
+  api: "API",
 };
 
 export const objectiveLabels: Record<string, string> = {
