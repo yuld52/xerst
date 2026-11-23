@@ -16,30 +16,32 @@ interface CreateWebhookModalProps {
   isLoading?: boolean;
 }
 
+// Only platforms with actual backend webhook parsers
 const PLATFORMS = [
-  "Hotmart", "Kiwify", "Cartpanda", "Vega", "Kirvano", "Shopify", "PerfectPay", "Yampi",
-  "Lastlink", "Stripe", "Payt", "JVZoo", "Logzz", "Adoorei", "TriboPay", "Paradise",
-  "Clickbank", "Ticto", "Eduzz", "Braip", "Pepper", "Woocommerce", "BuyGoods", "MundPay",
-  "Disrupty", "Greenn", "Monetizze", "Guru", "Digistore", "Hubla", "Doppus", "Frendz",
-  "InvictusPay", "Appmax", "NitroPagamentos", "GoatPay", "Hebreus", "IExperience",
-  "PagTrust", "NuvemShop", "FortPay", "Systeme", "IronPay", "CinqPay", "SharkPays",
-  "Maxweb", "Zouti", "Pantherfy", "StrivPay", "AtomoPay", "AllPay", "BullPay",
-  "OctusPay", "Zippify", "Masterfy", "InovaPag", "SoutPay", "WolfPay", "SigmaPagamentos",
-  "Nexopayt", "WeGate", "Unicornify", "Allpes", "VittaPay", "FluxionPay", "NezzyPay",
-  "PMHMPay", "TrivexPay", "GatPay", "BearPay", "AmandisPay", "DigiPag", "AlphaPay",
-  "AssetPay", "BrGateway", "Creedx", "Hotfy", "KlivoPay", "Plumify", "PrimeGate",
-  "Wise2Pay", "VisionPay", "SharkBytePay", "SigmaPay", "ZeroOnePay", "Traxon", "Bloo",
-  "KitePay", "Everflow", "B4you", "Risepay", "Urus", "Cakto", "Flashpay", "DigitalMart",
-  "Exattus", "LunarCash", "YouShop", "BlackPay", "VenuzPay", "LunaCheckout", "FullSale",
-  "BullsPay", "Moodi", "NikaPay", "GhostsPay", "KeedPay", "Salduu", "ViperPay", "Sunize",
-  "Assiny", "Wiapy", "UnicoPag", "ImperialPay", "Zedy", "Sinix", "Voomp", "Ombrelone",
-  "PushinPay", "Genesys", "OnProfit", "SacaPay", "Cloudfy", "Kuenha", "NinjaPay", "Xgrow",
-  "ggCheckout", "PanteraCheckout", "NublaPay", "Cartly", "Pagah", "Pagsafe", "Nomadfy",
-  "Sync", "LPQV", "Auryon369", "FirePay", "Lowify", "Hyppe", "Seedpay", "Membriz",
-  "Cerefy", "PagAmerican", "AfiliaxPay", "Kambafy", "Aprovei", "ZuckPay", "XynonPay",
-  "Kavoo", "Fruitfy", "Cooud", "ClickPay", "OrlaCheckout", "TukanoPay", "Corvex",
-  "Ereemby", "Naut", "MaisFy", "SillientPay", "VaultVision", "VeltrixPay", "VitraPay",
-  "Leona", "FendaPay", "KairosWay", "DigitalGoat", "Wiven",
+  { 
+    value: "hotmart", 
+    label: "Hotmart", 
+    description: "Integração nativa com autenticação Hottok",
+    requiresToken: true,
+  },
+  { 
+    value: "kiwify", 
+    label: "Kiwify", 
+    description: "Integração nativa com parser dedicado",
+    requiresToken: false,
+  },
+  { 
+    value: "payt", 
+    label: "Payt", 
+    description: "Integração nativa com parser dedicado",
+    requiresToken: false,
+  },
+  { 
+    value: "api", 
+    label: "API Genérica", 
+    description: "Para qualquer plataforma via credencial API",
+    requiresToken: false,
+  },
 ];
 
 export function CreateWebhookModal({
@@ -52,14 +54,15 @@ export function CreateWebhookModal({
   const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null);
 
   const filteredPlatforms = PLATFORMS.filter((p) =>
-    p.toLowerCase().includes(search.toLowerCase())
+    p.label.toLowerCase().includes(search.toLowerCase()) ||
+    p.description.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handlePlatformSelect = async (platform: string) => {
-    setSelectedPlatform(platform);
+  const handlePlatformSelect = async (platform: typeof PLATFORMS[number]) => {
+    setSelectedPlatform(platform.value);
     // Auto-create with platform name
     try {
-      await onCreate(platform.toLowerCase(), platform, undefined);
+      await onCreate(platform.value, platform.label, undefined);
       onOpenChange(false);
       setSearch("");
       setSelectedPlatform(null);
@@ -106,15 +109,20 @@ export function CreateWebhookModal({
           </div>
 
           <div className="flex-1 overflow-y-auto">
-            <div className="grid grid-cols-2 gap-2 pb-4">
+            <div className="space-y-2 pb-4">
               {filteredPlatforms.map((platform) => (
                 <button
-                  key={platform}
+                  key={platform.value}
                   onClick={() => handlePlatformSelect(platform)}
                   disabled={isLoading}
-                  className="px-3 py-2.5 rounded-lg border border-border hover:border-primary hover:bg-accent transition-colors text-left text-sm font-semibold disabled:opacity-50"
+                  className="w-full px-4 py-3 rounded-lg border border-border hover:border-primary hover:bg-accent transition-colors text-left disabled:opacity-50 group"
                 >
-                  {platform}
+                  <div className="font-semibold text-sm mb-1 group-hover:text-primary transition-colors">
+                    {platform.label}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {platform.description}
+                  </div>
                 </button>
               ))}
             </div>
