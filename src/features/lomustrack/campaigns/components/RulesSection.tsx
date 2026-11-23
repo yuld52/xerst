@@ -36,6 +36,7 @@ interface RuleCondition {
   field: ConditionField;
   operator: ConditionOperator;
   value: string;
+  currency?: "MZN" | "BRL" | "USD" | "EUR";
 }
 
 const actionLabels: Record<RuleAction, string> = {
@@ -61,7 +62,12 @@ const operatorLabels: Record<ConditionOperator, string> = {
   eq: "Igual a",
 };
 
-const emptyCondition = (): RuleCondition => ({ field: "spend", operator: "gt", value: "0" });
+const emptyCondition = (): RuleCondition => ({ 
+  field: "spend", 
+  operator: "gt", 
+  value: "0",
+  currency: "MZN"
+});
 
 function RuleSelect({
   value,
@@ -244,7 +250,7 @@ function RuleForm({
               {conditions.map((condition, index) => (
                 <div
                   key={index}
-                  className="grid min-w-0 gap-2 rounded-lg bg-muted/50 p-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto]"
+                  className="grid min-w-0 gap-2 rounded-lg bg-muted/50 p-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.8fr)_minmax(0,0.6fr)_auto]"
                 >
                   <RuleSelect
                     value={condition.field}
@@ -289,7 +295,7 @@ function RuleForm({
                     }
                     placeholder={
                       condition.field === "spend" || condition.field === "cpa"
-                        ? "0 MT"
+                        ? "0"
                         : condition.field === "roas"
                         ? "0.0x"
                         : condition.field === "ctr"
@@ -297,6 +303,30 @@ function RuleForm({
                         : "0"
                     }
                   />
+                  {(condition.field === "spend" || condition.field === "cpa") && (
+                    <RuleSelect
+                      value={condition.currency || "MZN"}
+                      onChange={(value) =>
+                        setConditions((items) =>
+                          items.map((item, i) =>
+                            i === index ? { ...item, currency: value as "MZN" | "BRL" | "USD" | "EUR" } : item,
+                          ),
+                        )
+                      }
+                    >
+                      <SelectItem value="MZN">MT (MZN)</SelectItem>
+                      <SelectItem value="BRL">R$ (BRL)</SelectItem>
+                      <SelectItem value="USD">$ (USD)</SelectItem>
+                      <SelectItem value="EUR">€ (EUR)</SelectItem>
+                    </RuleSelect>
+                  )}
+                  {condition.field !== "spend" && condition.field !== "cpa" && (
+                    <div className="flex items-center px-3 text-xs text-muted-foreground">
+                      {condition.field === "roas" && "razão"}
+                      {condition.field === "ctr" && "%"}
+                      {condition.field === "sales" && "qtd"}
+                    </div>
+                  )}
                   <Button
                     type="button"
                     variant="ghost"
@@ -525,10 +555,21 @@ export function RulesSection() {
                       <div className="font-medium">{actionLabels[rule.action]}</div>
                       <div className="mt-1 text-muted-foreground">
                         {rule.conditions
-                          .map(
-                            (condition) =>
-                              `${fieldLabels[condition.field]} ${operatorLabels[condition.operator].toLowerCase()} ${condition.value}`,
-                          )
+                          .map((condition) => {
+                            const fieldLabel = fieldLabels[condition.field];
+                            const operatorLabel = operatorLabels[condition.operator].toLowerCase();
+                            const value = condition.value;
+                            const currency = condition.currency || "MZN";
+                            const unit = 
+                              condition.field === "spend" || condition.field === "cpa"
+                                ? ` ${currency}`
+                                : condition.field === "roas"
+                                ? "x"
+                                : condition.field === "ctr"
+                                ? "%"
+                                : "";
+                            return `${fieldLabel} ${operatorLabel} ${value}${unit}`;
+                          })
                           .join(" e ")}
                       </div>
                     </td>
