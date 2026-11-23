@@ -29,16 +29,7 @@ export function UtmDetailModal({ sale, onClose }: UtmDetailModalProps) {
             <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
               Transação
             </p>
-            {sale.platform === "payt" ? (
-              <a
-                href={`https://app.payt.com.br/admin/vendas/${sale.external_id}`}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-0.5 text-sm font-medium font-mono text-blue-500 hover:underline"
-              >
-                {sale.external_id}
-              </a>
-            ) : sale.platform === "hotmart" ? (
+            {sale.platform === "hotmart" ? (
               <a
                 href={`https://app-vlc.hotmart.com/tools/sales/${sale.external_id}`}
                 target="_blank"

@@ -23,7 +23,7 @@ export interface EditItemData {
   name?: string;
   externalId?: string;
   price: number;
-  platform?: "kiwify" | "payt" | "hotmart";
+  platform?: "hotmart" | "api";
   checkoutCode?: string | null;
   checkoutName?: string | null;
 }
@@ -53,7 +53,7 @@ export function EditItemModal({ open, onOpenChange, onSave, onDelete, item }: Ed
   const [checkoutName, setCheckoutName] = useState("");
   const [externalId, setExternalId] = useState("");
   const [price, setPrice] = useState("");
-  const [platform, setPlatform] = useState("kiwify");
+  const [platform, setPlatform] = useState("hotmart");
   const [checkoutCode, setCheckoutCode] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -64,13 +64,12 @@ export function EditItemModal({ open, onOpenChange, onSave, onDelete, item }: Ed
       setCheckoutName(item.checkoutName ?? "");
       setExternalId(item.externalId ?? "");
       setPrice(String(item.price ?? 0));
-      setPlatform(item.platform ?? "kiwify");
+      setPlatform(item.platform ?? "hotmart");
       setCheckoutCode(item.checkoutCode ?? "");
     }
   }, [item]);
 
   const isCheckout = item?.type === "checkout";
-  const isPaytCheckout = isCheckout && platform === "payt";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

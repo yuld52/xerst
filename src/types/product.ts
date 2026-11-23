@@ -12,7 +12,7 @@ export interface CheckoutAPI {
   product_id: number;
   url: string;
   price: number;
-  platform: "kiwify" | "payt" | "hotmart" | "api";
+  platform: "hotmart" | "api";
   checkout_code: string | null;
   name: string | null;
   created_at: string | null;
@@ -91,7 +91,7 @@ export interface CheckoutView {
   id: number;
   url: string;
   price: number;
-  platform: "kiwify" | "payt" | "hotmart" | "api";
+  platform: "hotmart" | "api";
   checkoutCode: string | null;
   name: string | null;
   sales: number;

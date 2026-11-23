@@ -44,7 +44,7 @@ export function CheckoutFields({
         <Label htmlFor="edit-url">URL do Checkout</Label>
         <Input
           id="edit-url"
-          placeholder="https://pay.kiwify.com.br/..."
+          placeholder="https://pay.hotmart.com/..."
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           className="font-mono"
@@ -57,24 +57,11 @@ export function CheckoutFields({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="kiwify">Kiwify</SelectItem>
-            <SelectItem value="payt">PayT</SelectItem>
             <SelectItem value="hotmart">Hotmart</SelectItem>
+            <SelectItem value="api">API</SelectItem>
           </SelectContent>
         </Select>
       </div>
-      {isPayt && (
-        <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
-          <Label htmlFor="edit-checkout-code">Código do Checkout</Label>
-          <Input
-            id="edit-checkout-code"
-            placeholder="Ex: RB75VZ"
-            value={checkoutCode}
-            onChange={(e) => setCheckoutCode(e.target.value)}
-            className="font-mono"
-          />
-        </div>
-      )}
     </div>
   );
 }

@@ -46,7 +46,7 @@ const typeConfig: Record<
     label: "Checkout",
     desc: "URL de checkout do produto",
     idLabel: "URL do Checkout",
-    idPlaceholder: "Ex: https://pay.kiwify.com.br/...",
+    idPlaceholder: "Ex: https://pay.hotmart.com/...",
   },
   orderBump: {
     label: "Order Bump",
@@ -67,12 +67,12 @@ export function AddItemModal({ open, onOpenChange, onAdd, productName }: AddItem
   const [externalId, setExternalId] = useState("");
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
-  const [platform, setPlatform] = useState("kiwify");
+  const [platform, setPlatform] = useState("hotmart");
   const [checkoutCode, setCheckoutCode] = useState("");
   const [checkoutName, setCheckoutName] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const isPaytCheckout = type === "checkout" && platform === "payt";
+  const isCheckout = type === "checkout";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

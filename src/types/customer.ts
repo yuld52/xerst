@@ -3,7 +3,7 @@
 export interface CustomerAPI {
   id: number;
   external_id: string | null;
-  platform: "kiwify" | "payt" | "hotmart" | "api" | null;
+  platform: "hotmart" | "api" | null;
   name: string | null;
   email: string;
   phone: string | null;

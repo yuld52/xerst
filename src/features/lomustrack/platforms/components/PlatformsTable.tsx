@@ -63,7 +63,7 @@ export function PlatformsTable({ endpoints, isLoading, onDelete, onCreateNew }: 
                   <div className="flex items-center gap-2 mb-1">
                     <p className="font-semibold text-sm">{ep.name}</p>
                     <Badge variant="outline" className="text-[10px] font-medium gap-1 px-1.5 py-0">
-                      <PlatformLogo platform={ep.platform as "kiwify" | "payt" | "hotmart" | "api"} size="sm" />
+                      <PlatformLogo platform={ep.platform as "hotmart" | "api"} size="sm" />
                     </Badge>
                   </div>
                   <code className="text-xs text-muted-foreground font-mono block truncate">

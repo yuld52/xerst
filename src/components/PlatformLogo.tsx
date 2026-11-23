@@ -17,8 +17,6 @@ const HOTMART_ICON = (
 );
 
 const PLATFORM_CONFIG = {
-  kiwify: { label: "Kiwify", logo: "/platforms/kiwify.webp", type: "image" as const },
-  payt: { label: "PayT", logo: "/platforms/payt.webp", type: "image" as const },
   hotmart: { label: "Hotmart", logo: HOTMART_ICON, type: "svg" as const },
   api: { label: "API", logo: null, type: "badge" as const },
 } as const;

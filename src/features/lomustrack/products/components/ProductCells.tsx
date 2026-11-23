@@ -13,7 +13,7 @@ export function CheckoutIdentifierCell({
 }: {
   url: string;
   checkoutCode: string | null;
-  platform: "kiwify" | "payt" | "hotmart";
+  platform: "hotmart" | "api";
   name: string | null;
 }) {
   const handleOpen = (e: React.MouseEvent) => {
@@ -22,35 +22,6 @@ export function CheckoutIdentifierCell({
     const href = url.startsWith("http") ? url : `https://${url}`;
     window.open(href, "_blank", "noopener,noreferrer");
   };
-
-  if (platform === "payt" && checkoutCode) {
-    return (
-      <div className="flex flex-col gap-0.5 max-w-[220px]">
-        {name && (
-          <span className="text-xs font-medium truncate" title={name}>
-            {name}
-          </span>
-        )}
-        <div className="flex items-center gap-1.5">
-          <RiHashtag className="size-3.5 shrink-0 text-primary" />
-          <span className="font-mono text-xs font-medium">{checkoutCode}</span>
-        </div>
-        {url && (
-          <div className="flex items-center gap-1.5 pl-5">
-            <button
-              type="button"
-              onClick={handleOpen}
-              title="Abrir checkout"
-              className="shrink-0 rounded p-0.5 hover:bg-muted/60 transition-colors"
-            >
-              <RiExternalLinkLine className="size-3 text-muted-foreground hover:text-primary transition-colors" />
-            </button>
-            <span className="font-mono text-[10px] text-muted-foreground truncate">{url}</span>
-          </div>
-        )}
-      </div>
-    );
-  }
 
   if (name) {
     return (
@@ -104,11 +75,11 @@ function UrlCell({ url }: { url: string }) {
 
 // ── Platform Cell ───────────────────────────────────────────
 
-export function PlatformCell({ platform }: { platform: "kiwify" | "payt" | "hotmart" }) {
+export function PlatformCell({ platform }: { platform: "hotmart" | "api" }) {
   return (
     <Badge variant="outline" className="text-[10px] gap-1 py-0.5">
       <PlatformLogo platform={platform} size="sm" showLabel={false} />
-      {platform === "payt" ? "PayT" : platform === "hotmart" ? "Hotmart" : "Kiwify"}
+      {platform === "hotmart" ? "Hotmart" : "API"}
     </Badge>
   );
 }
