@@ -17,6 +17,7 @@ async def create_ads_batch(
     file_bytes_list: list[tuple[bytes, str, bool]],
     page_id: str,
     instagram_actor_id: str | None,
+    pixel_id: str,
     status: str,
     errors: list[str],
     label: str = "",
@@ -66,6 +67,7 @@ async def create_ads_batch(
             access_token=token, account_id=act_id,
             name=ad_data.get("name", f"AD {str(i+1).zfill(2)}"),
             adset_id=adset_id, creative_id=creative_result["creative_id"],
+            pixel_id=pixel_id,
             status=status,
         )
 
@@ -85,15 +87,39 @@ async def _upload_media(token, act_id, file_bytes: bytes, filename: str, is_vide
 
 
 def _build_url_tags(utm_params: str | dict = "", extra_params: str = "") -> str:
-    """Constrói url_tags string (UTM + extra params). Não inclui o link base."""
+    """
+    Constrói url_tags string (UTM + extra params). Não inclui o link base.
+    Sanitiza e valida os parâmetros para evitar URLs quebradas.
+    """
+    # Converter dict para string
     if isinstance(utm_params, dict):
         utm_str = "&".join(f"{k}={v}" for k, v in utm_params.items() if v)
     else:
         utm_str = str(utm_params).strip() if utm_params else ""
 
-    # Strip leading ? e & — o frontend já sanitiza, mas garantimos aqui
-    utm_str = utm_str.lstrip("?&")
+    # Sanitizar: remover prefixos ? e &
+    utm_str = utm_str.lstrip("?&").rstrip("&")
     extra = extra_params.strip().lstrip("?&").rstrip("&") if extra_params else ""
+
+    # Validar formato usando URLSearchParams (apenas para garantir que é válido)
+    if utm_str:
+        try:
+            from urllib.parse import parse_qs, urlencode
+            parsed = parse_qs(utm_str, keep_blank_values=True)
+            # Reconstrói para garantir formato válido
+            utm_str = urlencode(parsed, doseq=True)
+        except Exception as e:
+            logger.warning(f"UTM params inválidos, usando vazio: {e}")
+            utm_str = ""
+
+    if extra:
+        try:
+            from urllib.parse import parse_qs, urlencode
+            parsed = parse_qs(extra, keep_blank_values=True)
+            extra = urlencode(parsed, doseq=True)
+        except Exception as e:
+            logger.warning(f"Extra params inválidos, usando vazio: {e}")
+            extra = ""
 
     parts = [p for p in [utm_str, extra] if p]
     return "&".join(parts)

@@ -140,6 +140,7 @@ async def _create_adset_with_ads(
         roas_floor=data.get("roas_floor"),
         pixel_id=data["pixel_id"],
         start_time=data["start_time"],
+        end_time=data.get("end_time"),
         targeting=targeting,
         status=status,
     )
@@ -159,6 +160,7 @@ async def _create_adset_with_ads(
         file_bytes_list=file_bytes_list,
         page_id=data.get("page_id", ""),
         instagram_actor_id=ig_actor_id,
+        pixel_id=data["pixel_id"],
         status=status,
         errors=errors,
         label=label,

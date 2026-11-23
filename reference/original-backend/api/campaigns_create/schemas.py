@@ -27,6 +27,8 @@ class TargetingPayload(BaseModel):
     country: str = "BR"  # ISO 3166-1 alpha-2, ou "WORLDWIDE"
     locales: list[int] = []  # Meta adlocale keys; vazio = todos os idiomas
     interests: list[dict] = []  # [{"id": "123", "name": "..."}]
+    publisher_platforms: list[str] | None = None  # Ex: ["facebook", "instagram"]
+    facebook_positions: list[str] | None = None  # Ex: ["feed", "story"]
 
 
 class CampaignCreatePayload(BaseModel):
@@ -35,20 +37,26 @@ class CampaignCreatePayload(BaseModel):
     account_id: int | None = None  # Retrocompatibilidade — single account
     # Campaign
     campaign_name: str
+    campaign_count: int = 1  # Quantas campanhas criar
     daily_budget: float
     bid_strategy: str = "VOLUME"  # VOLUME | BID_CAP | COST_CAP | ROAS
     bid_amount: float | None = None
     roas_floor: float | None = None
     # Ad Set
     adset_name: str
+    adset_count: int = 1  # Quantos conjuntos criar por campanha
     pixel_id: str
     start_time: str  # ISO 8601 com timezone
+    end_time: str | None = None  # ISO 8601 com timezone (opcional)
     targeting: TargetingPayload = TargetingPayload()
     page_id: str
     instagram_actor_id: str | None = None
+    # Multi-account meta config
+    account_configs: dict[str, dict] = {}  # {account_id: {pixel_id, page_id, instagram_actor_id}}
     # Ads
     ads: list[AdPayload]
     batch_mode: bool = True
+    publish_active: bool = False  # Se True, publica como ACTIVE, senão PAUSED
 
 
 class AccountResult(BaseModel):

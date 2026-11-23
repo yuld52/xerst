@@ -29,6 +29,7 @@ async def create_adset(
     roas_floor: float | None,
     pixel_id: str,
     start_time: str,
+    end_time: str | None,
     targeting: dict,
     status: str = "PAUSED",
 ) -> dict:
@@ -41,6 +42,7 @@ async def create_adset(
         roas_floor: Mínimo ROAS (ex: 2.0 = 200%) para ROAS
         pixel_id: ID do pixel para otimização de conversão
         start_time: ISO 8601 com timezone (ex: 2026-03-14T00:00:00-0300)
+        end_time: ISO 8601 com timezone (opcional - se None, roda indefinidamente)
         targeting: Dict com geo_locations, age_min, age_max, genders, interests, etc.
     """
     act_id = account_id if account_id.startswith("act_") else f"act_{account_id}"
@@ -67,6 +69,10 @@ async def create_adset(
         }),
         "targeting": json.dumps(api_targeting),
     }
+
+    # end_time opcional
+    if end_time:
+        data["end_time"] = end_time
 
     # Adiciona bid_amount para BID_CAP / COST_CAP (em centavos)
     if bid_strategy in ("BID_CAP", "COST_CAP") and bid_amount:

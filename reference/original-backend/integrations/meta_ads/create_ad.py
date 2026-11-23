@@ -146,10 +146,12 @@ async def create_ad(
     name: str,
     adset_id: str,
     creative_id: str,
+    pixel_id: str = "",
     status: str = "PAUSED",
 ) -> dict:
     """
     Cria um Ad vinculado a um Ad Set e Creative.
+    Adiciona tracking_specs para rastreamento correto de conversões.
     Retorna {"success": True, "ad_id": "..."} ou erro.
     """
     act_id = account_id if account_id.startswith("act_") else f"act_{account_id}"
@@ -162,6 +164,14 @@ async def create_ad(
         "creative": json.dumps({"creative_id": creative_id}),
         "status": status,
     }
+
+    # CRÍTICO: tracking_specs para atribuição correta de conversões
+    if pixel_id:
+        data["tracking_specs"] = json.dumps([{
+            "action.type": ["offsite_conversion"],
+            "fb_pixel": [pixel_id]
+        }])
+        logger.info(f"Tracking specs adicionado para pixel {pixel_id}")
 
     logger.info(f"Criando Ad: {name} | AdSet: {adset_id} | Creative: {creative_id}")
 
