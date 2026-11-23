@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { RiMore2Line, RiFileCopyLine, RiCloudLine } from "@remixicon/react";
+import { RiMore2Line, RiFileCopyLine, RiCloudLine, RiPencilLine, RiDeleteBinLine, RiToggleLine } from "@remixicon/react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -11,6 +11,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { apiRequest } from "@/services/api";
@@ -132,6 +139,8 @@ export function PlatformIntegrations({
   onDeleteCredential?: (id: string) => void;
 }) {
   const [credentialOpen, setCredentialOpen] = useState(false);
+  const [editCredential, setEditCredential] = useState<ApiCredential | null>(null);
+  const [editName, setEditName] = useState("");
   const [credentials, setCredentials] = useState<ApiCredential[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -150,6 +159,25 @@ export function PlatformIntegrations({
     setCredentials((current) => [created, ...current]);
     return created;
   };
+
+  const toggleCredential = async (credential: ApiCredential) => {
+    await apiRequest(`/platforms/credentials/${credential.id}`, {
+      method: "PATCH",
+      body: { active: !credential.active },
+    });
+    setCredentials((current) =>
+      current.map((c) => (c.id === credential.id ? { ...c, active: !c.active } : c))
+    );
+  };
+
+  const updateCredentialName = async (id: number, name: string) => {
+    await apiRequest(`/platforms/credentials/${id}`, {
+      method: "PATCH",
+      body: { name },
+    });
+    setCredentials((current) => current.map((c) => (c.id === id ? { ...c, name } : c)));
+  };
+
   const deleteCredential = async (id: number) => {
     await apiRequest(`/platforms/credentials/${id}`, { method: "DELETE" });
     setCredentials((current) => current.filter((credential) => credential.id !== id));
@@ -188,14 +216,45 @@ export function PlatformIntegrations({
                         Status: {credential.active ? "Ativado" : "Desativado"}
                       </div>
                     </div>
-                    <div className="dropdown dropstart absolute top-0 right-0 mt-3 mr-3">
-                      <button
-                        onClick={() => void deleteCredential(credential.id)}
-                        className="btn btn-icon rounded-circle p-0 mb-[0.15rem] hover:bg-accent"
-                        title="Menu"
-                      >
-                        <RiMore2Line className="size-[18px]" />
-                      </button>
+                    <div className="absolute top-3 right-3">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 hover:bg-accent"
+                          >
+                            <RiMore2Line className="size-[18px]" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-56">
+                          <DropdownMenuItem
+                            onClick={() => toggleCredential(credential)}
+                            className="cursor-pointer"
+                          >
+                            <RiToggleLine className="size-4 mr-2" />
+                            {credential.active ? "Desativar" : "Ativar"} Credencial de API
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setEditCredential(credential);
+                              setEditName(credential.name);
+                            }}
+                            className="cursor-pointer"
+                          >
+                            <RiPencilLine className="size-4 mr-2" />
+                            Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => void deleteCredential(credential.id)}
+                            className="cursor-pointer text-destructive focus:text-destructive"
+                          >
+                            <RiDeleteBinLine className="size-4 mr-2" />
+                            Deletar
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </div>
                 </div>
@@ -208,6 +267,48 @@ export function PlatformIntegrations({
           </Button>
         </div>
       </Card>
+      
+      {/* Edit Credential Dialog */}
+      <Dialog open={!!editCredential} onOpenChange={(open) => !open && setEditCredential(null)}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Editar Credencial</DialogTitle>
+            <DialogDescription>
+              Altere o nome da credencial de API.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 py-2">
+            <Label htmlFor="edit-name">Nome</Label>
+            <Input
+              id="edit-name"
+              placeholder="Nome da Credencial"
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              autoComplete="off"
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setEditCredential(null)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={async () => {
+                if (editCredential && editName.trim()) {
+                  await updateCredentialName(editCredential.id, editName.trim());
+                  setEditCredential(null);
+                }
+              }}
+              disabled={!editName.trim()}
+            >
+              Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <CredentialModal
         open={credentialOpen}
         onOpenChange={setCredentialOpen}
