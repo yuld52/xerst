@@ -54,7 +54,6 @@ export function EditItemModal({ open, onOpenChange, onSave, onDelete, item }: Ed
   const [externalId, setExternalId] = useState("");
   const [price, setPrice] = useState("");
   const [platform, setPlatform] = useState("hotmart");
-  const [checkoutCode, setCheckoutCode] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -65,7 +64,6 @@ export function EditItemModal({ open, onOpenChange, onSave, onDelete, item }: Ed
       setExternalId(item.externalId ?? "");
       setPrice(String(item.price ?? 0));
       setPlatform(item.platform ?? "hotmart");
-      setCheckoutCode(item.checkoutCode ?? "");
     }
   }, [item]);
 
@@ -90,7 +88,7 @@ export function EditItemModal({ open, onOpenChange, onSave, onDelete, item }: Ed
         url: url.trim(),
         price: Number(price) || 0,
         platform,
-        checkout_code: isPaytCheckout ? checkoutCode.trim() || null : null,
+        checkout_code: null,
         name: checkoutName.trim() || null,
       };
     }
@@ -119,9 +117,6 @@ export function EditItemModal({ open, onOpenChange, onSave, onDelete, item }: Ed
               setUrl={setUrl}
               platform={platform}
               setPlatform={setPlatform}
-              checkoutCode={checkoutCode}
-              setCheckoutCode={setCheckoutCode}
-              isPayt={isPaytCheckout}
               name={checkoutName}
               setName={setCheckoutName}
             />

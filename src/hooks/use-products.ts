@@ -67,7 +67,7 @@ export function useProducts() {
       await createCheckout(productId, {
         url: itemData.externalId,
         price: itemData.price,
-        platform: itemData.platform ?? "kiwify",
+        platform: (itemData.platform as "hotmart" | "api") ?? "hotmart",
         checkout_code: itemData.checkoutCode || null,
         name: itemData.checkoutName || null,
       });

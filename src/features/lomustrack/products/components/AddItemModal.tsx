@@ -68,7 +68,6 @@ export function AddItemModal({ open, onOpenChange, onAdd, productName }: AddItem
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [platform, setPlatform] = useState("hotmart");
-  const [checkoutCode, setCheckoutCode] = useState("");
   const [checkoutName, setCheckoutName] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -85,7 +84,6 @@ export function AddItemModal({ open, onOpenChange, onAdd, productName }: AddItem
         name: name.trim(),
         price: Number(price) || 0,
         platform: type === "checkout" ? platform : undefined,
-        checkoutCode: isPaytCheckout ? checkoutCode.trim() : undefined,
         checkoutName: type === "checkout" ? checkoutName.trim() : undefined,
       });
       reset();
@@ -99,8 +97,7 @@ export function AddItemModal({ open, onOpenChange, onAdd, productName }: AddItem
     setExternalId("");
     setName("");
     setPrice("");
-    setPlatform("kiwify");
-    setCheckoutCode("");
+    setPlatform("hotmart");
     setCheckoutName("");
   };
 
@@ -165,26 +162,10 @@ export function AddItemModal({ open, onOpenChange, onAdd, productName }: AddItem
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="kiwify">Kiwify</SelectItem>
-                      <SelectItem value="payt">PayT</SelectItem>
+                      <SelectItem value="hotmart">Hotmart</SelectItem>
+                      <SelectItem value="api">API</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
-              )}
-
-              {isPaytCheckout && (
-                <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
-                  <Label htmlFor="checkout-code">Código do Checkout</Label>
-                  <Input
-                    id="checkout-code"
-                    placeholder="Ex: RB75VZ"
-                    value={checkoutCode}
-                    onChange={(e) => setCheckoutCode(e.target.value)}
-                    className="font-mono"
-                  />
-                  <p className="text-[10px] text-muted-foreground">
-                    Código usado pela PayT para identificar o checkout (encontrado no XLSX)
-                  </p>
                 </div>
               )}
 

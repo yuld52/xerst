@@ -13,9 +13,6 @@ export function CheckoutFields({
   setUrl,
   platform,
   setPlatform,
-  checkoutCode,
-  setCheckoutCode,
-  isPayt,
   name,
   setName,
 }: {
@@ -23,9 +20,6 @@ export function CheckoutFields({
   setUrl: (v: string) => void;
   platform: string;
   setPlatform: (v: string) => void;
-  checkoutCode: string;
-  setCheckoutCode: (v: string) => void;
-  isPayt: boolean;
   name: string;
   setName: (v: string) => void;
 }) {
