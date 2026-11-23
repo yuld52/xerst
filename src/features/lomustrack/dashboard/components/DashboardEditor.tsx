@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { RiPencilLine, RiCheckLine, RiCloseLine, RiDraggable } from "@remixicon/react";
+import { useState, useEffect } from "react";
+import { RiCheckLine } from "@remixicon/react";
 import {
   Sheet,
   SheetContent,
@@ -31,30 +31,29 @@ const DEFAULT_CONFIG: DashboardConfig = {
 };
 
 interface DashboardEditorProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   config: DashboardConfig;
   onConfigChange: (config: DashboardConfig) => void;
 }
 
-export function DashboardEditor({ config, onConfigChange }: DashboardEditorProps) {
-  const [open, setOpen] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
+export function DashboardEditor({ open, onOpenChange, config, onConfigChange }: DashboardEditorProps) {
   const [localConfig, setLocalConfig] = useState(config);
 
-  const handleOpen = () => {
-    setLocalConfig(config);
-    setOpen(true);
-  };
+  useEffect(() => {
+    if (open) {
+      setLocalConfig(config);
+    }
+  }, [open, config]);
 
   const handleSave = () => {
     onConfigChange(localConfig);
-    setOpen(false);
-    setIsEditing(false);
+    onOpenChange(false);
   };
 
   const handleCancel = () => {
     setLocalConfig(config);
-    setOpen(false);
-    setIsEditing(false);
+    onOpenChange(false);
   };
 
   const handleReset = () => {
@@ -66,19 +65,7 @@ export function DashboardEditor({ config, onConfigChange }: DashboardEditorProps
   };
 
   return (
-    <>
-      {/* Floating Edit Button - Always Visible */}
-      <Button
-        onClick={handleOpen}
-        size="icon"
-        className="fixed bottom-6 right-6 h-12 w-12 rounded-full shadow-lg z-50 hover:scale-110 transition-transform"
-        title="Editar Dashboard"
-      >
-        <RiPencilLine className="size-5" />
-      </Button>
-
-      {/* Configuration Sheet */}
-      <Sheet open={open} onOpenChange={setOpen}>
+    <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent side="right" className="w-[90%] md:w-[500px] overflow-y-auto">
           <SheetHeader className="mb-6">
             <SheetTitle>Editar Dashboard</SheetTitle>
@@ -224,6 +211,5 @@ export function DashboardEditor({ config, onConfigChange }: DashboardEditorProps
           </div>
         </SheetContent>
       </Sheet>
-    </>
   );
 }

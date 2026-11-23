@@ -3,6 +3,7 @@ import {
   RiCalendarLine,
   RiFilterLine,
   RiCloseLine,
+  RiPencilLine,
 } from "@remixicon/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,6 +37,8 @@ interface GlobalFilterBarProps {
   upsells?: UpsellOption[];
   platforms?: { value: string; label: string }[];
   accounts?: { slug: string; name: string; platform: string }[];
+  onEditClick?: () => void;
+  showEditButton?: boolean;
 }
 
 export function GlobalFilterBar({
@@ -46,6 +49,8 @@ export function GlobalFilterBar({
   upsells = [],
   platforms = [],
   accounts = [],
+  onEditClick,
+  showEditButton = false,
 }: GlobalFilterBarProps) {
   const [isSticky, setIsSticky] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -186,6 +191,21 @@ export function GlobalFilterBar({
             <RiCloseLine className="size-3.5" />
             Limpar
           </Button>
+        )}
+        
+        {showEditButton && onEditClick && (
+          <div className="ml-auto">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onEditClick}
+              className="h-9 gap-1.5 text-xs"
+              title="Editar Dashboard"
+            >
+              <RiPencilLine className="size-3.5" />
+              Editar
+            </Button>
+          </div>
         )}
       </div>
     </>

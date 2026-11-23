@@ -25,6 +25,9 @@ export default function DashboardPage() {
   const [platforms, setPlatforms] = useState<{ value: string; label: string }[]>([]);
   const [accounts, setAccounts] = useState<{ slug: string; name: string; platform: string }[]>([]);
   
+  // Dashboard editor state
+  const [editorOpen, setEditorOpen] = useState(false);
+  
   // Dashboard configuration
   const [dashboardConfig, setDashboardConfig] = useState<DashboardConfig>(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -100,6 +103,8 @@ export default function DashboardPage() {
         upsells={upsells}
         platforms={platforms}
         accounts={accounts}
+        showEditButton={true}
+        onEditClick={() => setEditorOpen(true)}
       />
       {loading || !data ? (
         <div className="grid gap-2.5 sm:gap-3 grid-cols-2 lg:grid-cols-4">
@@ -153,7 +158,12 @@ export default function DashboardPage() {
         </>
       )}
       
-      <DashboardEditor config={dashboardConfig} onConfigChange={handleConfigChange} />
+      <DashboardEditor 
+        config={dashboardConfig} 
+        onConfigChange={handleConfigChange}
+        open={editorOpen}
+        onOpenChange={setEditorOpen}
+      />
     </div>
   );
 }
