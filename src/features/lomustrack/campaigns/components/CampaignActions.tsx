@@ -2,8 +2,28 @@ import { convertAndFormatMZN } from "@/utils/format";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { RiAddLine, RiSubtractLine } from "@remixicon/react";
-import type { CampaignRow } from "@/data/mock-campaigns";
 import { cn } from "@/lib/utils";
+
+// Type definition for campaign row
+export interface CampaignRow {
+  id: string;
+  name: string;
+  status: "active" | "paused" | "archived";
+  budget: number;
+  spend: number;
+  revenue: number;
+  sales: number;
+  roas: number;
+  cpa: number;
+  cpc: number;
+  clicks: number;
+  impressions: number;
+  ctr: number;
+  landingPageViews: number;
+  initiateCheckout: number;
+  connectRate: number;
+  profit: number;
+}
 
 function fmt(v: number): string {
   return convertAndFormatMZN(v, 0);

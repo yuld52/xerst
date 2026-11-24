@@ -1,5 +1,4 @@
 import { RiArrowUpSLine, RiArrowDownSLine } from "@remixicon/react";
-import { productsData } from "@/data/mock-products";
 import { cn } from "@/lib/utils";
 import type { KpiColorsConfig, KpiColorEntry } from "@/types/company";
 import { convertAndFormatMZN } from "@/utils/format";
@@ -41,16 +40,6 @@ function getKpiColor(value: number, config: KpiColorEntry | null): string {
   return "";
 }
 
-function getCpaStatus(cpa: number, name: string): "good" | "bad" | "neutral" {
-  const product = productsData.find((p) =>
-    name
-      .toLowerCase()
-      .includes(p.name.toLowerCase().split(" ").slice(0, 2).join(" ").toLowerCase()),
-  );
-  if (!product) return "neutral";
-  return cpa <= product.idealCpa ? "good" : "bad";
-}
-
 export function fmt(v: number): string {
   return convertAndFormatMZN(v, 0);
 }
@@ -63,26 +52,14 @@ export function getCellValue(
   const checkoutConv = c.landingPageViews > 0 ? (c.initiateCheckout / c.landingPageViews) * 100 : 0;
   const saleRate = c.initiateCheckout > 0 ? (c.sales / c.initiateCheckout) * 100 : 0;
 
-  // Resolve CPA color: use custom config if set, otherwise fall back to product-based
-  const cpaColor = kpiColors?.cpa
-    ? getKpiColor(c.cpa, kpiColors.cpa)
-    : getCpaStatus(c.cpa, c.name) === "good"
-      ? "text-[var(--color-success)]"
-      : getCpaStatus(c.cpa, c.name) === "bad"
-        ? "text-destructive"
-        : "";
+  // Resolve CPA color: use custom config if set
+  const cpaColor = getKpiColor(c.cpa, kpiColors?.cpa ?? null);
 
-  const cpaArrow = kpiColors?.cpa
-    ? getKpiColor(c.cpa, kpiColors.cpa).includes("success")
-      ? "down"
-      : getKpiColor(c.cpa, kpiColors.cpa).includes("destructive")
-        ? "up"
-        : null
-    : getCpaStatus(c.cpa, c.name) === "good"
-      ? "down"
-      : getCpaStatus(c.cpa, c.name) === "bad"
-        ? "up"
-        : null;
+  const cpaArrow = cpaColor.includes("success")
+    ? "down"
+    : cpaColor.includes("destructive")
+      ? "up"
+      : null;
 
   const map: Record<string, React.ReactNode> = {
     spend: fmt(c.spend),
