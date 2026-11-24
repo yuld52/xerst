@@ -131,105 +131,102 @@ export function DashboardHeader({ onRefresh, currentRevenue = 0 }: DashboardHead
 
       {/* Dialog de Níveis de Prêmios - Carrossel Vertical */}
       <Dialog open={showPrizesDialog} onOpenChange={setShowPrizesDialog}>
-        <DialogContent className="sm:max-w-[280px] p-0">
-          <DialogHeader className="px-6 pt-6 pb-4">
-            <DialogTitle className="flex items-center gap-2 justify-center">
-              <RiTrophyLine className="size-5 text-primary" />
+        <DialogContent className="sm:max-w-[220px] p-0">
+          <DialogHeader className="px-4 pt-5 pb-3">
+            <DialogTitle className="flex items-center gap-1.5 justify-center text-sm">
+              <RiTrophyLine className="size-4 text-primary" />
               Níveis de Prêmios
             </DialogTitle>
-            <DialogDescription className="text-center">
-              Alcance as metas e desbloqueie prêmios
+            <DialogDescription className="text-center text-xs">
+              Alcance as metas
             </DialogDescription>
           </DialogHeader>
           
           {/* Carrossel de níveis */}
-          <div className="relative px-6 pb-6">
+          <div className="relative px-4 pb-4">
             {/* Card do nível atual */}
             <div className="relative min-h-[500px] flex flex-col">
               {/* Troféu grande */}
-              <div className={`relative mx-auto mb-8 flex items-center justify-center w-36 h-36 rounded-full bg-gradient-to-br ${currentLevel.color} shadow-2xl`}>
-                <span className="text-7xl">{currentLevel.icon}</span>
+              <div className={`relative mx-auto mb-6 flex items-center justify-center w-28 h-28 rounded-full bg-gradient-to-br ${currentLevel.color} shadow-2xl`}>
+                <span className="text-6xl">{currentLevel.icon}</span>
                 {isUnlocked && (
-                  <div className="absolute -top-2 -right-2 bg-green-500 rounded-full p-2 shadow-lg">
-                    <RiCheckLine className="size-6 text-white" strokeWidth={3} />
+                  <div className="absolute -top-1 -right-1 bg-green-500 rounded-full p-1.5 shadow-lg">
+                    <RiCheckLine className="size-5 text-white" strokeWidth={3} />
                   </div>
                 )}
                 {!isUnlocked && !isCurrent && (
-                  <div className="absolute -top-2 -right-2 bg-muted rounded-full p-2 shadow-lg border-2 border-background">
-                    <RiLockLine className="size-5 text-muted-foreground" />
+                  <div className="absolute -top-1 -right-1 bg-muted rounded-full p-1.5 shadow-lg border-2 border-background">
+                    <RiLockLine className="size-4 text-muted-foreground" />
                   </div>
                 )}
               </div>
 
               {/* Informações do nível */}
-              <div className="text-center mb-8">
-                <h3 className="text-2xl font-bold mb-2">{currentLevel.name}</h3>
-                <p className="text-sm text-muted-foreground mb-4">{currentLevel.reward}</p>
-                <p className="text-4xl font-bold text-primary mb-2">{convertAndFormatMZN(currentLevel.goal, 0)}</p>
-                <p className="text-xs text-muted-foreground">Meta de faturamento</p>
+              <div className="text-center mb-6">
+                <h3 className="text-xl font-bold mb-1.5">{currentLevel.name}</h3>
+                <p className="text-xs text-muted-foreground mb-3">{currentLevel.reward}</p>
+                <p className="text-3xl font-bold text-primary mb-1">{convertAndFormatMZN(currentLevel.goal, 0)}</p>
+                <p className="text-[10px] text-muted-foreground">Meta</p>
               </div>
 
               {/* Status */}
-              <div className="text-center mb-8">
+              <div className="text-center mb-6">
                 {isUnlocked ? (
-                  <div className="space-y-3">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 text-green-600 dark:text-green-400">
-                      <RiCheckLine className="size-5" />
-                      <span className="font-semibold">Desbloqueado!</span>
+                  <div className="space-y-2">
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-500/10 text-green-600 dark:text-green-400">
+                      <RiCheckLine className="size-4" />
+                      <span className="font-semibold text-xs">Desbloqueado!</span>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      Parabéns! Você alcançou este nível 🎉
+                    <p className="text-[11px] text-muted-foreground px-2">
+                      Parabéns! 🎉
                     </p>
                   </div>
                 ) : isCurrent ? (
-                  <div className="space-y-4">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary">
-                      <span className="font-semibold">Nível Atual</span>
+                  <div className="space-y-3">
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary">
+                      <span className="font-semibold text-xs">Atual</span>
                     </div>
-                    <div className="space-y-3 bg-muted/30 rounded-xl p-4">
-                      <div className="flex items-center justify-between text-sm">
+                    <div className="space-y-2.5 bg-muted/30 rounded-xl p-3">
+                      <div className="flex items-center justify-between text-xs">
                         <span className="text-muted-foreground">Progresso</span>
-                        <span className="font-bold text-lg">{progress.toFixed(1)}%</span>
+                        <span className="font-bold text-base">{progress.toFixed(1)}%</span>
                       </div>
-                      <div className="w-full h-4 bg-muted rounded-full overflow-hidden shadow-inner">
+                      <div className="w-full h-3.5 bg-muted rounded-full overflow-hidden shadow-inner">
                         <div
                           className={`h-full rounded-full bg-gradient-to-r ${currentLevel.color} transition-all duration-500 shadow-sm`}
                           style={{ width: `${progress}%` }}
                         />
                       </div>
-                      <div className="pt-2 space-y-1">
-                        <p className="text-xs text-muted-foreground">
-                          Falta: <span className="font-bold text-foreground text-sm">{convertAndFormatMZN(currentLevel.goal - currentRevenueMZN, 0)}</span>
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Continue trabalhando para desbloquear!
+                      <div className="pt-1.5 space-y-1">
+                        <p className="text-[10px] text-muted-foreground">
+                          Falta: <span className="font-bold text-foreground text-xs block">{convertAndFormatMZN(currentLevel.goal - currentRevenueMZN, 0)}</span>
                         </p>
                       </div>
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-3">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted text-muted-foreground">
-                      <RiLockLine className="size-4" />
-                      <span className="font-semibold">Bloqueado</span>
+                  <div className="space-y-2">
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted text-muted-foreground">
+                      <RiLockLine className="size-3.5" />
+                      <span className="font-semibold text-xs">Bloqueado</span>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      Complete os níveis anteriores primeiro
+                    <p className="text-[11px] text-muted-foreground px-2">
+                      Complete os anteriores
                     </p>
                   </div>
                 )}
               </div>
 
               {/* Indicadores de posição */}
-              <div className="flex items-center justify-center gap-2 mt-auto pt-4">
+              <div className="flex items-center justify-center gap-1.5 mt-auto pt-3">
                 {prizeLevels.map((_, index) => (
                   <button
                     key={index}
                     onClick={() => setCurrentLevelIndex(index)}
-                    className={`h-2 rounded-full transition-all ${
+                    className={`h-1.5 rounded-full transition-all ${
                       index === currentLevelIndex
-                        ? "bg-primary w-8"
-                        : "bg-muted hover:bg-muted-foreground/50 w-2"
+                        ? "bg-primary w-6"
+                        : "bg-muted hover:bg-muted-foreground/50 w-1.5"
                     }`}
                   />
                 ))}
@@ -237,32 +234,32 @@ export function DashboardHeader({ onRefresh, currentRevenue = 0 }: DashboardHead
             </div>
 
             {/* Botões de navegação */}
-            <div className="absolute top-[200px] left-0 right-0 flex items-center justify-between px-1 pointer-events-none">
+            <div className="absolute top-[160px] -left-3 -right-3 flex items-center justify-between pointer-events-none">
               <Button
                 variant="outline"
                 size="icon"
                 onClick={handlePrevLevel}
                 disabled={currentLevelIndex === 0}
-                className="pointer-events-auto rounded-full h-11 w-11 shadow-xl border-2"
+                className="pointer-events-auto rounded-full h-9 w-9 shadow-xl border-2"
               >
-                <RiArrowLeftSLine className="size-6" />
+                <RiArrowLeftSLine className="size-5" />
               </Button>
               <Button
                 variant="outline"
                 size="icon"
                 onClick={handleNextLevel}
                 disabled={currentLevelIndex === prizeLevels.length - 1}
-                className="pointer-events-auto rounded-full h-11 w-11 shadow-xl border-2"
+                className="pointer-events-auto rounded-full h-9 w-9 shadow-xl border-2"
               >
-                <RiArrowRightSLine className="size-6" />
+                <RiArrowRightSLine className="size-5" />
               </Button>
             </div>
           </div>
           
           {/* Rodapé */}
-          <div className="text-center px-6 pb-6 pt-3 border-t bg-muted/20">
-            <p className="text-xs text-muted-foreground mb-1">Faturamento Total</p>
-            <p className="text-lg font-bold text-foreground">{convertAndFormatMZN(currentRevenueMZN, 0)}</p>
+          <div className="text-center px-4 pb-5 pt-2.5 border-t bg-muted/20">
+            <p className="text-[10px] text-muted-foreground mb-1">Faturamento Total</p>
+            <p className="text-base font-bold text-foreground">{convertAndFormatMZN(currentRevenueMZN, 0)}</p>
           </div>
         </DialogContent>
       </Dialog>
