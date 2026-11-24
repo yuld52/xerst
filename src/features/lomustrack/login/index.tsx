@@ -27,11 +27,6 @@ export default function LoginPage() {
     }
   };
 
-  const handleExploreDemo = () => {
-    sessionStorage.setItem("mock_mode", "true");
-    navigate("/dashboard?mock=true");
-  };
-
   const handleForgotPassword = () => {
     navigate("/forgot-password");
     // Fallback garantido caso o SPA router não altere a rota
@@ -48,7 +43,6 @@ export default function LoginPage() {
       onSubmit={handleSubmit}
       loading={loading}
       error={error}
-      onExploreDemo={handleExploreDemo}
       onForgotPassword={handleForgotPassword}
     />
   );

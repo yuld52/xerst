@@ -17,7 +17,6 @@ export interface AuthFormProps {
   loading?: boolean
   error?: string
   successMessage?: string
-  onExploreDemo?: () => void
   onForgotPassword?: () => void
   // verify-code specific
   email?: string
@@ -32,7 +31,6 @@ export const AuthForm: React.FC<AuthFormProps> = ({
   loading = false,
   error = "",
   successMessage,
-  onExploreDemo,
   onForgotPassword,
   email,
 }) => {
@@ -56,7 +54,6 @@ export const AuthForm: React.FC<AuthFormProps> = ({
           loading={loading}
           error={error}
           successMessage={successMessage}
-          onExploreDemo={onExploreDemo}
           onForgotPassword={onForgotPassword}
         />
         <TermsAndConditions />
@@ -134,7 +131,6 @@ const FormSection: React.FC<{
   loading: boolean
   error?: string
   successMessage?: string
-  onExploreDemo?: () => void
   onForgotPassword?: () => void
   // verify-code specific
   email?: string
@@ -147,7 +143,6 @@ const FormSection: React.FC<{
   loading,
   error,
   successMessage,
-  onExploreDemo,
   onForgotPassword,
   email,
   onResend,
@@ -344,16 +339,6 @@ const FormSection: React.FC<{
                   : "Criar minha conta"}
           </span>
         </Button>
-
-        {isLogin && onExploreDemo && (
-          <button
-            type="button"
-            onClick={onExploreDemo}
-            className="w-full py-2.5 px-4 text-sm font-medium rounded-md border border-zinc-300 bg-white hover:bg-zinc-50 text-zinc-700 transition-all hover:scale-[1.01] active:scale-[0.98]"
-          >
-            Explorar demonstração
-          </button>
-        )}
 
         <div className="text-center pt-2">
           <p className="text-sm text-zinc-500">
