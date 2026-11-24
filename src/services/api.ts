@@ -1,13 +1,6 @@
 import { getCookie, removeCookie } from "@/lib/cookies";
-import { getMockData } from "./mockInterceptor";
-import { isImportDemo } from "@/lib/import-demo";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "/api" : "https://www.lomustrack.online/api");
-const DEMO_ALLOWED_MUTATION_ENDPOINTS = [
-  "/gemini/chat",
-  "/gemini/daily-report",
-  "/campaigns/rules",
-];
 
 /** Evita múltiplos redirects simultâneos de 401 */
 let isRedirecting = false;
@@ -19,29 +12,6 @@ interface RequestOptions {
 }
 
 export async function apiRequest<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
-  const isMock = isImportDemo();
-
-  if (isMock) {
-    const method = options.method ?? "GET";
-    const isAllowedMutation = DEMO_ALLOWED_MUTATION_ENDPOINTS.some((prefix) =>
-      endpoint.startsWith(prefix),
-    );
-    if (method !== "GET" && !isAllowedMutation) {
-      throw new Error(
-        "Alterações indisponíveis na demonstração. O serviço original ainda não está conectado.",
-      );
-    }
-    try {
-      const mockData = await getMockData(endpoint, options);
-      if (mockData !== undefined) {
-        return mockData as T;
-      }
-    } catch (e) {
-      console.warn(`[Mock API] Error getting mock for ${endpoint}`, e);
-    }
-    throw new Error("Este recurso não está disponível na demonstração.");
-  }
-
   const { method = "GET", body, headers = {} } = options;
 
   const config: RequestInit = {
@@ -122,7 +92,6 @@ export async function apiRequest<T>(endpoint: string, options: RequestOptions = 
 }
 
 export async function apiDownload(endpoint: string, filename: string): Promise<void> {
-  if (isImportDemo()) throw new Error("Exportações não estão disponíveis no modo de demonstração.");
   const token = getCookie("access_token");
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     headers: token ? { Authorization: `Bearer ${token}` } : {},

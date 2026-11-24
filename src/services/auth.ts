@@ -1,6 +1,5 @@
 import { apiRequest } from "./api";
 import { setCookie, getCookie, removeCookie } from "@/lib/cookies";
-import { demoUser, isImportDemo } from "@/lib/import-demo";
 
 interface SetupStatus {
   is_configured: boolean;
@@ -72,9 +71,6 @@ export async function loginUser(data: LoginData): Promise<LoginResponse> {
 }
 
 export async function requestPasswordReset(email: string): Promise<{ message: string }> {
-  if (isImportDemo()) {
-    return { message: "Instruções de recuperação enviadas para seu e-mail." };
-  }
   return await apiRequest<{ message: string }>("/forgot-password", {
     method: "POST",
     body: { email },
@@ -116,18 +112,15 @@ export async function sendAdminEmail(data: {
 }
 
 export function logout() {
-  sessionStorage.removeItem("mock_mode");
   removeCookie("access_token");
   localStorage.removeItem("user");
 }
 
 export function getStoredUser() {
-  if (isImportDemo()) return demoUser;
   const user = localStorage.getItem("user");
   return user ? JSON.parse(user) : null;
 }
 
 export function isAuthenticated(): boolean {
-  if (isImportDemo()) return true;
   return !!getCookie("access_token");
 }

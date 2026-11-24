@@ -1,5 +1,4 @@
 import { apiRequest } from "./api";
-import { isImportDemo } from "@/lib/import-demo";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
 
@@ -79,11 +78,6 @@ export async function publishCampaign(
   payload: Record<string, unknown>,
   files: File[],
 ): Promise<CampaignCreateResult> {
-  // Mock mode — intercept before hitting the real API
-  if (isImportDemo()) {
-    throw new Error("Publicação indisponível: o serviço original ainda não está conectado.");
-  }
-
   const formData = new FormData();
   formData.append("payload", JSON.stringify(payload));
   files.forEach((file) => formData.append("files", file));
