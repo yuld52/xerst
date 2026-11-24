@@ -130,7 +130,11 @@ export function RevenueChart({ data }: RevenueChartProps) {
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
-                tickFormatter={(value) => withSymbol(`${(convertFromBRL(value) / 1000).toFixed(0)}k`)}
+                tickFormatter={(value) =>
+                  withSymbol(
+                    convertFromBRL(value).toLocaleString("pt-BR", { maximumFractionDigits: 0 }),
+                  )
+                }
               />
               <ChartTooltip content={<CustomTooltip />} cursor={false} />
               <Area

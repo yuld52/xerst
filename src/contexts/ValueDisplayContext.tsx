@@ -20,9 +20,10 @@ const STORAGE_KEY = "lp_show_full_values";
 export function ValueDisplayProvider({ children }: { children: ReactNode }) {
   const [showFull, setShowFull] = useState(() => {
     try {
-      return localStorage.getItem(STORAGE_KEY) === "true";
+      const stored = localStorage.getItem(STORAGE_KEY);
+      return stored !== null ? stored === "true" : true;
     } catch {
-      return false;
+      return true;
     }
   });
 

@@ -10,7 +10,7 @@ import {
 } from "@remixicon/react";
 import { KpiCard } from "./KpiCard";
 import type { DashboardKpis } from "@/types/dashboard";
-import { fmtCompact } from "@/utils/format";
+import { fmtFull } from "@/utils/format";
 
 interface KpiGridProps {
   kpis: DashboardKpis;
@@ -46,7 +46,7 @@ export function KpiGrid({ kpis, taxEnabled, taxRate, opCostsEnabled, opCostsTota
   const kpiCards = [
     {
       title: revenueLabel,
-      value: fmtCompact(revenue),
+      value: fmtFull(revenue),
       rawValue: revenue,
       tooltip: "Faturamento Líquido total",
       icon: RiMoneyDollarBoxLine,
@@ -54,11 +54,11 @@ export function KpiGrid({ kpis, taxEnabled, taxRate, opCostsEnabled, opCostsTota
     },
     {
       title: "Gastos com anúncios",
-      value: fmtCompact(kpis.total_spend),
+      value: fmtFull(kpis.total_spend),
       rawValue: kpis.total_spend,
       tooltip: "Total investido em anúncios",
       icon: RiBarChartLine,
-      subtitle: kpis.cpa > 0 ? `CPA: ${fmtCompact(kpis.cpa)}` : undefined,
+      subtitle: kpis.cpa > 0 ? `CPA: ${fmtFull(kpis.cpa)}` : undefined,
       variant: "default" as const,
     },
     {
@@ -70,7 +70,7 @@ export function KpiGrid({ kpis, taxEnabled, taxRate, opCostsEnabled, opCostsTota
     },
     {
       title: profitLabel,
-      value: fmtCompact(profit),
+      value: fmtFull(profit),
       rawValue: profit,
       tooltip: "Lucro líquido final",
       icon: RiLineChartLine,
@@ -81,7 +81,7 @@ export function KpiGrid({ kpis, taxEnabled, taxRate, opCostsEnabled, opCostsTota
       value: kpis.total_sales.toLocaleString("pt-BR"),
       tooltip: "Total de pedidos aprovados",
       icon: RiShoppingBagLine,
-      subtitle: `Ticket Médio: ${fmtCompact(kpis.average_ticket)}`,
+      subtitle: `Ticket Médio: ${fmtFull(kpis.average_ticket)}`,
       variant: (hasData && kpis.total_sales > 0 ? "success" : "default") as const,
     },
     {
@@ -101,7 +101,7 @@ export function KpiGrid({ kpis, taxEnabled, taxRate, opCostsEnabled, opCostsTota
     },
     {
       title: "Chargebacks",
-      value: fmtCompact(kpis.chargeback_amount),
+      value: fmtFull(kpis.chargeback_amount),
       rawValue: kpis.chargeback_amount,
       tooltip: "Total e percentual de chargebacks",
       icon: RiErrorWarningLine,

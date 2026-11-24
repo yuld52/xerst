@@ -35,9 +35,9 @@ export function KpiCard({
   variant = "default",
 }: KpiCardProps) {
   const { showFull } = useValueDisplay();
-  const displayValue = showFull && rawValue != null ? fmtFull(rawValue) : value;
-  const titleAttr = rawValue != null ? (showFull ? value : fmtFull(rawValue)) : value;
-  const isLongValue = displayValue.length > 13;
+  const displayValue = rawValue != null ? fmtFull(rawValue) : value;
+  const titleAttr = displayValue;
+  const isLongValue = displayValue.length > 12;
 
   return (
     <div
