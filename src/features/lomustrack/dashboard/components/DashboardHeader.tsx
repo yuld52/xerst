@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { RefreshButton } from "@/components/RefreshButton";
 import { NotificationBell } from "@/components/NotificationBell";
-import { RiTrophyLine, RiInformationLine, RiCheckLine, RiLockLine } from "@remixicon/react";
+import { RiTrophyLine, RiInformationLine, RiCheckLine, RiLockLine, RiArrowLeftSLine, RiArrowRightSLine } from "@remixicon/react";
 import {
   Dialog,
   DialogContent,
@@ -9,6 +9,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { convertAndFormatMZN } from "@/utils/format";
 
 interface DashboardHeaderProps {
@@ -18,6 +19,7 @@ interface DashboardHeaderProps {
 
 export function DashboardHeader({ onRefresh, currentRevenue = 0 }: DashboardHeaderProps) {
   const [showPrizesDialog, setShowPrizesDialog] = useState(false);
+  const [currentLevelIndex, setCurrentLevelIndex] = useState(0);
   
   // Calcular progresso dos prêmios
   // Backend armazena em BRL, convertemos para MZN (1 BRL = 13 MZN)
@@ -48,12 +50,25 @@ export function DashboardHeader({ onRefresh, currentRevenue = 0 }: DashboardHead
   };
 
   const prizeLevels = [
-    { name: "Nível 1", goal: 10_000, reward: "Troféu Bronze", icon: "🥉" },
-    { name: "Nível 2", goal: 100_000, reward: "Troféu Prata", icon: "🥈" },
-    { name: "Nível 3", goal: 1_000_000, reward: "Troféu Ouro", icon: "🥇" },
-    { name: "Nível 4", goal: 5_000_000, reward: "Troféu Platina", icon: "💎" },
-    { name: "Nível 5", goal: 10_000_000, reward: "Troféu Diamante", icon: "👑" },
+    { name: "Nível 1", goal: 10_000, reward: "Troféu Bronze", icon: "🥉", color: "from-amber-600 to-amber-800" },
+    { name: "Nível 2", goal: 100_000, reward: "Troféu Prata", icon: "🥈", color: "from-gray-400 to-gray-600" },
+    { name: "Nível 3", goal: 1_000_000, reward: "Troféu Ouro", icon: "🥇", color: "from-yellow-400 to-yellow-600" },
+    { name: "Nível 4", goal: 5_000_000, reward: "Troféu Platina", icon: "💎", color: "from-cyan-400 to-blue-600" },
+    { name: "Nível 5", goal: 10_000_000, reward: "Troféu Diamante", icon: "👑", color: "from-purple-500 to-pink-600" },
   ];
+
+  const currentLevel = prizeLevels[currentLevelIndex];
+  const isUnlocked = currentRevenueMZN >= currentLevel.goal;
+  const isCurrent = !isUnlocked && (currentLevelIndex === 0 || currentRevenueMZN >= prizeLevels[currentLevelIndex - 1].goal);
+  const progress = isCurrent ? Math.min((currentRevenueMZN / currentLevel.goal) * 100, 100) : 0;
+
+  const handlePrevLevel = () => {
+    setCurrentLevelIndex((prev) => Math.max(0, prev - 1));
+  };
+
+  const handleNextLevel = () => {
+    setCurrentLevelIndex((prev) => Math.min(prizeLevels.length - 1, prev + 1));
+  };
 
   return (
     <div className="flex items-center justify-between">
@@ -114,80 +129,122 @@ export function DashboardHeader({ onRefresh, currentRevenue = 0 }: DashboardHead
         </button>
       </div>
 
-      {/* Dialog de Níveis de Prêmios */}
+      {/* Dialog de Níveis de Prêmios - Carrossel Vertical */}
       <Dialog open={showPrizesDialog} onOpenChange={setShowPrizesDialog}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+        <DialogContent className="sm:max-w-[320px] p-0">
+          <DialogHeader className="px-6 pt-6 pb-4">
+            <DialogTitle className="flex items-center gap-2 justify-center">
               <RiTrophyLine className="size-5 text-primary" />
               Níveis de Prêmios
             </DialogTitle>
-            <DialogDescription>
-              Alcance as metas de faturamento e desbloqueie prêmios exclusivos
+            <DialogDescription className="text-center">
+              Alcance as metas e desbloqueie prêmios
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-3 py-4">
-            {prizeLevels.map((level, index) => {
-              const isUnlocked = currentRevenueMZN >= level.goal;
-              const isCurrent = !isUnlocked && (index === 0 || currentRevenueMZN >= prizeLevels[index - 1].goal);
-              const progress = isCurrent ? Math.min((currentRevenueMZN / level.goal) * 100, 100) : 0;
-              
-              return (
-                <div
-                  key={level.name}
-                  className={`relative rounded-lg border p-4 transition-all ${
-                    isUnlocked
-                      ? "border-primary/50 bg-primary/5"
-                      : isCurrent
-                      ? "border-primary bg-primary/10"
-                      : "border-border bg-muted/20"
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">{level.icon}</span>
-                      <div>
-                        <p className="font-semibold text-sm">{level.name}</p>
-                        <p className="text-xs text-muted-foreground">{level.reward}</p>
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-end gap-1">
-                      <p className="text-sm font-bold">{convertAndFormatMZN(level.goal, 0)}</p>
-                      {isUnlocked ? (
-                        <div className="flex items-center gap-1 text-xs text-primary">
-                          <RiCheckLine className="size-4" />
-                          <span>Desbloqueado</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <RiLockLine className="size-3" />
-                          <span>Bloqueado</span>
-                        </div>
-                      )}
-                    </div>
+          {/* Carrossel de níveis */}
+          <div className="relative px-6 pb-6">
+            {/* Card do nível atual */}
+            <div className="relative min-h-[420px] flex flex-col">
+              {/* Troféu grande */}
+              <div className={`relative mx-auto mb-6 flex items-center justify-center w-32 h-32 rounded-full bg-gradient-to-br ${currentLevel.color} shadow-2xl`}>
+                <span className="text-6xl">{currentLevel.icon}</span>
+                {isUnlocked && (
+                  <div className="absolute -top-2 -right-2 bg-green-500 rounded-full p-1.5 shadow-lg">
+                    <RiCheckLine className="size-5 text-white" strokeWidth={3} />
                   </div>
-                  
-                  {isCurrent && (
-                    <div className="mt-3">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs text-muted-foreground">Progresso</span>
-                        <span className="text-xs font-semibold">{progress.toFixed(1)}%</span>
+                )}
+                {!isUnlocked && !isCurrent && (
+                  <div className="absolute -top-2 -right-2 bg-muted rounded-full p-1.5 shadow-lg border-2 border-background">
+                    <RiLockLine className="size-4 text-muted-foreground" />
+                  </div>
+                )}
+              </div>
+
+              {/* Informações do nível */}
+              <div className="text-center mb-6">
+                <h3 className="text-2xl font-bold mb-1">{currentLevel.name}</h3>
+                <p className="text-sm text-muted-foreground mb-3">{currentLevel.reward}</p>
+                <p className="text-3xl font-bold text-primary">{convertAndFormatMZN(currentLevel.goal, 0)}</p>
+              </div>
+
+              {/* Status */}
+              <div className="text-center mb-6">
+                {isUnlocked ? (
+                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 text-green-600 dark:text-green-400">
+                    <RiCheckLine className="size-5" />
+                    <span className="font-semibold">Desbloqueado!</span>
+                  </div>
+                ) : isCurrent ? (
+                  <div className="space-y-3">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary">
+                      <span className="font-semibold">Em progresso</span>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Progresso</span>
+                        <span className="font-bold">{progress.toFixed(1)}%</span>
                       </div>
-                      <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                      <div className="w-full h-3 bg-muted rounded-full overflow-hidden">
                         <div
-                          className="h-full rounded-full bg-primary transition-all duration-500"
+                          className={`h-full rounded-full bg-gradient-to-r ${currentLevel.color} transition-all duration-500`}
                           style={{ width: `${progress}%` }}
                         />
                       </div>
+                      <p className="text-xs text-muted-foreground">
+                        Falta: <span className="font-semibold text-foreground">{convertAndFormatMZN(currentLevel.goal - currentRevenueMZN, 0)}</span>
+                      </p>
                     </div>
-                  )}
-                </div>
-              );
-            })}
+                  </div>
+                ) : (
+                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted text-muted-foreground">
+                    <RiLockLine className="size-4" />
+                    <span className="font-semibold">Bloqueado</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Indicadores de posição */}
+              <div className="flex items-center justify-center gap-2 mt-auto">
+                {prizeLevels.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentLevelIndex(index)}
+                    className={`w-2 h-2 rounded-full transition-all ${
+                      index === currentLevelIndex
+                        ? "bg-primary w-6"
+                        : "bg-muted hover:bg-muted-foreground/50"
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Botões de navegação */}
+            <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 flex items-center justify-between px-2 pointer-events-none">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handlePrevLevel}
+                disabled={currentLevelIndex === 0}
+                className="pointer-events-auto rounded-full h-10 w-10 shadow-lg"
+              >
+                <RiArrowLeftSLine className="size-5" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleNextLevel}
+                disabled={currentLevelIndex === prizeLevels.length - 1}
+                className="pointer-events-auto rounded-full h-10 w-10 shadow-lg"
+              >
+                <RiArrowRightSLine className="size-5" />
+              </Button>
+            </div>
           </div>
           
-          <div className="text-center pt-2 border-t">
+          {/* Rodapé */}
+          <div className="text-center px-6 pb-6 pt-2 border-t">
             <p className="text-xs text-muted-foreground">
               Faturamento atual: <span className="font-semibold text-foreground">{convertAndFormatMZN(currentRevenueMZN, 0)}</span>
             </p>
