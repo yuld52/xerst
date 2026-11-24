@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { RiAddLine, RiDeleteBinLine, RiFacebookFill, RiInformationLine } from "@remixicon/react";
+import { RiAddLine, RiDeleteBinLine, RiFacebookFill, RiInformationLine, RiLockLine } from "@remixicon/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -27,6 +27,9 @@ import {
   setCampaignRuleEnabled,
   type CampaignRule,
 } from "@/services/campaignRules";
+import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useNavigate } from "@tanstack/react-router";
 
 type RuleAction = "activate" | "pause" | "increase_budget" | "decrease_budget";
 type ConditionField = "spend" | "roas" | "cpa" | "ctr" | "sales";
@@ -405,6 +408,10 @@ export function RulesSection() {
   const [rules, setRules] = useState<CampaignRule[]>([]);
   const [selectedRuleIds, setSelectedRuleIds] = useState<string[]>([]);
   const [open, setOpen] = useState(false);
+  const { subscription } = useSubscriptionLimits();
+  const navigate = useNavigate();
+  
+  const isFreePlan = subscription?.plan.id === "free";
 
   useEffect(() => {
     fetchCampaignRules()
@@ -453,6 +460,27 @@ export function RulesSection() {
 
   return (
     <section className="space-y-4 rounded-xl border bg-card p-4 shadow-sm sm:p-6">
+      {isFreePlan && (
+        <Alert className="border-orange-200 bg-orange-50 dark:border-orange-900 dark:bg-orange-950">
+          <RiLockLine className="size-4 text-orange-600 dark:text-orange-400" />
+          <AlertTitle className="text-orange-900 dark:text-orange-100">
+            Regras de automação disponíveis apenas em planos pagos
+          </AlertTitle>
+          <AlertDescription className="text-orange-800 dark:text-orange-200">
+            <p className="mb-3">
+              As regras automatizadas permitem que você gerencie campanhas, conjuntos e anúncios de forma automática com base em condições de desempenho.
+            </p>
+            <Button
+              size="sm"
+              variant="default"
+              onClick={() => navigate({ to: "/my-subscription" })}
+            >
+              Ver planos pagos
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+      
       <div className="flex flex-wrap items-center gap-6 border-b">
         <button
           className={cn(
@@ -480,12 +508,18 @@ export function RulesSection() {
                 variant="outline"
                 className="gap-1.5 text-destructive"
                 onClick={() => void deleteSelectedRules()}
+                disabled={isFreePlan}
               >
                 <RiDeleteBinLine className="size-4" />
                 Excluir selecionadas ({selectedRuleIds.length})
               </Button>
             )}
-            <Button size="sm" className="gap-1.5" onClick={() => setOpen(true)}>
+            <Button 
+              size="sm" 
+              className="gap-1.5" 
+              onClick={() => setOpen(true)}
+              disabled={isFreePlan}
+            >
               <RiAddLine className="size-4" />
               Criar regra
             </Button>

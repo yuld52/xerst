@@ -131,7 +131,7 @@ export function DashboardHeader({ onRefresh, currentRevenue = 0 }: DashboardHead
 
       {/* Dialog de Níveis de Prêmios - Carrossel Vertical */}
       <Dialog open={showPrizesDialog} onOpenChange={setShowPrizesDialog}>
-        <DialogContent className="sm:max-w-[180px] p-0">
+        <DialogContent className="sm:max-w-sm p-0">
           <DialogHeader className="px-3 pt-4 pb-2">
             <DialogTitle className="flex flex-col items-center gap-1 justify-center text-xs">
               <RiTrophyLine className="size-5 text-primary" />
@@ -233,25 +233,25 @@ export function DashboardHeader({ onRefresh, currentRevenue = 0 }: DashboardHead
               </div>
             </div>
 
-            {/* Botões de navegação */}
-            <div className="absolute top-[180px] -left-4 -right-4 flex items-center justify-between pointer-events-none">
+            {/* Botões de navegação - Cantos laterais, meio vertical */}
+            <div className="absolute top-[50%] -translate-y-1/2 left-0 right-0 flex items-center justify-between pointer-events-none">
               <Button
                 variant="outline"
                 size="icon"
                 onClick={handlePrevLevel}
                 disabled={currentLevelIndex === 0}
-                className="pointer-events-auto rounded-full h-8 w-8 shadow-xl border-2"
+                className="pointer-events-auto rounded-full h-10 w-10 shadow-xl border-2 -ml-5"
               >
-                <RiArrowLeftSLine className="size-4" />
+                <RiArrowLeftSLine className="size-5" />
               </Button>
               <Button
                 variant="outline"
                 size="icon"
                 onClick={handleNextLevel}
                 disabled={currentLevelIndex === prizeLevels.length - 1}
-                className="pointer-events-auto rounded-full h-8 w-8 shadow-xl border-2"
+                className="pointer-events-auto rounded-full h-10 w-10 shadow-xl border-2 -mr-5"
               >
-                <RiArrowRightSLine className="size-4" />
+                <RiArrowRightSLine className="size-5" />
               </Button>
             </div>
           </div>

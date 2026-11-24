@@ -238,6 +238,12 @@ export default function MySubscriptionPage() {
                       <p>{limitLabel(plan.sales_limit)} vendas aprovadas/mês</p>
                       <p>{limitLabel(plan.ad_account_limit)} contas de anúncio</p>
                       <p>{limitLabel(plan.webhook_limit)} webhooks</p>
+                      {plan.id !== "free" && (
+                        <p className="flex items-center gap-1.5 text-primary">
+                          <RiCheckLine className="size-4" />
+                          Regras de automação
+                        </p>
+                      )}
                       <Button
                         className="w-full"
                         variant={plan.id === subscription.plan_id ? "secondary" : "outline"}
