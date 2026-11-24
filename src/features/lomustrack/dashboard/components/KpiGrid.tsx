@@ -28,6 +28,9 @@ export function KpiGrid({ kpis, taxEnabled, taxRate, opCostsEnabled, opCostsTota
   const profitMargin = revenue > 0 ? (profit / revenue) * 100 : 0;
   const roas = kpis.total_spend > 0 ? revenue / kpis.total_spend : 0;
 
+  // Check if there's any data
+  const hasData = kpis.total_revenue > 0 || kpis.total_spend > 0 || kpis.total_sales > 0;
+
   const revenueLabel = [
     "Faturamento Líquido",
     taxEnabled ? "- impostos" : "",
@@ -47,7 +50,7 @@ export function KpiGrid({ kpis, taxEnabled, taxRate, opCostsEnabled, opCostsTota
       rawValue: revenue,
       tooltip: "Faturamento Líquido total",
       icon: RiMoneyDollarBoxLine,
-      variant: "primary" as const,
+      variant: (hasData && revenue > 0 ? "primary" : "default") as const,
     },
     {
       title: "Gastos com anúncios",
@@ -63,7 +66,7 @@ export function KpiGrid({ kpis, taxEnabled, taxRate, opCostsEnabled, opCostsTota
       value: kpis.total_spend > 0 ? `${roas.toFixed(2)}x` : "N/A",
       tooltip: "Retorno sobre gastos com anúncios (Receita / Gasto)",
       icon: RiFocus3Line,
-      variant: roas < 0 ? ("destructive" as const) : ("primary" as const),
+      variant: (hasData && roas < 1 ? "destructive" : hasData && roas > 0 ? "primary" : "default") as const,
     },
     {
       title: profitLabel,
@@ -71,7 +74,7 @@ export function KpiGrid({ kpis, taxEnabled, taxRate, opCostsEnabled, opCostsTota
       rawValue: profit,
       tooltip: "Lucro líquido final",
       icon: RiLineChartLine,
-      variant: profit >= 0 ? ("success" as const) : ("destructive" as const),
+      variant: (hasData ? (profit >= 0 ? "success" : "destructive") : "default") as const,
     },
     {
       title: "Vendas",
@@ -79,14 +82,14 @@ export function KpiGrid({ kpis, taxEnabled, taxRate, opCostsEnabled, opCostsTota
       tooltip: "Total de pedidos aprovados",
       icon: RiShoppingBagLine,
       subtitle: `Ticket Médio: ${fmtCompact(kpis.average_ticket)}`,
-      variant: "success" as const,
+      variant: (hasData && kpis.total_sales > 0 ? "success" : "default") as const,
     },
     {
       title: "Margem de Lucro",
       value: `${profitMargin.toFixed(1)}%`,
       tooltip: "Margem percentual de lucro",
       icon: RiPercentLine,
-      variant: profitMargin < 0 ? ("destructive" as const) : ("default" as const),
+      variant: (hasData && profitMargin < 0 ? "destructive" : "default") as const,
     },
     {
       title: "Taxa de Conversão",
@@ -103,7 +106,7 @@ export function KpiGrid({ kpis, taxEnabled, taxRate, opCostsEnabled, opCostsTota
       tooltip: "Total e percentual de chargebacks",
       icon: RiErrorWarningLine,
       subtitle: `Taxa: ${kpis.chargeback_rate}%`,
-      variant: "destructive" as const,
+      variant: (hasData && kpis.chargeback_amount > 0 ? "destructive" : "default") as const,
     },
   ];
 
