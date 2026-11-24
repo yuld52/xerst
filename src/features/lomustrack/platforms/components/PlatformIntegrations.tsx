@@ -21,6 +21,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { apiRequest } from "@/services/api";
+import { toast } from "sonner";
 
 interface ApiCredential {
   id: number;
@@ -161,27 +162,59 @@ export function PlatformIntegrations({
   };
 
   const toggleCredential = async (credential: ApiCredential) => {
-    await apiRequest(`/platforms/credentials/${credential.id}`, {
-      method: "PATCH",
-      body: { active: !credential.active },
-    });
-    setCredentials((current) =>
-      current.map((c) => (c.id === credential.id ? { ...c, active: !c.active } : c))
-    );
+    try {
+      await apiRequest(`/platforms/credentials/${credential.id}`, {
+        method: "PATCH",
+        body: { active: !credential.active },
+      });
+      setCredentials((current) =>
+        current.map((c) => (c.id === credential.id ? { ...c, active: !c.active } : c))
+      );
+      toast.success(
+        credential.active 
+          ? "Credencial desativada com sucesso" 
+          : "Credencial ativada com sucesso"
+      );
+    } catch (error) {
+      toast.error(
+        error instanceof Error 
+          ? error.message 
+          : "Não foi possível alterar o status da credencial"
+      );
+    }
   };
 
   const updateCredentialName = async (id: number, name: string) => {
-    await apiRequest(`/platforms/credentials/${id}`, {
-      method: "PATCH",
-      body: { name },
-    });
-    setCredentials((current) => current.map((c) => (c.id === id ? { ...c, name } : c)));
+    try {
+      await apiRequest(`/platforms/credentials/${id}`, {
+        method: "PATCH",
+        body: { name },
+      });
+      setCredentials((current) => current.map((c) => (c.id === id ? { ...c, name } : c)));
+      toast.success("Nome da credencial atualizado com sucesso");
+    } catch (error) {
+      toast.error(
+        error instanceof Error 
+          ? error.message 
+          : "Não foi possível atualizar o nome da credencial"
+      );
+      throw error;
+    }
   };
 
   const deleteCredential = async (id: number) => {
-    await apiRequest(`/platforms/credentials/${id}`, { method: "DELETE" });
-    setCredentials((current) => current.filter((credential) => credential.id !== id));
-    onDeleteCredential?.(String(id));
+    try {
+      await apiRequest(`/platforms/credentials/${id}`, { method: "DELETE" });
+      setCredentials((current) => current.filter((credential) => credential.id !== id));
+      onDeleteCredential?.(String(id));
+      toast.success("Credencial deletada com sucesso");
+    } catch (error) {
+      toast.error(
+        error instanceof Error 
+          ? error.message 
+          : "Não foi possível deletar a credencial"
+      );
+    }
   };
 
   return (
@@ -297,8 +330,12 @@ export function PlatformIntegrations({
             <Button
               onClick={async () => {
                 if (editCredential && editName.trim()) {
-                  await updateCredentialName(editCredential.id, editName.trim());
-                  setEditCredential(null);
+                  try {
+                    await updateCredentialName(editCredential.id, editName.trim());
+                    setEditCredential(null);
+                  } catch {
+                    // Erro já tratado no updateCredentialName
+                  }
                 }
               }}
               disabled={!editName.trim()}
