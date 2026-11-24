@@ -133,19 +133,16 @@ export function DashboardHeader({ onRefresh, currentRevenue = 0 }: DashboardHead
       <Dialog open={showPrizesDialog} onOpenChange={setShowPrizesDialog}>
         <DialogContent className="sm:max-w-[180px] p-0">
           <DialogHeader className="px-3 pt-4 pb-2">
-            <DialogTitle className="flex items-center gap-1 justify-center text-xs">
-              <RiTrophyLine className="size-3.5 text-primary" />
-              Níveis de Prêmios
+            <DialogTitle className="flex flex-col items-center gap-1 justify-center text-xs">
+              <RiTrophyLine className="size-5 text-primary" />
+              Prêmios
             </DialogTitle>
-            <DialogDescription className="text-center text-[10px]">
-              Alcance as metas
-            </DialogDescription>
           </DialogHeader>
           
           {/* Carrossel de níveis */}
-          <div className="relative px-3 pb-3">
+          <div className="relative px-3 pb-4">
             {/* Card do nível atual */}
-            <div className="relative min-h-[580px] flex flex-col">
+            <div className="relative min-h-[600px] flex flex-col">
               {/* Troféu grande */}
               <div className={`relative mx-auto mb-6 flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br ${currentLevel.color} shadow-2xl`}>
                 <span className="text-5xl">{currentLevel.icon}</span>
@@ -156,76 +153,80 @@ export function DashboardHeader({ onRefresh, currentRevenue = 0 }: DashboardHead
                 )}
                 {!isUnlocked && !isCurrent && (
                   <div className="absolute -top-1 -right-1 bg-muted rounded-full p-1 shadow-lg border border-background">
-                    <RiLockLine className="size-3.5 text-muted-foreground" />
+                    <RiLockLine className="size-3 text-muted-foreground" />
                   </div>
                 )}
               </div>
 
               {/* Informações do nível */}
-              <div className="text-center mb-6">
+              <div className="text-center mb-8">
                 <h3 className="text-lg font-bold mb-1">{currentLevel.name}</h3>
-                <p className="text-[10px] text-muted-foreground mb-3 px-1">{currentLevel.reward}</p>
-                <p className="text-2xl font-bold text-primary mb-1 leading-tight break-all px-1">{convertAndFormatMZN(currentLevel.goal, 0)}</p>
-                <p className="text-[9px] text-muted-foreground">Meta</p>
+                <p className="text-[10px] text-muted-foreground mb-4">{currentLevel.reward}</p>
+                <p className="text-2xl font-bold text-primary mb-1 leading-tight break-words">{convertAndFormatMZN(currentLevel.goal, 0)}</p>
+                <p className="text-[9px] text-muted-foreground uppercase tracking-wide">Meta</p>
               </div>
 
               {/* Status */}
-              <div className="text-center mb-6 px-2">
+              <div className="text-center mb-8">
                 {isUnlocked ? (
-                  <div className="space-y-2">
-                    <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-green-500/10 text-green-600 dark:text-green-400">
-                      <RiCheckLine className="size-3.5" />
-                      <span className="font-semibold text-[10px]">Desbloqueado!</span>
+                  <div className="space-y-3">
+                    <div className="inline-flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-green-500/10 text-green-600 dark:text-green-400">
+                      <RiCheckLine className="size-5" />
+                      <span className="font-bold text-[10px]">Desbloqueado</span>
                     </div>
-                    <p className="text-[10px] text-muted-foreground">
-                      Parabéns! 🎉
+                    <p className="text-2xl">🎉</p>
+                    <p className="text-[10px] text-muted-foreground px-1">
+                      Parabéns!
                     </p>
                   </div>
                 ) : isCurrent ? (
-                  <div className="space-y-3">
-                    <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary">
-                      <span className="font-semibold text-[10px]">Em progresso</span>
+                  <div className="space-y-4">
+                    <div className="inline-flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-primary/10 text-primary">
+                      <span className="font-bold text-[10px]">ATUAL</span>
                     </div>
-                    <div className="space-y-2 bg-muted/30 rounded-lg p-2.5">
-                      <div className="flex items-center justify-between text-[10px]">
-                        <span className="text-muted-foreground">Progresso</span>
-                        <span className="font-bold text-sm">{progress.toFixed(1)}%</span>
+                    <div className="space-y-3 bg-muted/30 rounded-xl p-3">
+                      <div className="text-center">
+                        <span className="text-2xl font-bold text-primary block mb-1">{progress.toFixed(0)}%</span>
+                        <span className="text-[9px] text-muted-foreground uppercase">Progresso</span>
                       </div>
-                      <div className="w-full h-3 bg-muted rounded-full overflow-hidden shadow-inner">
+                      <div className="w-full h-4 bg-muted rounded-full overflow-hidden shadow-inner">
                         <div
                           className={`h-full rounded-full bg-gradient-to-r ${currentLevel.color} transition-all duration-500 shadow-sm`}
                           style={{ width: `${progress}%` }}
                         />
                       </div>
-                      <div className="pt-1 space-y-0.5">
-                        <p className="text-[9px] text-muted-foreground">Falta:</p>
-                        <p className="font-bold text-foreground text-[11px] break-all">{convertAndFormatMZN(currentLevel.goal - currentRevenueMZN, 0)}</p>
+                      <div className="pt-2 text-center space-y-1.5">
+                        <p className="text-[9px] text-muted-foreground uppercase">Falta</p>
+                        <p className="font-bold text-foreground text-sm leading-tight break-words">{convertAndFormatMZN(currentLevel.goal - currentRevenueMZN, 0)}</p>
                       </div>
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-2">
-                    <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted text-muted-foreground">
-                      <RiLockLine className="size-3" />
-                      <span className="font-semibold text-[10px]">Bloqueado</span>
+                  <div className="space-y-3">
+                    <div className="inline-flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-muted text-muted-foreground">
+                      <RiLockLine className="size-4" />
+                      <span className="font-bold text-[10px]">Bloqueado</span>
                     </div>
-                    <p className="text-[10px] text-muted-foreground">
-                      Complete anteriores
+                    <p className="text-[10px] text-muted-foreground px-1 leading-relaxed">
+                      Complete os<br/>níveis anteriores
                     </p>
                   </div>
                 )}
               </div>
 
+              {/* Espaçador flexível */}
+              <div className="flex-1" />
+
               {/* Indicadores de posição */}
-              <div className="flex items-center justify-center gap-1 mt-auto pt-4">
+              <div className="flex flex-col items-center justify-center gap-2 pt-4">
                 {prizeLevels.map((_, index) => (
                   <button
                     key={index}
                     onClick={() => setCurrentLevelIndex(index)}
-                    className={`h-1 rounded-full transition-all ${
+                    className={`w-1.5 rounded-full transition-all ${
                       index === currentLevelIndex
-                        ? "bg-primary w-5"
-                        : "bg-muted hover:bg-muted-foreground/50 w-1"
+                        ? "bg-primary h-6"
+                        : "bg-muted hover:bg-muted-foreground/50 h-1.5"
                     }`}
                   />
                 ))}
@@ -233,7 +234,7 @@ export function DashboardHeader({ onRefresh, currentRevenue = 0 }: DashboardHead
             </div>
 
             {/* Botões de navegação */}
-            <div className="absolute top-[150px] -left-4 -right-4 flex items-center justify-between pointer-events-none">
+            <div className="absolute top-[180px] -left-4 -right-4 flex items-center justify-between pointer-events-none">
               <Button
                 variant="outline"
                 size="icon"
@@ -256,9 +257,9 @@ export function DashboardHeader({ onRefresh, currentRevenue = 0 }: DashboardHead
           </div>
           
           {/* Rodapé */}
-          <div className="text-center px-3 pb-4 pt-2 border-t bg-muted/20">
-            <p className="text-[9px] text-muted-foreground mb-0.5">Faturamento Total</p>
-            <p className="text-sm font-bold text-foreground break-all">{convertAndFormatMZN(currentRevenueMZN, 0)}</p>
+          <div className="text-center px-3 pb-5 pt-3 border-t bg-muted/20">
+            <p className="text-[9px] text-muted-foreground uppercase tracking-wide mb-1.5">Total</p>
+            <p className="text-sm font-bold text-foreground leading-tight break-words">{convertAndFormatMZN(currentRevenueMZN, 0)}</p>
           </div>
         </DialogContent>
       </Dialog>
