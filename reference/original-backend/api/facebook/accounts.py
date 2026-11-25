@@ -9,6 +9,7 @@ import os
 from database.core.connection import get_db
 from database.models.facebook_account import FacebookAccount
 from api.auth.deps import get_current_user, get_company_id
+from services.subscription_limits import enforce_ad_account_limit
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/facebook", tags=["facebook"])
@@ -85,6 +86,9 @@ async def create_account(
                 detail="Essa conta já está cadastrada em outra organização"
             )
 
+    # Check subscription limits before creating new account
+    enforce_ad_account_limit(db, company_id)
+
     real_name, detected_currency = await _fetch_account_info(payload.access_token, account_id)
     label = real_name or payload.label or account_id
 
@@ -117,6 +121,42 @@ async def create_accounts_bulk(
     db: Session = Depends(get_db),
     company_id: int = Depends(get_company_id),
 ):
+    # Count how many NEW accounts will be created (not existing ones being updated)
+    new_accounts_count = 0
+    for item in payload.accounts:
+        raw_id = item.get("account_id", "").strip()
+        if not raw_id:
+            continue
+        account_id = raw_id if raw_id.startswith("act_") else f"act_{raw_id}"
+        existing = db.query(FacebookAccount).filter(
+            FacebookAccount.account_id == account_id,
+        ).first()
+        # Only count as new if it doesn't exist OR exists but belongs to another company
+        if not existing or (existing.company_id and existing.company_id != company_id):
+            new_accounts_count += 1
+    
+    # Check if adding these accounts would exceed the limit
+    if new_accounts_count > 0:
+        from services.subscription_limits import get_company_plan
+        from database.models.facebook_account import FacebookAccount as FA
+        from sqlalchemy import func
+        
+        plan = get_company_plan(db, company_id)
+        account_limit = plan.get("ad_account_limit")
+        
+        if account_limit is not None:
+            current_accounts = db.query(func.count(FA.id)).filter(
+                FA.company_id == company_id,
+            ).scalar() or 0
+            
+            if current_accounts + new_accounts_count > account_limit:
+                raise HTTPException(
+                    status_code=403,
+                    detail=f"Limite de {account_limit} contas de anúncio atingido para o plano {plan['name']}. "
+                           f"Você está tentando adicionar {new_accounts_count} contas, mas só há espaço para "
+                           f"{max(0, account_limit - current_accounts)}. Faça upgrade para adicionar mais."
+                )
+    
     created = []
     for item in payload.accounts:
         raw_id = item.get("account_id", "").strip()

@@ -9,6 +9,7 @@ from database.core.connection import get_db
 from database.models.webhook_endpoint import WebhookEndpoint, WebhookPlatform
 from database.models.audit_log import AuditLog
 from api.auth.deps import get_current_user, get_company_id
+from services.subscription_limits import enforce_webhook_limit
 
 router = APIRouter(prefix="/platforms", tags=["platforms"])
 
@@ -55,6 +56,9 @@ def create_webhook(
     db: Session = Depends(get_db),
     company_id: int = Depends(get_company_id),
 ):
+    # Check subscription limits before creating webhook
+    enforce_webhook_limit(db, company_id)
+    
     platform_value = payload.platform.lower()
     if platform_value not in [p.value for p in WebhookPlatform]:
         raise HTTPException(status_code=400, detail="Plataforma inválida")

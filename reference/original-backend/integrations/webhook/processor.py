@@ -9,6 +9,7 @@ from database.models.customer_product import CustomerProduct
 from database.core.timezone import now_sp
 from services.push_notifications import push_service
 from services.currency import to_system_base
+from services.subscription_limits import check_sales_limit
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +33,63 @@ def process_webhook_event(db: Session, event: StandardizedWebhookEvent, company_
         company_id: ID da empresa (multi-tenant)
     """
     logger.info(f"Processando webhook event: {event.external_id} | Status: {event.status}")
+    
+    # Check if this is a NEW approved sale (not an update to existing transaction)
+    existing_tx = db.query(Transaction).filter(
+        Transaction.external_id == event.external_id,
+        Transaction.company_id == company_id
+    ).first()
+    
+    # Only check sales limit for NEW approved sales
+    if not existing_tx and event.status == TransactionStatus.APPROVED:
+        can_proceed, error_message = check_sales_limit(db, company_id)
+        if not can_proceed:
+            logger.warning(f"Sales limit reached for company {company_id}: {error_message}")
+            # Create a blocked transaction record for visibility
+            customer = db.query(Customer).filter(
+                Customer.email == event.customer_email,
+                Customer.company_id == company_id
+            ).first()
+            if not customer:
+                customer = Customer(
+                    company_id=company_id,
+                    external_id=event.customer_external_id,
+                    email=event.customer_email,
+                    name=event.customer_name,
+                    cpf=event.customer_cpf,
+                    phone=event.customer_phone,
+                    total_spent=0.0,
+                    total_orders=0
+                )
+                db.add(customer)
+                db.flush()
+            
+            # Save as a transaction with a note that it was blocked
+            blocked_tx = Transaction(
+                company_id=company_id,
+                external_id=event.external_id,
+                platform=event.platform,
+                status=TransactionStatus.PENDING,  # Mark as pending instead of approved
+                amount=event.amount,
+                payment_method=event.payment_method,
+                customer_id=customer.id,
+                product_name=event.product_name,
+                customer_email=customer.email,
+                utm_source=event.utm_source,
+                utm_medium=event.utm_medium,
+                utm_campaign=event.utm_campaign,
+                utm_content=event.utm_content,
+                utm_term=event.utm_term,
+                src=event.src,
+                webhook_slug=event.webhook_slug,
+                checkout_url=event.checkout_url,
+            )
+            db.add(blocked_tx)
+            db.commit()
+            
+            # Raise exception to inform webhook sender
+            from fastapi import HTTPException
+            raise HTTPException(status_code=403, detail=error_message)
     
     # -------------------------------------------------------------
     # 1. PROCESSAMENTO DO CUSTOMER
@@ -67,11 +125,6 @@ def process_webhook_event(db: Session, event: StandardizedWebhookEvent, company_
     # -------------------------------------------------------------
     # 2. SE A TRANSAÇÃO JÁ EXISTIR
     # -------------------------------------------------------------
-    existing_tx = db.query(Transaction).filter(
-        Transaction.external_id == event.external_id,
-        Transaction.company_id == company_id
-    ).first()
-    
     currency_code = getattr(event, "currency", "BRL") or "BRL"
     base_amount, amount_mzn, orig_currency, orig_amount = to_system_base(
         event.amount,

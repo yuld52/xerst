@@ -22,9 +22,9 @@ from api.auth.deps import get_current_user, get_company_id
 router = APIRouter(prefix="/subscriptions", tags=["subscriptions"])
 
 LOMUS_PLANS = {
-    "free": {"name": "Gratuito", "monthly_price": 0, "sales_limit": 80, "ad_account_limit": 1, "webhook_limit": 1},
-    "premium": {"name": "Premium", "monthly_price": 29, "sales_limit": 1000, "ad_account_limit": 3, "webhook_limit": 3},
-    "monster": {"name": "Monster", "monthly_price": 79, "sales_limit": 5000, "ad_account_limit": None, "webhook_limit": None},
+    "free": {"name": "Free", "monthly_price": 0, "sales_limit": 100, "ad_account_limit": 3, "webhook_limit": 3},
+    "premium": {"name": "Premium", "monthly_price": 500, "sales_limit": 1000, "ad_account_limit": 10, "webhook_limit": 10},
+    "monster": {"name": "Monster", "monthly_price": 2000, "sales_limit": None, "ad_account_limit": None, "webhook_limit": None},
 }
 
 
