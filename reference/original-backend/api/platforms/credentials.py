@@ -15,6 +15,11 @@ class CredentialCreate(BaseModel):
     name: str
 
 
+class CredentialUpdate(BaseModel):
+    name: str | None = None
+    active: bool | None = None
+
+
 @router.get("/credentials")
 def list_credentials(db: Session = Depends(get_db), company_id: int = Depends(get_company_id)):
     rows = db.query(ApiCredential).filter(ApiCredential.company_id == company_id).order_by(ApiCredential.id.desc()).all()
@@ -34,11 +39,71 @@ def create_credential(payload: CredentialCreate, db: Session = Depends(get_db), 
     return {"id": row.id, "name": row.name, "token": token, "token_prefix": row.token_prefix, "active": row.is_active, "created_at": row.created_at.isoformat() if row.created_at else None}
 
 
+@router.patch("/credentials/{credential_id}")
+def update_credential(
+    credential_id: int,
+    payload: CredentialUpdate,
+    db: Session = Depends(get_db),
+    company_id: int = Depends(get_company_id),
+    current_user: Admin = Depends(get_current_user)
+):
+    """
+    Update credential name or active status.
+    """
+    row = db.query(ApiCredential).filter(
+        ApiCredential.id == credential_id,
+        ApiCredential.company_id == company_id
+    ).first()
+    
+    if not row:
+        raise HTTPException(status_code=404, detail="Credencial não encontrada")
+    
+    # Update fields if provided
+    if payload.name is not None:
+        if not payload.name.strip():
+            raise HTTPException(status_code=400, detail="Nome da credencial obrigatório")
+        row.name = payload.name.strip()
+        db.add(AuditLog(
+            company_id=company_id,
+            actor_id=current_user.id,
+            action="api_credential.update_name",
+            resource_type="api_credential",
+            resource_id=str(row.id),
+            details={"name": row.name}
+        ))
+    
+    if payload.active is not None:
+        row.is_active = payload.active
+        action = "api_credential.activate" if payload.active else "api_credential.deactivate"
+        db.add(AuditLog(
+            company_id=company_id,
+            actor_id=current_user.id,
+            action=action,
+            resource_type="api_credential",
+            resource_id=str(row.id),
+            details={"name": row.name, "active": payload.active}
+        ))
+    
+    db.commit()
+    db.refresh(row)
+    
+    return {
+        "id": row.id,
+        "name": row.name,
+        "token_prefix": row.token_prefix,
+        "active": row.is_active,
+        "created_at": row.created_at.isoformat() if row.created_at else None,
+        "last_used_at": row.last_used_at.isoformat() if row.last_used_at else None
+    }
+
+
 @router.delete("/credentials/{credential_id}", status_code=204)
 def delete_credential(credential_id: int, db: Session = Depends(get_db), company_id: int = Depends(get_company_id), current_user: Admin = Depends(get_current_user)):
     row = db.query(ApiCredential).filter(ApiCredential.id == credential_id, ApiCredential.company_id == company_id).first()
     if not row:
         raise HTTPException(status_code=404, detail="Credencial não encontrada")
-    row.is_active = False
-    db.add(AuditLog(company_id=company_id, actor_id=current_user.id, action="api_credential.revoke", resource_type="api_credential", resource_id=str(row.id), details={"name": row.name}))
+    
+    # Actually delete the credential instead of just marking inactive
+    db.delete(row)
+    db.add(AuditLog(company_id=company_id, actor_id=current_user.id, action="api_credential.delete", resource_type="api_credential", resource_id=str(row.id), details={"name": row.name}))
     db.commit()
