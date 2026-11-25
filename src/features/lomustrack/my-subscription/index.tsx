@@ -226,6 +226,32 @@ export default function MySubscriptionPage() {
                   confirmação do pagamento.
                 </DialogDescription>
               </DialogHeader>
+              
+              {/* Tabela de Preços */}
+              <div className="rounded-lg border bg-muted/30 p-4 mb-4">
+                <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                  <RiBankCardLine className="size-4" />
+                  Tabela de Preços
+                </h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between items-center py-1.5 px-2 rounded bg-background/50">
+                    <span className="font-medium">Free</span>
+                    <span className="text-muted-foreground">0 MT/mês - até 100 vendas</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1.5 px-2 rounded bg-background/50">
+                    <span className="font-medium">Premium</span>
+                    <span className="text-muted-foreground">500 MT/mês - até 1.000 vendas</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1.5 px-2 rounded bg-background/50">
+                    <span className="font-medium">Monster</span>
+                    <span className="text-muted-foreground">2.000 MT/mês - vendas ilimitadas</span>
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-border/40 text-xs text-muted-foreground">
+                    <strong>Excedente:</strong> 0,50 MT por venda adicional nos planos pagos
+                  </div>
+                </div>
+              </div>
+
               <div className="grid gap-4 md:grid-cols-3">
                 {subscription.available_plans.map((plan) => (
                   <Card
