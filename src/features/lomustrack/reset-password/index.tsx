@@ -14,6 +14,12 @@ export default function ResetPasswordPage() {
   const [successMessage, setSuccessMessage] = useState("");
 
   const handleSubmit = async (data: AuthFormData) => {
+    if (!token) {
+      setError("Token inválido ou expirado. Solicite nova recuperação.");
+      toast.error("Token inválido ou expirado");
+      return;
+    }
+
     setError("");
     setLoading(true);
 
@@ -34,22 +40,12 @@ export default function ResetPasswordPage() {
     }
   };
 
-  if (!token) {
-    return (
-      <AuthForm
-        mode="forgot-password"
-        loading={false}
-        error="Token inválido ou expirado. Solicite nova recuperação."
-      />
-    );
-  }
-
   return (
     <AuthForm
       mode="signup"
       onSubmit={handleSubmit}
       loading={loading}
-      error={error}
+      error={!token ? "Token inválido ou expirado. Solicite nova recuperação de senha." : error}
       successMessage={successMessage}
     />
   );
