@@ -16,6 +16,12 @@ export default function VerifyEmailPage() {
   const [countdown, setCountdown] = useState(0);
 
   const handleVerify = async (data: AuthFormData) => {
+    if (!email) {
+      setError("Email não fornecido. Verifique o link de confirmação.");
+      toast.error("Email não fornecido");
+      return;
+    }
+
     setError("");
     setLoading(true);
 
@@ -42,6 +48,11 @@ export default function VerifyEmailPage() {
   };
 
   const handleResend = async () => {
+    if (!email) {
+      toast.error("Email não fornecido");
+      return;
+    }
+
     if (countdown > 0) return;
     setResending(true);
     setError("");
@@ -73,7 +84,7 @@ export default function VerifyEmailPage() {
       mode="verify-code"
       onSubmit={handleVerify}
       loading={loading}
-      error={error}
+      error={!email ? "Email não fornecido. Verifique o link de confirmação recebido por email." : error}
       successMessage={successMessage}
       email={email}
       onResend={handleResend}
