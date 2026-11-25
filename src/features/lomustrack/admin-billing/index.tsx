@@ -20,7 +20,12 @@ import { LOMUS_PLANS } from "./data";
 import { getStoredUser } from "@/services/auth";
 
 function money(value: number) {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value);
+  return new Intl.NumberFormat("pt-MZ", { 
+    style: "currency", 
+    currency: "MZN",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(value);
 }
 
 export default function AdminBillingPage() {

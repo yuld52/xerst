@@ -18,8 +18,18 @@ import {
 } from "@/services/companySubscription";
 import { RiBankCardLine, RiCheckLine, RiRefreshLine, RiTimeLine } from "@remixicon/react";
 
+// Preços sugeridos em Metical (MZN) para o backend:
+// Free: 0 MT/mês - até 100 vendas
+// Premium: 500 MT/mês - até 1.000 vendas  
+// Monster: 2.000 MT/mês - vendas ilimitadas
+// Excedente: 0,50 MT por venda adicional nos planos pagos
 function currency(value: number) {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value);
+  return new Intl.NumberFormat("pt-MZ", { 
+    style: "currency", 
+    currency: "MZN",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(value);
 }
 
 function limitLabel(limit: number | null) {
@@ -276,7 +286,7 @@ export default function MySubscriptionPage() {
                 ))}
               </div>
               <p className="text-xs text-muted-foreground">
-                Nos planos pagos, cada venda aprovada que exceder a franquia custa US$ 0,02. O plano
+                Nos planos pagos, cada venda aprovada que exceder a franquia custa 0,50 MT. O plano
                 Gratuito não tem cobrança adicional. A cobrança automática ainda não está
                 configurada.
               </p>

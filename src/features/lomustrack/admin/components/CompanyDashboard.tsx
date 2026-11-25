@@ -19,8 +19,13 @@ type Financials = {
   revenue_is_estimate: boolean;
 };
 
-function money(value: number, currency = "USD") {
-  return new Intl.NumberFormat("pt-BR", { style: "currency", currency }).format(value);
+function money(value: number, currency = "MZN") {
+  return new Intl.NumberFormat("pt-MZ", { 
+    style: "currency", 
+    currency,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(value);
 }
 
 function Metric({
@@ -180,7 +185,7 @@ export function CompanyDashboard() {
         </CardHeader>
         <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-end">
           <div className="flex-1 space-y-2">
-            <Label htmlFor="lomus-monthly-costs">Custos mensais (USD)</Label>
+            <Label htmlFor="lomus-monthly-costs">Custos mensais (MZN)</Label>
             <Input
               id="lomus-monthly-costs"
               type="number"
