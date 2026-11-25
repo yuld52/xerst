@@ -17,6 +17,7 @@ import {
   type CompanySubscription,
 } from "@/services/companySubscription";
 import { RiBankCardLine, RiCheckLine, RiRefreshLine, RiTimeLine } from "@remixicon/react";
+import { SubscriptionInconsistencyBanner } from "@/components/SubscriptionInconsistencyBanner";
 
 // Preços sugeridos em Metical (MZN) para o backend:
 // Free: 0 MT/mês - até 100 vendas
@@ -109,6 +110,8 @@ export default function MySubscriptionPage() {
           Atualizar
         </Button>
       </div>
+
+      <SubscriptionInconsistencyBanner />
 
       {loading && !subscription ? (
         <Card>
