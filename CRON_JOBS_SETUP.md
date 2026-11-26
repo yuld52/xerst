@@ -152,9 +152,11 @@ Se preferir ter apenas 1 cron job:
 ## 📅 Sugestões de Agendamento
 
 ### **Plano Gratuito do cron-job.org:**
-- ✅ Até 50 cron jobs
-- ✅ Mínimo de 1 minuto entre execuções
+- ✅ **Cron jobs ilimitados** (uso justo esperado)
+- ✅ Mínimo de **1 minuto** entre execuções (até 60 vezes/hora)
 - ✅ Notificações por email em caso de falha
+- ✅ **100% gratuito** - sem custos
+- ✅ API REST: 100 requests/dia (5.000 para membros)
 
 ### **Configuração Recomendada (2 Cron Jobs):**
 
@@ -294,15 +296,22 @@ Após a primeira execução, verifique:
 
 ## ⚠️ Limitações do Plano Gratuito
 
-| Recurso | Gratuito | Pago |
-|---------|----------|------|
-| Número de jobs | 50 | Ilimitado |
-| Frequência mínima | 1 minuto | 1 minuto |
-| Timeout máximo | 30 segundos | 300 segundos |
-| Logs retidos | 7 dias | 90 dias |
-| Notificações | Email | Email + Webhook |
+| Recurso | Gratuito |
+|---------|----------|
+| Número de jobs | **Ilimitado** (uso justo) |
+| Frequência mínima | 1 minuto (60x/hora) |
+| Timeout máximo | 30 segundos |
+| Logs retidos | 7 dias |
+| Notificações | Email |
+| API REST | 100 requests/dia |
+| Custo | **100% Gratuito** |
 
----
+✅ **Mais do que suficiente para o LomusTrack!**
+
+**Uso justo significa:**
+- Não usar para atividades abusivas
+- Não sobrecarregar o serviço
+- Uso normal de automação é totalmente permitido
 
 ## 🎓 Dicas Extras
 
@@ -421,4 +430,5 @@ Dessa forma, o backend verifica a cada hora e envia relatórios apenas nos horá
 ✅ **Sem duplicatas** - Backend garante 1 relatório por horário por dia  
 ✅ **Economia de IA** - Só gera relatórios quando necessário  
 ✅ **Personalização** - Cada usuário pode ter horários diferentes  
+✅ **Ilimitado no cron-job.org** - Crie quantos jobs precisar (uso justo)  
 

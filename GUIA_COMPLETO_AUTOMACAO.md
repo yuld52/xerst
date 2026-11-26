@@ -65,7 +65,7 @@ Antes de começar, você precisa ter:
 
 ### **2. Contas Necessárias**
 - ✅ Conta no LomusTrack (admin/owner)
-- ✅ Conta no [cron-job.org](https://console.cron-job.org/) (gratuita)
+- ✅ Conta no [cron-job.org](https://console.cron-job.org/) (gratuita e ilimitada)
 - ✅ Conta de Facebook Ads conectada no LomusTrack
 - ✅ Conta OpenRouter (para IA) - opcional, mas recomendado
 
@@ -209,7 +209,7 @@ Content: {"ok":true,"rules_checked":0,"actions_executed":0,...}
 
 **Opção B: Usar cron expression**
 - Marque **"Custom"**
-- Digite: `*/10 * * * *`
+- Digite: `  `
 
 #### **Request Settings:**
 
@@ -681,11 +681,17 @@ Aguarde até o próximo múltiplo de 10 minutos (ex: 14:10, 14:20, 14:30...).
 
 ### **1. Quanto custa usar o cron-job.org?**
 
-✅ **Gratuito!** O plano gratuito permite:
-- Até 50 cron jobs
-- Mínimo de 1 minuto entre execuções
+✅ **100% Gratuito!** O serviço é totalmente grátis e inclui:
+- **Cron jobs ilimitados** (dentro do uso justo)
+- Frequência mínima de **1 minuto**
 - Notificações por email
 - Histórico de 7 dias
+- 100 chamadas à API REST/dia
+
+**Uso justo significa:**
+- Uso normal de automação é totalmente permitido
+- Não usar para atividades abusivas
+- Para o LomusTrack, 2-3 cron jobs são perfeitos!
 
 ---
 
@@ -695,6 +701,8 @@ Aguarde até o próximo múltiplo de 10 minutos (ex: 14:10, 14:20, 14:30...).
 - Configure para executar **a cada 10 minutos** (`*/10 * * * *`)
 - Use o endpoint `/automation/run`
 - Verificará regras e relatórios na mesma execução
+
+**Ou use até 10+ cron jobs se precisar!** O cron-job.org não tem limite (uso justo).
 
 ---
 
@@ -767,6 +775,36 @@ Todos receberão as notificações!
 #### **No LomusTrack:**
 1. Configurações → Notificações
 2. Desative todos os horários
+
+---
+
+### **11. Qual é o limite de cron jobs que posso criar?**
+
+✅ **Ilimitado!** O cron-job.org não limita o número de cron jobs por conta.
+
+**Política de uso justo:**
+- Você pode criar quantos precisar para automação normal
+- Para o LomusTrack, 2-3 cron jobs são perfeitos
+- Não use para spam ou atividades abusivas
+- Não sobrecarregue o serviço com milhares de jobs
+
+**Exemplo aceitável:**
+- 1 job para regras (*/10 * * * *)
+- 1 job para relatórios (0 */1 * * *)
+- 1 job para backup (0 2 * * *)
+- 1 job para limpeza (0 3 * * *)
+- **Total: 4 jobs = ✅ Totalmente OK!**
+
+---
+
+### **12. Posso executar cron jobs a cada 1 minuto?**
+
+✅ **Sim!** A frequência mínima é **1 minuto** (60x por hora).
+
+**Recomendação para LomusTrack:**
+- **Regras:** 10 minutos é o ideal (não precisa de 1 min)
+- **Relatórios:** 1 hora é suficiente
+- **1 minuto seria excessivo** e desnecessário
 
 ---
 
