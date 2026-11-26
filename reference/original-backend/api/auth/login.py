@@ -56,12 +56,13 @@ def login(data: LoginRequest, request: Request, db: Session = Depends(get_db)):
     if admin.is_active == 0:
         raise HTTPException(status_code=403, detail="Conta suspensa. Entre em contato com o suporte.")
 
-    # Apenas suporte@lomustrack.online pode ser admin/superadmin
-    if admin.role.value in ["admin", "owner", "superadmin"]:
+    # Apenas suporte@lomustrack.online pode ser superadmin
+    # Outros admins/owners podem fazer login normalmente para suas empresas
+    if admin.role.value == "superadmin":
         if admin.email != "suporte@lomustrack.online":
             raise HTTPException(
                 status_code=403, 
-                detail="Acesso administrativo restrito. Apenas o email oficial pode acessar o painel admin."
+                detail="Acesso de superadmin restrito. Apenas o email oficial pode ter essa role."
             )
 
     try:
