@@ -23,8 +23,8 @@ router = APIRouter(prefix="/superadmin", tags=["superadmin"])
 
 LOMUS_PLANS = {
     "free": {"name": "Gratuito", "monthly_price": 0},
-    "premium": {"name": "Premium", "monthly_price": 29},
-    "monster": {"name": "Monster", "monthly_price": 79},
+    "premium": {"name": "Premium", "monthly_price": 500},
+    "monster": {"name": "Monster", "monthly_price": 2000},
 }
 
 
