@@ -77,8 +77,8 @@ SET
     email = 'suporte@lomustrack.online',
     role = 'superadmin',
     company_id = NULL,
-    is_active = TRUE,
-    is_email_verified = TRUE
+    is_active = 1,
+    is_email_verified = 1
 WHERE id = 1;  -- Substituir pelo ID do admin existente
 ```
 
@@ -115,17 +115,36 @@ curl -X POST https://seu-backend.com/api/auth/login \
 
 ## ❌ Erros Comuns
 
-### Erro: "column is of type boolean but expression is of type integer"
+### Erro: "column is of type integer but expression is of type boolean"
 
-**Causa:** Usar `1` em vez de `TRUE` para campos boolean
+**Causa:** Banco usa INTEGER (0/1) mas você passou TRUE/FALSE
 
 **Solução:**
 ```sql
--- ❌ ERRADO
+-- ❌ ERRADO (para este banco)
+is_active = TRUE,
+is_email_verified = TRUE
+
+-- ✅ CORRETO (para este banco)
+is_active = 1,
+is_email_verified = 1
+```
+
+**Nota:** Alguns bancos PostgreSQL usam BOOLEAN real, outros usam INTEGER. Este banco usa INTEGER.
+
+---
+
+### Erro: "column is of type boolean but expression is of type integer"
+
+**Causa:** Banco usa BOOLEAN (TRUE/FALSE) mas você passou 0/1
+
+**Solução:**
+```sql
+-- ❌ ERRADO (para aquele banco)
 is_active = 1,
 is_email_verified = 1
 
--- ✅ CORRETO
+-- ✅ CORRETO (para aquele banco)
 is_active = TRUE,
 is_email_verified = TRUE
 ```
@@ -142,8 +161,8 @@ UPDATE admins
 SET 
     role = 'superadmin',
     company_id = NULL,
-    is_active = TRUE,
-    is_email_verified = TRUE
+    is_active = 1,
+    is_email_verified = 1
 WHERE email = 'suporte@lomustrack.online';
 ```
 
@@ -199,8 +218,8 @@ WHERE email = 'suporte@lomustrack.online';
 | password_hash | VARCHAR | '$2b$12$...' | ✅ |
 | role | ENUM | 'superadmin' | ✅ |
 | company_id | INTEGER | NULL | ❌ |
-| is_active | BOOLEAN | TRUE | ✅ |
-| is_email_verified | BOOLEAN | TRUE | ✅ |
+| is_active | INTEGER (0/1) | 1 | ✅ |
+| is_email_verified | INTEGER (0/1) | 1 | ✅ |
 | created_at | TIMESTAMP | NOW() | ✅ |
 
 ---
