@@ -271,3 +271,62 @@ Use a opção **"Run now"** no cron-job.org para testar manualmente.
 ---
 
 ✅ **Pronto!** Seus cron jobs estão configurados e o LomusTrack agora executa tarefas automatizadas! 🎉
+
+
+---
+
+## 🆕 Novidade: Múltiplos Horários de Relatório
+
+A partir de agora, os usuários podem **escolher múltiplos horários** para receber relatórios!
+
+### **Como Funciona:**
+
+1. **No Painel do LomusTrack:**
+   - Acesse **Configurações** → **Notificações**
+   - Na seção "Horários", escolha quantos horários quiser:
+     - ☑️ Notificação das 08:00
+     - ☑️ Notificação das 12:00
+     - ☑️ Notificação das 18:00
+     - ☑️ Notificação das 23:00
+
+2. **Backend Verifica Automaticamente:**
+   - A cada execução do cron job, o backend verifica o horário UTC atual
+   - Se o horário atual está ativado pelo usuário → Envia relatório
+   - Se não está ativado → Pula e não envia
+
+3. **Exemplo Prático:**
+   ```
+   Usuário ativou: ☑️ 08:00 e ☑️ 20:00
+   
+   Cron job executando a cada hora:
+   - 07:00 UTC → Verifica → Não ativado → Pula
+   - 08:00 UTC → Verifica → ✅ Ativado → 📊 ENVIA RELATÓRIO
+   - 09:00 UTC → Verifica → Não ativado → Pula
+   ...
+   - 20:00 UTC → Verifica → ✅ Ativado → 📊 ENVIA RELATÓRIO
+   ```
+
+### **Configuração do Cron Job:**
+
+**Recomendação:** Configure para executar **a cada hora**
+
+```yaml
+Title: LomusTrack - Automação Completa
+
+URL: https://www.lomustrack.online/api/automation/run
+
+Schedule: Every hour (0 */1 * * *)
+
+Headers:
+  Authorization: Bearer 92fc1f5434fe55a3a28257f96758f08a4317546187c4008723c56b853b91d18f
+```
+
+Dessa forma, o backend verifica a cada hora e envia relatórios apenas nos horários que o usuário escolheu!
+
+### **Vantagens:**
+
+✅ **Flexibilidade total** - Usuário escolhe quantos horários quiser  
+✅ **Sem duplicatas** - Backend garante 1 relatório por horário por dia  
+✅ **Economia de IA** - Só gera relatórios quando necessário  
+✅ **Personalização** - Cada usuário pode ter horários diferentes  
+
