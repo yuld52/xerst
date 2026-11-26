@@ -1,0 +1,273 @@
+# ⏰ Configuração de Cron Jobs para LomusTrack
+
+Este documento explica como configurar tarefas agendadas usando [cron-job.org](https://console.cron-job.org/) para automatizar processos no LomusTrack.
+
+## 📋 Pré-requisitos
+
+1. **Backend deployado e ativo** em https://www.lomustrack.online/api
+2. **Conta criada** em [cron-job.org](https://console.cron-job.org/)
+3. **Token de autorização** para proteger os endpoints
+
+---
+
+## 🎯 Endpoints de Automação Disponíveis
+
+### 1. **Automação Completa** (Recomendado)
+Executa todas as tarefas: regras de campanha, retry de notificações e relatórios agendados.
+
+```
+GET https://www.lomustrack.online/api/automation/run
+```
+
+### 2. **Apenas Relatórios Agendados**
+Envia relatórios push notificações para usuários.
+
+```
+GET https://www.lomustrack.online/api/automation/reports/run
+```
+
+### 3. **Retry de Notificações Push**
+Reprocessa notificações que falharam.
+
+```
+GET https://www.lomustrack.online/api/automation/notifications/retry
+```
+
+---
+
+## 🔐 Configuração de Segurança
+
+### Gerar Token de Autorização
+
+O backend já verifica um cabeçalho `Authorization` para proteger os endpoints de cron jobs.
+
+**Recomendação:** Use uma string aleatória forte como token.
+
+```bash
+# Exemplo de token (gere um diferente!)
+CRON_SECRET=lomustrack_cron_2024_secure_token_xyz789
+```
+
+Adicione isso nas **variáveis de ambiente** do seu backend (Vercel/Render/etc):
+
+```env
+CRON_SECRET=seu_token_secreto_aqui
+```
+
+---
+
+## ⚙️ Configuração no cron-job.org
+
+### Passo 1: Criar Nova Tarefa
+
+1. Acesse [console.cron-job.org](https://console.cron-job.org/)
+2. Clique em **"Create cronjob"**
+3. Preencha os dados:
+
+#### **Tarefa 1: Automação Completa (Executar de Hora em Hora)**
+
+| Campo | Valor |
+|-------|-------|
+| **Title** | LomusTrack - Automação Completa |
+| **Address (URL)** | `https://www.lomustrack.online/api/automation/run` |
+| **Schedule** | Every hour (0 */1 * * *) |
+| **Request method** | GET |
+| **Request timeout** | 60 seconds |
+| **Custom request headers** | `Authorization: Bearer SEU_TOKEN_AQUI` |
+
+#### **Tarefa 2: Relatórios Diários (08:00 UTC)**
+
+| Campo | Valor |
+|-------|-------|
+| **Title** | LomusTrack - Relatórios Diários |
+| **Address (URL)** | `https://www.lomustrack.online/api/automation/reports/run` |
+| **Schedule** | Daily at 08:00 (0 8 * * *) |
+| **Request method** | GET |
+| **Request timeout** | 60 seconds |
+| **Custom request headers** | `Authorization: Bearer SEU_TOKEN_AQUI` |
+
+---
+
+## 📅 Sugestões de Agendamento
+
+### **Plano Gratuito do cron-job.org:**
+- ✅ Até 50 cron jobs
+- ✅ Mínimo de 1 minuto entre execuções
+- ✅ Notificações por email em caso de falha
+
+### **Recomendações:**
+
+| Tarefa | Frequência | Horário | Cron Expression |
+|--------|-----------|---------|-----------------|
+| **Automação Completa** | A cada hora | - | `0 */1 * * *` |
+| **Relatórios Push** | 1x ao dia | 08:00 UTC (10:00 Maputo) | `0 8 * * *` |
+| **Retry Notificações** | A cada 2 horas | - | `0 */2 * * *` |
+| **Limpeza de Logs** | 1x ao dia | 03:00 UTC | `0 3 * * *` |
+
+---
+
+## 🛡️ Protegendo o Endpoint
+
+### No Backend (FastAPI)
+
+Adicione verificação do token:
+
+```python
+# Já está implementado em api/automation.py
+
+@router.get("/automation/run")
+async def run_scheduled_automation(
+    authorization: str | None = Header(default=None),
+    db: Session = Depends(get_db),
+):
+    expected_token = os.getenv("CRON_SECRET", "")
+    
+    # Verificar token
+    if not authorization or authorization.replace("Bearer ", "") != expected_token:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    # Executar tarefas...
+```
+
+---
+
+## 📊 Monitoramento
+
+### No cron-job.org:
+
+1. **Dashboard** mostra execuções recentes
+2. **History** exibe logs detalhados
+3. **Notifications** configura alertas de falha por email
+
+### Logs no Backend:
+
+Verifique os logs de execução:
+- Relatórios enviados
+- Notificações processadas
+- Regras de campanha executadas
+
+---
+
+## 🔄 Exemplo de Resposta dos Endpoints
+
+### Sucesso (200 OK):
+
+```json
+{
+  "ok": true,
+  "rules_checked": 5,
+  "notifications_retried": 2,
+  "reports_sent": 10,
+  "reports_failed": 0
+}
+```
+
+### Erro (401 Unauthorized):
+
+```json
+{
+  "detail": "Unauthorized"
+}
+```
+
+---
+
+## 🚀 Configuração Rápida
+
+### 1. Adicionar Header no cron-job.org
+
+Ao criar o cron job, clique em **"Extended"** → **"Custom request headers"**:
+
+```
+Authorization: Bearer lomustrack_cron_2024_xyz789
+```
+
+### 2. Testar Manualmente
+
+Use cURL para testar:
+
+```bash
+curl -X GET "https://www.lomustrack.online/api/automation/run" \
+  -H "Authorization: Bearer seu_token_aqui"
+```
+
+### 3. Verificar Logs
+
+Após a primeira execução, verifique:
+- ✅ Status code 200
+- ✅ Resposta JSON com `"ok": true`
+- ✅ Logs no painel do cron-job.org
+
+---
+
+## ⚠️ Limitações do Plano Gratuito
+
+| Recurso | Gratuito | Pago |
+|---------|----------|------|
+| Número de jobs | 50 | Ilimitado |
+| Frequência mínima | 1 minuto | 1 minuto |
+| Timeout máximo | 30 segundos | 300 segundos |
+| Logs retidos | 7 dias | 90 dias |
+| Notificações | Email | Email + Webhook |
+
+---
+
+## 🎓 Dicas Extras
+
+### 1. **Usar Webhooks para Monitoramento**
+Configure um webhook no cron-job.org para receber notificações de falhas.
+
+### 2. **Configurar Retry Automático**
+No cron-job.org, ative **"Enable error notification"** para receber alertas.
+
+### 3. **Verificar Logs Regularmente**
+Acesse o histórico de execuções para identificar falhas.
+
+### 4. **Testar Antes de Ativar**
+Use a opção **"Run now"** no cron-job.org para testar manualmente.
+
+---
+
+## 📝 Checklist de Configuração
+
+- [ ] Backend deployado e ativo
+- [ ] Variável `CRON_SECRET` configurada no backend
+- [ ] Conta criada no cron-job.org
+- [ ] Cron job "Automação Completa" configurado
+- [ ] Cron job "Relatórios Diários" configurado
+- [ ] Header `Authorization` adicionado
+- [ ] Teste manual executado com sucesso
+- [ ] Primeira execução automática verificada
+- [ ] Notificações de erro ativadas
+
+---
+
+## 🆘 Problemas Comuns
+
+### 1. **Erro 401 Unauthorized**
+- ✅ Verifique se o header `Authorization` está correto
+- ✅ Confirme que `CRON_SECRET` está configurado no backend
+
+### 2. **Erro 500 Internal Server Error**
+- ✅ Verifique os logs do backend
+- ✅ Confirme que o banco de dados está acessível
+
+### 3. **Timeout**
+- ✅ Aumente o timeout no cron-job.org (máx 30s no gratuito)
+- ✅ Otimize as queries do backend
+
+### 4. **Execução não acontece**
+- ✅ Verifique se o cron job está **ativado** (enabled)
+- ✅ Confirme o horário (timezone UTC)
+
+---
+
+## 📚 Recursos Adicionais
+
+- [Documentação cron-job.org](https://docs.cron-job.org/)
+- [Cron Expression Generator](https://crontab.guru/)
+- [FastAPI Background Tasks](https://fastapi.tiangolo.com/tutorial/background-tasks/)
+
+---
+
+✅ **Pronto!** Seus cron jobs estão configurados e o LomusTrack agora executa tarefas automatizadas! 🎉
