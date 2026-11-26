@@ -271,14 +271,19 @@ async def _send_scheduled_reports(db: Session, now: datetime) -> dict:
             continue
         
         # Verifica o horário atual UTC
-        current_hour_utc = now.strftime("%H:00")
+        now_utc = (
+            now.astimezone(datetime_timezone.utc)
+            if now.tzinfo
+            else now.replace(tzinfo=datetime_timezone.utc)
+        )
+        current_hour_utc = now_utc.strftime("%H:00")
         
         # Verifica se este horário está habilitado
         if not report_hours.get(current_hour_utc, False):
             continue
         
         # Título único por dia e horário para evitar duplicatas
-        title = f"Relatório LomusTrack {now.date().isoformat()} {current_hour_utc}"
+        title = f"Relatório LomusTrack {now_utc.date().isoformat()} {current_hour_utc}"
         if db.query(NotificationDelivery.id).filter(
             NotificationDelivery.company_id == settings.company_id,
             NotificationDelivery.title == title,
@@ -397,7 +402,7 @@ async def run_scheduled_automation(
         now = now_sp()
         rules = await _run_campaign_rules(db, now)
         notifications = _retry_notifications(db, now)
-        reports = await _send_scheduled_reports(db, now)
+        reports = await _send_scheduled_reports(db, datetime.now(datetime_timezone.utc))
         return {"ok": True, **rules, **notifications, **reports}
     finally:
         _release_cron_lock(lock_connection, 712034)
@@ -450,6 +455,6 @@ async def run_scheduled_reports_cron(
     _cron_auth(authorization)
     lock_connection = _acquire_cron_lock(712035)
     try:
-        return {"ok": True, **await _send_scheduled_reports(db, now_sp())}
+        return {"ok": True, **await _send_scheduled_reports(db, datetime.now(datetime_timezone.utc))}
     finally:
         _release_cron_lock(lock_connection, 712035)
