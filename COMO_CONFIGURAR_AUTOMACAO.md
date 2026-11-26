@@ -256,7 +256,7 @@ Quando o **cron-job.org** chama o endpoint `/automation/run`, ele:
 
 ---
 
-## 🔧 Configuração Avançada
+## ⚙️ Configuração Avançada
 
 ### **Variáveis de Ambiente Necessárias:**
 
@@ -274,13 +274,93 @@ OPENROUTER_MODEL=anthropic/claude-3.5-sonnet
 # (configurado por conta no painel)
 ```
 
-### **Horários Recomendados no cron-job.org:**
+### **Configuração de Cron Jobs Recomendada:**
 
-| Tarefa | Frequência | Cron Expression | Horário (UTC) |
-|--------|-----------|-----------------|---------------|
-| **Automação Completa** | A cada hora | `0 */1 * * *` | 00:00, 01:00, 02:00... |
-| **Apenas Regras** | 2x ao dia | `0 8,20 * * *` | 08:00, 20:00 |
-| **Relatórios Push** | 1x ao dia | `0 8 * * *` | 08:00 (10:00 Maputo) |
+Para melhor performance, configure **2 cron jobs separados**:
+
+#### **Cron Job 1: Verificar Regras de Campanhas (A cada 10 minutos)**
+
+```yaml
+Title: LomusTrack - Regras de Campanhas
+
+URL: https://www.lomustrack.online/api/automation/run
+
+Schedule: Every 10 minutes
+Cron Expression: */10 * * * *
+
+Request method: GET
+
+Headers:
+  Authorization: Bearer 92fc1f5434fe55a3a28257f96758f08a4317546187c4008723c56b853b91d18f
+
+Timeout: 60 seconds
+```
+
+**Por quê a cada 10 minutos?**
+- ✅ Resposta rápida a mudanças nas métricas
+- ✅ Evita campanhas gastando por muito tempo com CPA alto
+- ✅ Aproveita ROAS bom aumentando budget rapidamente
+- ✅ Sem sobrecarregar o Meta Ads API
+
+#### **Cron Job 2: Enviar Relatórios (A cada hora)**
+
+```yaml
+Title: LomusTrack - Relatórios e Notificações
+
+URL: https://www.lomustrack.online/api/automation/reports/run
+
+Schedule: Every hour
+Cron Expression: 0 */1 * * *
+
+Request method: GET
+
+Headers:
+  Authorization: Bearer 92fc1f5434fe55a3a28257f96758f08a4317546187c4008723c56b853b91d18f
+
+Timeout: 60 seconds
+```
+
+**Por quê a cada hora?**
+- ✅ Relatórios são enviados apenas nos horários configurados
+- ✅ Economiza créditos de IA (OpenRouter)
+- ✅ Evita spam de notificações
+
+---
+
+### **Alternativa: Um Único Cron Job (Mais Simples)**
+
+Se preferir simplicidade, use apenas 1 cron job:
+
+```yaml
+Title: LomusTrack - Automação Completa
+
+URL: https://www.lomustrack.online/api/automation/run
+
+Schedule: Every 10 minutes
+Cron Expression: */10 * * * *
+
+Request method: GET
+
+Headers:
+  Authorization: Bearer 92fc1f5434fe55a3a28257f96758f08a4317546187c4008723c56b853b91d18f
+
+Timeout: 60 seconds
+```
+
+**Resultado:**
+- ✅ Verifica regras a cada 10 minutos
+- ✅ Verifica relatórios a cada 10 minutos (mas só envia nos horários configurados)
+- ✅ Reprocessa notificações falhadas a cada 10 minutos
+
+---
+
+### **Horários Recomendados:**
+
+| Tarefa | Frequência | Cron Expression | Endpoint |
+|--------|-----------|-----------------|----------|
+| **Regras de Campanhas** | A cada 10 minutos | `*/10 * * * *` | `/automation/run` |
+| **Relatórios Push** | A cada hora | `0 */1 * * *` | `/automation/reports/run` |
+| **Retry Notificações** | A cada 30 minutos | `*/30 * * * *` | `/automation/notifications/retry` |
 
 ---
 

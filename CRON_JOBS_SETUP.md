@@ -64,7 +64,55 @@ CRON_SECRET=seu_token_secreto_aqui
 2. Clique em **"Create cronjob"**
 3. Preencha os dados:
 
-#### **Tarefa 1: Automação Completa (Executar de Hora em Hora)**
+---
+
+### **📋 Configuração Recomendada: 2 Cron Jobs Separados**
+
+#### **CRON JOB 1: Regras de Campanhas (A cada 10 minutos)**
+
+| Campo | Valor |
+|-------|-------|
+| **Title** | LomusTrack - Regras de Campanhas |
+| **Address (URL)** | `https://www.lomustrack.online/api/automation/run` |
+| **Schedule** | Every 10 minutes (`*/10 * * * *`) |
+| **Request method** | GET |
+| **Request timeout** | 60 seconds |
+| **Custom request headers** | `Authorization: Bearer SEU_TOKEN_AQUI` |
+
+**Como configurar o Schedule:**
+1. Na seção "Schedule", procure por **"Minutes"**
+2. Digite: `*/10` (a cada 10 minutos)
+3. Ou use a opção **"Custom"** e cole: `*/10 * * * *`
+
+**Resultado:** Executa nos minutos 00, 10, 20, 30, 40, 50 de cada hora
+
+---
+
+#### **CRON JOB 2: Relatórios e Notificações (A cada hora)**
+
+| Campo | Valor |
+|-------|-------|
+| **Title** | LomusTrack - Relatórios e Notificações |
+| **Address (URL)** | `https://www.lomustrack.online/api/automation/reports/run` |
+| **Schedule** | Every hour (`0 */1 * * *`) |
+| **Request method** | GET |
+| **Request timeout** | 60 seconds |
+| **Custom request headers** | `Authorization: Bearer SEU_TOKEN_AQUI` |
+
+**Como configurar o Schedule:**
+1. Na seção "Schedule", marque **"Every hour"**
+2. Minutes: `0`
+3. Hours: `*/1`
+
+**Resultado:** Executa às 00:00, 01:00, 02:00, 03:00... (todos os dias)
+
+---
+
+### **🎯 Alternativa Simples: 1 Cron Job (A cada 10 minutos)**
+
+Se preferir ter apenas 1 cron job:
+
+#### **Tarefa 1: Automação Completa (Executar de 10 em 10 minutos)**
 
 | Campo | Valor |
 |-------|-------|
@@ -75,16 +123,29 @@ CRON_SECRET=seu_token_secreto_aqui
 | **Request timeout** | 60 seconds |
 | **Custom request headers** | `Authorization: Bearer SEU_TOKEN_AQUI` |
 
-#### **Tarefa 2: Relatórios Diários (08:00 UTC)**
+#### **Tarefa 1: Automação Completa (A cada 10 minutos)**
 
 | Campo | Valor |
 |-------|-------|
-| **Title** | LomusTrack - Relatórios Diários |
-| **Address (URL)** | `https://www.lomustrack.online/api/automation/reports/run` |
-| **Schedule** | Daily at 08:00 (0 8 * * *) |
+| **Title** | LomusTrack - Automação Completa |
+| **Address (URL)** | `https://www.lomustrack.online/api/automation/run` |
+| **Schedule** | Every 10 minutes (`*/10 * * * *`) |
 | **Request method** | GET |
 | **Request timeout** | 60 seconds |
 | **Custom request headers** | `Authorization: Bearer SEU_TOKEN_AQUI` |
+
+---
+
+### **📊 Comparação das Estratégias**
+
+| Aspecto | 2 Cron Jobs (Recomendado) | 1 Cron Job (Simples) |
+|---------|---------------------------|----------------------|
+| **Regras de Campanhas** | ✅ A cada 10 min | ✅ A cada 10 min |
+| **Relatórios Push** | ✅ Apenas nos horários escolhidos | ✅ Apenas nos horários escolhidos |
+| **Economia de Recursos** | ✅ Maior (menos chamadas IA) | ⚠️ Menor |
+| **Complexidade** | ⚠️ Precisa criar 2 jobs | ✅ Apenas 1 job |
+| **Uso no Plano Gratuito** | 2 de 50 jobs | 1 de 50 jobs |
+| **Recomendado para** | Produção | Teste/Desenvolvimento |
 
 ---
 
@@ -95,14 +156,45 @@ CRON_SECRET=seu_token_secreto_aqui
 - ✅ Mínimo de 1 minuto entre execuções
 - ✅ Notificações por email em caso de falha
 
-### **Recomendações:**
+### **Configuração Recomendada (2 Cron Jobs):**
 
-| Tarefa | Frequência | Horário | Cron Expression |
-|--------|-----------|---------|-----------------|
-| **Automação Completa** | A cada hora | - | `0 */1 * * *` |
-| **Relatórios Push** | 1x ao dia | 08:00 UTC (10:00 Maputo) | `0 8 * * *` |
-| **Retry Notificações** | A cada 2 horas | - | `0 */2 * * *` |
-| **Limpeza de Logs** | 1x ao dia | 03:00 UTC | `0 3 * * *` |
+#### **Cron Job 1: Regras de Campanhas (Prioritário)**
+
+| Campo | Valor |
+|-------|-------|
+| **Tarefa** | Verificar e executar regras de campanhas |
+| **Frequência** | A cada 10 minutos |
+| **Cron Expression** | `*/10 * * * *` |
+| **Endpoint** | `/automation/run` |
+| **Por quê?** | Resposta rápida a mudanças nas métricas, evita desperdício |
+
+#### **Cron Job 2: Relatórios e Notificações**
+
+| Campo | Valor |
+|-------|-------|
+| **Tarefa** | Enviar relatórios push e retry notificações |
+| **Frequência** | A cada hora |
+| **Cron Expression** | `0 */1 * * *` |
+| **Endpoint** | `/automation/reports/run` ou `/automation/run` |
+| **Por quê?** | Economiza IA, evita spam de relatórios |
+
+---
+
+### **Alternativa Simples (1 Cron Job):**
+
+Se preferir simplicidade, use apenas **1 cron job executando a cada 10 minutos**:
+
+| Campo | Valor |
+|-------|-------|
+| **Tarefa** | Automação completa (regras + relatórios + retry) |
+| **Frequência** | A cada 10 minutos |
+| **Cron Expression** | `*/10 * * * *` |
+| **Endpoint** | `/automation/run` |
+
+**Resultado:**
+- ✅ Regras verificadas a cada 10 minutos
+- ✅ Relatórios enviados apenas nos horários configurados pelo usuário
+- ✅ Notificações reprocessadas automaticamente
 
 ---
 
