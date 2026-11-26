@@ -29,6 +29,10 @@ INSERT INTO admins (
     company_id, 
     is_active,
     is_email_verified,
+    two_factor_enabled,
+    token_version,
+    subscription_plan,
+    preferences,
     created_at
 ) VALUES (
     'Suporte LomusTrack',
@@ -36,8 +40,12 @@ INSERT INTO admins (
     '$2b$12$COLE_SEU_HASH_AQUI',  -- Substituir pelo hash gerado acima
     'superadmin',
     NULL,
-    1,       -- INTEGER: 1=ativo, 0=suspenso
-    TRUE,    -- BOOLEAN: TRUE=verificado, FALSE=não verificado
+    1,          -- INTEGER: 1=ativo, 0=suspenso
+    TRUE,       -- BOOLEAN: TRUE=verificado, FALSE=não verificado
+    FALSE,      -- BOOLEAN: 2FA desabilitado por padrão
+    1,          -- INTEGER: versão do token
+    'free',     -- VARCHAR: plano de assinatura
+    '{}',       -- JSON: preferências vazias
     NOW()
 );
 
