@@ -266,24 +266,31 @@ async def _send_scheduled_reports(db: Session, now: datetime) -> dict:
     sent = failed = 0
     for settings in settings_rows:
         prefs = settings.notification_preferences or {}
-        if not any((prefs.get("reportHours") or {}).values()):
+        report_hours = prefs.get("reportHours") or {}
+        if not any(report_hours.values()):
             continue
-        # One daily slot is supported on Hobby. Keep the schedule aligned with
-        # the Vercel cron at 06:00 UTC (about 08:00 in Maputo).
-        local_now = datetime.now(datetime_timezone.utc).astimezone(ZoneInfo("Africa/Maputo"))
-        hour_key = "08:00"
-        title = f"Relatório LomusTrack {local_now.date().isoformat()}"
+        
+        # Verifica o horário atual UTC
+        current_hour_utc = now.strftime("%H:00")
+        
+        # Verifica se este horário está habilitado
+        if not report_hours.get(current_hour_utc, False):
+            continue
+        
+        # Título único por dia e horário para evitar duplicatas
+        title = f"Relatório LomusTrack {now.date().isoformat()} {current_hour_utc}"
         if db.query(NotificationDelivery.id).filter(
             NotificationDelivery.company_id == settings.company_id,
             NotificationDelivery.title == title,
         ).first():
             continue
+        
         subscriptions = db.query(PushSubscription).filter(
             PushSubscription.company_id == settings.company_id,
             PushSubscription.is_active.is_(True),
         ).all()
         if not subscriptions:
-            db.add(NotificationDelivery(company_id=settings.company_id, title=title, body="Nenhum dispositivo inscrito para receber relatórios.", status="no_subscribers", data={"kind": "scheduled_report", "hour": hour_key}))
+            db.add(NotificationDelivery(company_id=settings.company_id, title=title, body="Nenhum dispositivo inscrito para receber relatórios.", status="no_subscribers", data={"kind": "scheduled_report", "hour": current_hour_utc}))
             db.commit()
             continue
         try:
@@ -316,7 +323,7 @@ async def _send_scheduled_reports(db: Session, now: datetime) -> dict:
                     delivered_ids.append(subscription.id)
                 else:
                     errors += 1
-            report_data = {"url": "/dashboard", "kind": "scheduled_report", "hour": hour_key, "target_subscription_ids": [item.id for item in subscriptions], "delivered_subscription_ids": delivered_ids}
+            report_data = {"url": "/dashboard", "kind": "scheduled_report", "hour": current_hour_utc, "target_subscription_ids": [item.id for item in subscriptions], "delivered_subscription_ids": delivered_ids}
             report_status = "partial" if ok and errors else ("sent" if ok else "failed")
             db.add(NotificationDelivery(company_id=settings.company_id, title=title, body=body, status=report_status, sent_count=ok, failed_count=errors, data=report_data))
             if errors:
@@ -326,7 +333,7 @@ async def _send_scheduled_reports(db: Session, now: datetime) -> dict:
             failed += errors
         except Exception as exc:
             db.rollback()
-            db.add(NotificationDelivery(company_id=settings.company_id, title=title, body=str(exc)[:1900], status="failed", failed_count=len(subscriptions), data={"kind": "scheduled_report", "hour": hour_key}))
+            db.add(NotificationDelivery(company_id=settings.company_id, title=title, body=str(exc)[:1900], status="failed", failed_count=len(subscriptions), data={"kind": "scheduled_report", "hour": current_hour_utc}))
             db.commit()
             failed += len(subscriptions)
     return {"reports_sent": sent, "reports_failed": failed}

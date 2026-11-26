@@ -131,7 +131,7 @@ export default function NotificationSettingsPage() {
         if (mounted)
           setPreferences({
             ...saved,
-            reportHours: { "08:00": Object.values(saved.reportHours || {}).some(Boolean) },
+            reportHours: saved.reportHours || {},
             timezone: "Africa/Maputo",
           });
       })
@@ -272,20 +272,69 @@ export default function NotificationSettingsPage() {
             <div className="space-y-4">
               <h2 className="font-semibold text-muted-foreground">Horários</h2>
               <p className="text-xs text-muted-foreground">
-                O plano Hobby permite um relatório por dia. A execução ocorre por volta das 08:00 no
-                horário de Maputo, com possível variação de até 59 minutos.
+                Escolha em quais horários deseja receber relatórios diários. Os horários são baseados no fuso UTC (Maputo = UTC+2).
               </p>
-              <div className="flex items-center justify-between gap-4">
-                <Label htmlFor="report-daily" className="text-sm text-muted-foreground">
-                  Enviar relatório diário
-                </Label>
-                <Switch
-                  id="report-daily"
-                  checked={Object.values(preferences.reportHours).some(Boolean)}
-                  onCheckedChange={(checked) =>
-                    setPreferences((current) => ({ ...current, reportHours: { "08:00": checked } }))
-                  }
-                />
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-4">
+                  <Label htmlFor="report-08" className="text-sm text-muted-foreground">
+                    Notificação das 08:00
+                  </Label>
+                  <Switch
+                    id="report-08"
+                    checked={preferences.reportHours["08:00"] || false}
+                    onCheckedChange={(checked) =>
+                      setPreferences((current) => ({
+                        ...current,
+                        reportHours: { ...current.reportHours, "08:00": checked },
+                      }))
+                    }
+                  />
+                </div>
+                <div className="flex items-center justify-between gap-4">
+                  <Label htmlFor="report-12" className="text-sm text-muted-foreground">
+                    Notificação das 12:00
+                  </Label>
+                  <Switch
+                    id="report-12"
+                    checked={preferences.reportHours["12:00"] || false}
+                    onCheckedChange={(checked) =>
+                      setPreferences((current) => ({
+                        ...current,
+                        reportHours: { ...current.reportHours, "12:00": checked },
+                      }))
+                    }
+                  />
+                </div>
+                <div className="flex items-center justify-between gap-4">
+                  <Label htmlFor="report-18" className="text-sm text-muted-foreground">
+                    Notificação das 18:00
+                  </Label>
+                  <Switch
+                    id="report-18"
+                    checked={preferences.reportHours["18:00"] || false}
+                    onCheckedChange={(checked) =>
+                      setPreferences((current) => ({
+                        ...current,
+                        reportHours: { ...current.reportHours, "18:00": checked },
+                      }))
+                    }
+                  />
+                </div>
+                <div className="flex items-center justify-between gap-4">
+                  <Label htmlFor="report-23" className="text-sm text-muted-foreground">
+                    Notificação das 23:00
+                  </Label>
+                  <Switch
+                    id="report-23"
+                    checked={preferences.reportHours["23:00"] || false}
+                    onCheckedChange={(checked) =>
+                      setPreferences((current) => ({
+                        ...current,
+                        reportHours: { ...current.reportHours, "23:00": checked },
+                      }))
+                    }
+                  />
+                </div>
               </div>
             </div>
             <div className="space-y-3">
@@ -318,7 +367,14 @@ export default function NotificationSettingsPage() {
                 <div className="space-y-2 rounded-lg bg-muted/50 p-3 text-sm text-muted-foreground">
                   <div className="flex items-start gap-2">
                     <RiTimeLine className="mt-0.5 size-4 shrink-0" />
-                    <span>Relatório configurado para 08:00 (horário de Maputo) .</span>
+                    <span>
+                      Relatórios configurados para:{" "}
+                      {Object.entries(preferences.reportHours)
+                        .filter(([, enabled]) => enabled)
+                        .map(([hour]) => hour)
+                        .join(", ")}{" "}
+                      (horário UTC, Maputo = UTC+2)
+                    </span>
                   </div>
                   <p className="whitespace-pre-line border-t border-border/60 pt-2">
                     {reportPreview}
