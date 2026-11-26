@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { RiBankCardLine, RiMoneyDollarCircleLine, RiTeamLine } from "@remixicon/react";
+import { RiBankCardLine, RiMoneyDollarCircleLine, RiTeamLine, RiMailLine } from "@remixicon/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { getStoredUser } from "@/services/auth";
 import { apiRequest } from "@/services/api";
 import { fetchUsers, type User } from "@/services/users";
+import { EmailSender } from "./EmailSender";
 
 type Financials = {
   currency: string;
@@ -58,6 +59,7 @@ export function CompanyDashboard() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [showEmailSender, setShowEmailSender] = useState(false);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -141,10 +143,26 @@ export function CompanyDashboard() {
             Visão mensal da receita recorrente e do lucro estimado da empresa.
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={() => void refresh()} disabled={loading}>
-          Atualizar
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setShowEmailSender(!showEmailSender)}
+          >
+            <RiMailLine className="mr-2 size-4" />
+            {showEmailSender ? "Ocultar Email" : "Enviar Email"}
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => void refresh()} disabled={loading}>
+            Atualizar
+          </Button>
+        </div>
       </div>
+
+      {showEmailSender && (
+        <div className="animate-in fade-in slide-in-from-top-2">
+          <EmailSender />
+        </div>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Metric
@@ -158,7 +176,7 @@ export function CompanyDashboard() {
           icon={RiBankCardLine}
         />
         <Metric
-          title="Receita recorrente mensal estimada"
+          title="💰 Receita mensal estimada"
           value={
             loading
               ? "…"
@@ -167,7 +185,7 @@ export function CompanyDashboard() {
           icon={RiMoneyDollarCircleLine}
         />
         <Metric
-          title="Lucro mensal estimado"
+          title="📈 Lucro mensal estimado"
           value={
             loading ? "…" : money(financials?.estimated_monthly_profit ?? 0, financials?.currency)
           }

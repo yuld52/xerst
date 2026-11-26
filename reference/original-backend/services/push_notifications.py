@@ -127,14 +127,14 @@ class PushNotificationService:
         code = (currency_code or "MZN").upper()
         formatted_amount = f"{value:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + f" {code}"
         status_label = "Venda Pendente!" if status == "pending" else "Venda Aprovada!"
-        lines = [status_label]
+        lines = []
         if preferences.get("saleValue", "show") == "show":
             lines.append(f"Valor: {formatted_amount}")
         if preferences.get("productName", "hide") == "show" and product_name:
             lines.append(f"Produto: {product_name}")
         if preferences.get("campaignValue", "hide") == "show" and campaign_value:
             lines.append(f"Campanha: {campaign_value}")
-        body = "\n".join(lines)
+        body = "\n".join(lines) if lines else "Confira os detalhes da venda."
         
         # Buscar todas as subscrições ativas DA MESMA EMPRESA
         subscriptions = db.query(PushSubscription).filter(
@@ -144,7 +144,7 @@ class PushNotificationService:
         
         if not subscriptions:
             logger.info("Nenhuma subscricao ativa encontrada")
-            db.add(NotificationDelivery(company_id=company_id, title="LomusTrack", body=body, status="no_subscribers", data={"status": status}))
+            db.add(NotificationDelivery(company_id=company_id, title=status_label, body=body, status="no_subscribers", data={"status": status}))
             db.commit()
             return
         
@@ -156,7 +156,7 @@ class PushNotificationService:
         for sub in subscriptions:
             success = self.send_notification(
                 subscription=sub,
-                title="LomusTrack",
+                title=status_label,
                 body=body,
                 data={
                     "url": "/sales",
@@ -184,9 +184,9 @@ class PushNotificationService:
             "delivered_subscription_ids": delivered_subscription_ids,
         }
         delivery_status = "partial" if success_count and failed_count else ("sent" if success_count else "failed")
-        db.add(NotificationDelivery(company_id=company_id, title="LomusTrack", body=body, status=delivery_status, sent_count=success_count, failed_count=failed_count, data=delivery_data))
+        db.add(NotificationDelivery(company_id=company_id, title=status_label, body=body, status=delivery_status, sent_count=success_count, failed_count=failed_count, data=delivery_data))
         if failed_count:
-            enqueue_notification_retry(db, company_id, "LomusTrack", body, {
+            enqueue_notification_retry(db, company_id, status_label, body, {
                 "url": "/sales", "amount": formatted_amount, "product": product_name,
                 "campaign": campaign_value, "status": status,
                 "target_subscription_ids": [sub.id for sub in subscriptions],

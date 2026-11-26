@@ -1,4 +1,4 @@
-const CACHE_NAME = "lomustrack-v4";
+const CACHE_NAME = "lomustrack-v5";
 
 const STATIC_ASSETS = [
   "/",
@@ -100,6 +100,19 @@ self.addEventListener("push", (event) => {
       }
       if (payload.body) {
         options.body = payload.body;
+      }
+      // Evita título duplicado com "from LomusTrack" no iOS/macOS
+      if (typeof title === "string" && title.trim().toLowerCase() === "lomustrack") {
+        const lines = String(options.body || "")
+          .split("\n")
+          .map((line) => line.trim())
+          .filter(Boolean);
+        if (lines.length > 0) {
+          title = lines[0];
+          options.body = lines.slice(1).join("\n") || "Confira os detalhes da venda.";
+        } else {
+          title = "Venda aprovada!";
+        }
       }
       if (payload.data) {
         options.data = { ...options.data, ...payload.data };
