@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "@/lib/import-navigation";
 import { resetPassword } from "@/services/auth";
 import toast from "react-hot-toast";
@@ -9,6 +9,25 @@ export default function ResetPasswordPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token") || "";
+  const [mounted, setMounted] = useState(false);
+
+  // Prevent any automatic redirects
+  useEffect(() => {
+    console.log("=== Reset Password Page Mounted ===");
+    console.log("Token present:", !!token);
+    console.log("Token value:", token);
+    console.log("Current pathname:", window.location.pathname);
+    console.log("Search params:", window.location.search);
+    setMounted(true);
+    
+    // Garantir que não há redirecionamento automático
+    return () => {
+      console.log("=== Reset Password Page Unmounted ===");
+    };
+  }, [token]);
+
+  // Adicionar log quando o componente renderiza
+  console.log("Reset Password Page Rendering - Mounted:", mounted);
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -18,6 +37,11 @@ export default function ResetPasswordPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    console.log("=== Form Submitted ===");
+    console.log("Token:", token);
+    console.log("Password length:", password.length);
+    console.log("Passwords match:", password === confirmPassword);
     
     if (!token) {
       setError("Token inválido ou expirado. Solicite nova recuperação.");
@@ -41,14 +65,20 @@ export default function ResetPasswordPage() {
     setLoading(true);
 
     try {
+      console.log("=== Calling resetPassword API ===");
       const res = await resetPassword(token, password, confirmPassword);
+      console.log("=== API Response ===", res);
+      
       setSuccessMessage(res.message || "Senha redefinida com sucesso!");
       toast.success("Senha redefinida com sucesso!");
 
+      console.log("=== Will redirect to login in 2 seconds ===");
       setTimeout(() => {
+        console.log("=== Redirecting to login now ===");
         navigate("/login", { replace: true });
       }, 2000);
     } catch (err) {
+      console.error("=== Error resetting password ===", err);
       const msg = err instanceof Error ? err.message : "Erro ao redefinir senha";
       setError(msg);
       toast.error(msg);
@@ -56,6 +86,21 @@ export default function ResetPasswordPage() {
       setLoading(false);
     }
   };
+
+  // Adicionar log quando o componente renderiza
+  console.log("Reset Password Page Rendering - Mounted:", mounted);
+
+  // Aguardar montagem antes de renderizar
+  if (!mounted) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <span className="text-sm text-muted-foreground">Carregando...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -138,7 +183,18 @@ export default function ResetPasswordPage() {
 
           {!token && (
             <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700 text-center font-medium">
-              Token inválido ou expirado. <a href="/forgot-password" className="underline font-semibold">Solicite nova recuperação</a>.
+              Token inválido ou expirado.{" "}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  console.log("=== Clicking forgot-password link ===");
+                  navigate("/forgot-password");
+                }}
+                className="underline font-semibold cursor-pointer hover:text-amber-800"
+              >
+                Solicite nova recuperação
+              </button>.
             </div>
           )}
 
@@ -170,12 +226,17 @@ export default function ResetPasswordPage() {
             <div className="text-center pt-2">
               <p className="text-sm text-zinc-500">
                 Lembrou sua senha?{" "}
-                <a
-                  href="/login"
-                  className="text-blue-600 font-medium hover:underline hover:text-blue-700 transition-colors"
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    console.log("=== Clicking login link ===");
+                    navigate("/login");
+                  }}
+                  className="text-blue-600 font-medium hover:underline hover:text-blue-700 transition-colors cursor-pointer"
                 >
                   Fazer login.
-                </a>
+                </button>
               </p>
             </div>
           </div>

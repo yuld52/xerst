@@ -18,26 +18,36 @@ export function AppGuard({ children }: AppGuardProps) {
   useEffect(() => {
     async function check() {
       try {
+        console.log("=== AppGuard Check ===");
+        console.log("Current path:", location.pathname);
+        console.log("Search params:", location.search);
+        
         // Rotas públicas sempre permitidas
         const publicPaths = ["/login", "/setup", "/admin-login", "/documentation", "/forgot-password", "/verify-email", "/reset-password"];
         const isPublicPath = publicPaths.includes(location.pathname);
+        
+        console.log("Is public path:", isPublicPath);
 
         // Se está em rota pública, permitir acesso
         if (isPublicPath) {
+          console.log("=== Public path - allowing access ===");
           setStatus("ready");
           return;
         }
 
         // Se não está autenticado e tenta acessar rota privada, redirecionar para login
         if (!isAuthenticated()) {
+          console.log("=== Not authenticated - redirecting to login ===");
           logout();
           navigate("/login", { replace: true });
           setStatus("ready");
           return;
         }
 
+        console.log("=== Authenticated - allowing access ===");
         setStatus("ready");
-      } catch {
+      } catch (error) {
+        console.error("=== AppGuard error ===", error);
         setStatus("ready");
       }
     }
