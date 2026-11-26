@@ -1,6 +1,5 @@
 import { RiSettings3Line } from "@remixicon/react";
 import { ResetSalesCard } from "./components/ResetSalesCard";
-import { MockModeCard } from "./components/MockModeCard";
 import { CurrencyCard } from "./components/CurrencyCard";
 import { NotificationSettingsCard } from "./components/NotificationSettingsCard";
 import { McpCard } from "./components/McpCard";
@@ -25,7 +24,6 @@ export default function AdvancedSettingsPage() {
         <CurrencyCard />
         <NotificationSettingsCard />
         <ResetSalesCard />
-        <MockModeCard />
       </div>
     </div>
   );
