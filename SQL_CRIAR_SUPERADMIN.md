@@ -77,8 +77,8 @@ SET
     email = 'suporte@lomustrack.online',
     role = 'superadmin',
     company_id = NULL,
-    is_active = 1,
-    is_email_verified = 1
+    is_active = 1,              -- INTEGER
+    is_email_verified = TRUE    -- BOOLEAN
 WHERE id = 1;  -- Substituir pelo ID do admin existente
 ```
 
@@ -117,37 +117,39 @@ curl -X POST https://seu-backend.com/api/auth/login \
 
 ### Erro: "column is of type integer but expression is of type boolean"
 
-**Causa:** Banco usa INTEGER (0/1) mas você passou TRUE/FALSE
+**Causa:** Campo `is_active` é INTEGER mas você passou TRUE/FALSE
 
 **Solução:**
 ```sql
--- ❌ ERRADO (para este banco)
-is_active = TRUE,
-is_email_verified = TRUE
+-- ❌ ERRADO
+is_active = TRUE
 
--- ✅ CORRETO (para este banco)
-is_active = 1,
-is_email_verified = 1
+-- ✅ CORRETO
+is_active = 1
 ```
-
-**Nota:** Alguns bancos PostgreSQL usam BOOLEAN real, outros usam INTEGER. Este banco usa INTEGER.
 
 ---
 
 ### Erro: "column is of type boolean but expression is of type integer"
 
-**Causa:** Banco usa BOOLEAN (TRUE/FALSE) mas você passou 0/1
+**Causa:** Campo `is_email_verified` é BOOLEAN mas você passou 0/1
 
 **Solução:**
 ```sql
--- ❌ ERRADO (para aquele banco)
-is_active = 1,
+-- ❌ ERRADO
 is_email_verified = 1
 
--- ✅ CORRETO (para aquele banco)
-is_active = TRUE,
+-- ✅ CORRETO
 is_email_verified = TRUE
 ```
+
+---
+
+### ⚠️ Resumo dos Tipos:
+
+Este banco tem **tipos mistos**:
+- `is_active` → **INTEGER** (use `1` ou `0`)
+- `is_email_verified` → **BOOLEAN** (use `TRUE` ou `FALSE`)
 
 ---
 
@@ -161,8 +163,8 @@ UPDATE admins
 SET 
     role = 'superadmin',
     company_id = NULL,
-    is_active = 1,
-    is_email_verified = 1
+    is_active = 1,              -- INTEGER
+    is_email_verified = TRUE    -- BOOLEAN
 WHERE email = 'suporte@lomustrack.online';
 ```
 
@@ -219,7 +221,7 @@ WHERE email = 'suporte@lomustrack.online';
 | role | ENUM | 'superadmin' | ✅ |
 | company_id | INTEGER | NULL | ❌ |
 | is_active | INTEGER (0/1) | 1 | ✅ |
-| is_email_verified | INTEGER (0/1) | 1 | ✅ |
+| is_email_verified | BOOLEAN (TRUE/FALSE) | TRUE | ✅ |
 | created_at | TIMESTAMP | NOW() | ✅ |
 
 ---
