@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { apiRequest } from "@/services/api";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface ApiCredential {
   id: number;
@@ -162,25 +163,40 @@ export function PlatformIntegrations({
   };
 
   const toggleCredential = async (credential: ApiCredential) => {
+    const nextActive = !credential.active;
     try {
       await apiRequest(`/platforms/credentials/${credential.id}`, {
         method: "PATCH",
-        body: { active: !credential.active },
+        body: { active: nextActive },
       });
       setCredentials((current) =>
-        current.map((c) => (c.id === credential.id ? { ...c, active: !c.active } : c))
+        current.map((c) => (c.id === credential.id ? { ...c, active: nextActive } : c))
       );
       toast.success(
-        credential.active 
-          ? "Credencial desativada com sucesso" 
-          : "Credencial ativada com sucesso"
+        nextActive 
+          ? "Credencial ativada com sucesso" 
+          : "Credencial desativada com sucesso"
       );
     } catch (error) {
-      toast.error(
-        error instanceof Error 
-          ? error.message 
-          : "Não foi possível alterar o status da credencial"
-      );
+      try {
+        await apiRequest(`/platforms/credentials/${credential.id}/toggle`, {
+          method: "POST",
+        });
+        setCredentials((current) =>
+          current.map((c) => (c.id === credential.id ? { ...c, active: nextActive } : c))
+        );
+        toast.success(
+          nextActive 
+            ? "Credencial ativada com sucesso" 
+            : "Credencial desativada com sucesso"
+        );
+      } catch (fallbackError) {
+        toast.error(
+          error instanceof Error 
+            ? error.message 
+            : "Não foi possível alterar o status da credencial"
+        );
+      }
     }
   };
 
@@ -193,12 +209,21 @@ export function PlatformIntegrations({
       setCredentials((current) => current.map((c) => (c.id === id ? { ...c, name } : c)));
       toast.success("Nome da credencial atualizado com sucesso");
     } catch (error) {
-      toast.error(
-        error instanceof Error 
-          ? error.message 
-          : "Não foi possível atualizar o nome da credencial"
-      );
-      throw error;
+      try {
+        await apiRequest(`/platforms/credentials/${id}`, {
+          method: "POST",
+          body: { name },
+        });
+        setCredentials((current) => current.map((c) => (c.id === id ? { ...c, name } : c)));
+        toast.success("Nome da credencial atualizado com sucesso");
+      } catch (fallbackError) {
+        toast.error(
+          fallbackError instanceof Error 
+            ? fallbackError.message 
+            : "Não foi possível atualizar o nome da credencial"
+        );
+        throw fallbackError;
+      }
     }
   };
 
@@ -245,8 +270,21 @@ export function PlatformIntegrations({
                   <div className="border border-border rounded-md px-5 py-[1.1rem] w-full">
                     <div>
                       <p className="font-bold text-sm mb-0">{credential.name}</p>
-                      <div className="text-sm text-muted-foreground mt-[0.2rem]">
-                        Status: {credential.active ? "Ativado" : "Desativado"}
+                      <div className="flex items-center gap-2 mt-[0.35rem]">
+                        <span className="text-xs text-muted-foreground">Status:</span>
+                        <button
+                          type="button"
+                          onClick={() => toggleCredential(credential)}
+                          title="Clique para alternar status"
+                          className={cn(
+                            "rounded-full px-2 py-0.5 text-xs font-medium cursor-pointer transition-colors",
+                            credential.active
+                              ? "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20"
+                              : "bg-muted text-muted-foreground hover:bg-muted/80",
+                          )}
+                        >
+                          {credential.active ? "Ativado" : "Desativado"}
+                        </button>
                       </div>
                     </div>
                     <div className="absolute top-3 right-3">

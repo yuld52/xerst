@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { AIChatBubble } from "./AIChatBubble";
 import { geminiChatStatus } from "@/services/integrations";
+import { isAuthenticated } from "@/services/auth";
 import { useDailyReport } from "./useDailyReport";
 
 /**
@@ -12,6 +13,11 @@ export function AIChatProvider() {
   const [checked, setChecked] = useState(false);
 
   useEffect(() => {
+    if (!isAuthenticated()) {
+      setChecked(true);
+      return;
+    }
+
     geminiChatStatus()
       .then((res) => {
         setIsConfigured(res.configured);

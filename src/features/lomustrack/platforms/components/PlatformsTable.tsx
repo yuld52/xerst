@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { RiFileCopyLine, RiDeleteBinLine, RiRadioButtonLine, RiMoreVerticalLine } from "@remixicon/react";
+import { RiFileCopyLine, RiDeleteBinLine, RiRadioButtonLine } from "@remixicon/react";
 import { useState } from "react";
 import type { WebhookEndpointAPI } from "@/services/integrations";
 import { PlatformLogo } from "@/components/PlatformLogo";

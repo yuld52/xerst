@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useCachedQuery } from "./useCachedQuery";
 import { fetchCompanySubscription, type CompanySubscription } from "@/services/companySubscription";
+import { isAuthenticated } from "@/services/auth";
 
 export interface SubscriptionLimits {
   isBlocked: boolean;
@@ -27,6 +28,7 @@ export function useSubscriptionLimits(): SubscriptionLimits {
   } = useCachedQuery<CompanySubscription>({
     cachePrefix: "subscription",
     queryFn: fetchCompanySubscription,
+    enabled: isAuthenticated(),
   });
 
   const limits = useMemo(() => {

@@ -40,6 +40,8 @@ def create_credential(payload: CredentialCreate, db: Session = Depends(get_db), 
 
 
 @router.patch("/credentials/{credential_id}")
+@router.put("/credentials/{credential_id}")
+@router.post("/credentials/{credential_id}")
 def update_credential(
     credential_id: int,
     payload: CredentialUpdate,
@@ -84,6 +86,48 @@ def update_credential(
             details={"name": row.name, "active": payload.active}
         ))
     
+    db.commit()
+    db.refresh(row)
+    
+    return {
+        "id": row.id,
+        "name": row.name,
+        "token_prefix": row.token_prefix,
+        "active": row.is_active,
+        "created_at": row.created_at.isoformat() if row.created_at else None,
+        "last_used_at": row.last_used_at.isoformat() if row.last_used_at else None
+    }
+
+
+@router.post("/credentials/{credential_id}/toggle")
+@router.patch("/credentials/{credential_id}/toggle")
+def toggle_credential(
+    credential_id: int,
+    db: Session = Depends(get_db),
+    company_id: int = Depends(get_company_id),
+    current_user: Admin = Depends(get_current_user)
+):
+    """
+    Toggle active status of a credential.
+    """
+    row = db.query(ApiCredential).filter(
+        ApiCredential.id == credential_id,
+        ApiCredential.company_id == company_id
+    ).first()
+    
+    if not row:
+        raise HTTPException(status_code=404, detail="Credencial não encontrada")
+    
+    row.is_active = not row.is_active
+    action = "api_credential.activate" if row.is_active else "api_credential.deactivate"
+    db.add(AuditLog(
+        company_id=company_id,
+        actor_id=current_user.id,
+        action=action,
+        resource_type="api_credential",
+        resource_id=str(row.id),
+        details={"name": row.name, "active": row.is_active}
+    ))
     db.commit()
     db.refresh(row)
     
