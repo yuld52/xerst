@@ -273,3 +273,21 @@ Depois: **Logout → Login → Acesse /admin/dashboard**
 ---
 
 ✅ **Pronto! Agora você verá todas as funcionalidades de superadmin!** 🎉
+
+
+---
+
+## ⚠️ ATUALIZAÇÃO IMPORTANTE
+
+**Restrição de Email Implementada:**
+
+Apenas o email oficial pode ser admin/superadmin:
+```
+suporte@lomustrack.online
+```
+
+Qualquer outro email será bloqueado no login, mesmo com role `superadmin` no banco de dados.
+
+📖 **Documentação completa:** `RESTRICAO_EMAIL_ADMIN.md`
+
+---

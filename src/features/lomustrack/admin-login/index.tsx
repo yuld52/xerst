@@ -67,7 +67,7 @@ export default function AdminLoginPage() {
           <div>
             <CardTitle className="text-2xl font-bold text-white">Painel Administrativo</CardTitle>
             <CardDescription className="text-slate-400">
-              Acesso restrito para administradores
+              Acesso exclusivo: suporte@lomustrack.online
             </CardDescription>
           </div>
         </CardHeader>
@@ -83,7 +83,7 @@ export default function AdminLoginPage() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="admin@lomus.com"
+                  placeholder="suporte@lomustrack.online"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required

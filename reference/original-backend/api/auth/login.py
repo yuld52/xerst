@@ -56,6 +56,14 @@ def login(data: LoginRequest, request: Request, db: Session = Depends(get_db)):
     if admin.is_active == 0:
         raise HTTPException(status_code=403, detail="Conta suspensa. Entre em contato com o suporte.")
 
+    # Apenas suporte@lomustrack.online pode ser admin/superadmin
+    if admin.role.value in ["admin", "owner", "superadmin"]:
+        if admin.email != "suporte@lomustrack.online":
+            raise HTTPException(
+                status_code=403, 
+                detail="Acesso administrativo restrito. Apenas o email oficial pode acessar o painel admin."
+            )
+
     try:
         if not bcrypt.checkpw(data.password.encode("utf-8"), admin.password_hash.encode("utf-8")):
             raise HTTPException(status_code=401, detail="Invalid credentials")
