@@ -85,8 +85,8 @@ INSERT INTO admins (
     '$2b$12$HASH_DA_SENHA_AQUI',  -- Usar bcrypt para gerar
     'superadmin',
     NULL,  -- Superadmin não pertence a nenhuma empresa
-    1,
-    1,
+    TRUE,  -- is_active (boolean)
+    TRUE,  -- is_email_verified (boolean)
     NOW()
 );
 ```
