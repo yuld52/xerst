@@ -28,6 +28,10 @@ import {
   type CampaignRule,
 } from "@/services/campaignRules";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
+import { useFacebookAccounts } from "@/hooks/useFacebookAccounts";
+import type { FacebookAccountAPI } from "@/services/integrations";
+import { useCachedQuery } from "@/hooks/useCachedQuery";
+import { fetchCampaignFilterOptions, type CampaignFilterOptionsAPI } from "@/services/campaigns";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useNavigate } from "@tanstack/react-router";
 
@@ -95,10 +99,14 @@ function RuleForm({
   open,
   onOpenChange,
   onSave,
+  products,
+  accounts,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: (rule: CampaignRule) => void;
+  products: { id: number; name: string }[];
+  accounts: FacebookAccountAPI[];
 }) {
   const [name, setName] = useState("");
   const [product, setProduct] = useState("any");
@@ -178,12 +186,22 @@ function RuleForm({
               <span className="text-xs font-medium text-muted-foreground">Produto</span>
               <RuleSelect value={product} onChange={setProduct}>
                 <SelectItem value="any">Qualquer</SelectItem>
+                {products.map((p) => (
+                  <SelectItem key={p.id} value={String(p.id)}>
+                    {p.name}
+                  </SelectItem>
+                ))}
               </RuleSelect>
             </label>
             <label className="space-y-2">
               <span className="text-xs font-medium text-muted-foreground">Contas de anúncio</span>
               <RuleSelect value={account} onChange={setAccount}>
                 <SelectItem value="all">Todas</SelectItem>
+                {accounts.map((acc) => (
+                  <SelectItem key={acc.id} value={String(acc.id)}>
+                    {acc.label} ({acc.account_id})
+                  </SelectItem>
+                ))}
               </RuleSelect>
             </label>
           </div>
@@ -409,9 +427,15 @@ export function RulesSection() {
   const [selectedRuleIds, setSelectedRuleIds] = useState<string[]>([]);
   const [open, setOpen] = useState(false);
   const { subscription } = useSubscriptionLimits();
+  const { accounts } = useFacebookAccounts();
+  const { data: filterOptions } = useCachedQuery<CampaignFilterOptionsAPI>({
+    cachePrefix: "campaign-filter-options",
+    queryFn: fetchCampaignFilterOptions,
+  });
+  const products = filterOptions?.products ?? [];
   const navigate = useNavigate();
   
-  const isFreePlan = subscription?.plan.id === "free";
+  const isFreePlan = subscription?.plan_id === "free";
 
   useEffect(() => {
     fetchCampaignRules()
@@ -579,11 +603,17 @@ export function RulesSection() {
                     <td className="px-4 py-4 font-medium">
                       {rule.name}
                       <div className="mt-1 text-muted-foreground">
-                        {rule.product === "any" ? "Qualquer produto" : rule.product}
+                        {rule.product === "any"
+                          ? "Qualquer produto"
+                          : (products.find((p) => String(p.id) === rule.product)?.name ?? rule.product)}
                       </div>
                     </td>
                     <td className="px-4 py-4">
-                      {rule.scope === "active" ? "Campanhas Ativas" : rule.scope}
+                      {rule.scope === "active"
+                        ? "Campanhas Ativas"
+                        : rule.scope === "all"
+                        ? "Todas as campanhas"
+                        : rule.scope}
                     </td>
                     <td className="px-4 py-4">
                       <div className="font-medium">{actionLabels[rule.action]}</div>
@@ -634,7 +664,13 @@ export function RulesSection() {
           </div>
         )}
       </div>
-      <RuleForm open={open} onOpenChange={setOpen} onSave={saveRule} />
+      <RuleForm
+        open={open}
+        onOpenChange={setOpen}
+        onSave={saveRule}
+        products={products}
+        accounts={accounts}
+      />
     </section>
   );
 }

@@ -19,11 +19,13 @@ from database.core.connection import get_db, engine
 from database.core.timezone import now_sp
 from database.models.audit_log import AuditLog
 from database.models.campaign_action import ActionType
+from database.models.campaign_marker import CampaignMarker, MarkerType
 from database.models.campaign_rule import CampaignRule
 from database.models.company import CompanySettings
 from database.models.facebook_account import FacebookAccount
 from database.models.notification_delivery import NotificationDelivery
 from database.models.notification_retry import NotificationRetry
+from database.models.product import Product
 from database.models.push_subscription import PushSubscription
 from integrations.meta_ads.manage import toggle_entity_status, update_budget
 from integrations.meta_ads.service import MetaAdsService
@@ -162,11 +164,39 @@ async def _run_campaign_rules(db: Session, now: datetime) -> dict:
             continue
 
         start, end = _period_dates(definition.get("period", "today"), now)
-        accounts = db.query(FacebookAccount).filter(
+        accounts_query = db.query(FacebookAccount).filter(
             FacebookAccount.company_id == row.company_id,
             FacebookAccount.token_valid.is_(True),
             FacebookAccount.is_active.is_(True),
-        ).all()
+        )
+        accounts = accounts_query.all()
+        account_filter = str(definition.get("account") or "all")
+        if account_filter != "all":
+            accounts = [
+                acc for acc in accounts
+                if str(acc.id) == account_filter or str(acc.account_id) == account_filter
+            ]
+
+        product_filter = str(definition.get("product") or "any")
+        product_campaign_ids: set[str] = set()
+        product_name: str | None = None
+        if product_filter != "any":
+            markers = db.query(CampaignMarker.campaign_id).filter(
+                CampaignMarker.company_id == row.company_id,
+                CampaignMarker.marker_type == MarkerType.PRODUCT,
+                CampaignMarker.reference_id == product_filter,
+            ).all()
+            product_campaign_ids = {str(m.campaign_id) for m in markers}
+            if product_filter.isdigit():
+                prod = db.query(Product.name).filter(
+                    Product.company_id == row.company_id,
+                    Product.id == int(product_filter),
+                ).first()
+                if prod:
+                    product_name = prod.name
+            else:
+                product_name = product_filter
+
         row.last_checked_at = now
         try:
             already_executed = db.query(AuditLog.resource_id, AuditLog.details).filter(
@@ -191,6 +221,11 @@ async def _run_campaign_rules(db: Session, now: datetime) -> dict:
                     if definition.get("scope") == "active" and campaign.status.upper() not in {"ACTIVE", "1"}:
                         continue
                     name = (campaign.name or "").lower()
+                    if product_filter != "any":
+                        matches_marker = str(campaign.id) in product_campaign_ids
+                        matches_name = bool(product_name and product_name.lower() in name)
+                        if not (matches_marker or matches_name):
+                            continue
                     name_filter = definition.get("nameFilter", "any")
                     if name_filter == "sales" and not any(term in name for term in ("sales", "venda", "convers", "purchase")):
                         continue
@@ -267,6 +302,8 @@ async def _send_scheduled_reports(db: Session, now: datetime) -> dict:
     for settings in settings_rows:
         prefs = settings.notification_preferences or {}
         report_hours = prefs.get("reportHours") or {}
+        if not any(report_hours.values()):
+            continue
         
         # Verifica o horário atual UTC
         now_utc = (
@@ -276,17 +313,9 @@ async def _send_scheduled_reports(db: Session, now: datetime) -> dict:
         )
         current_hour_utc = now_utc.strftime("%H:00")
         
-        # Modo "hourly": envia a cada hora se reportHours tiver {"hourly": true}
-        # Caso contrário, verifica horários específicos
-        hourly_mode = report_hours.get("hourly", False)
-        
-        if not hourly_mode:
-            # Modo tradicional: verifica horários específicos
-            if not any(report_hours.values()):
-                continue
-            # Verifica se este horário está habilitado
-            if not report_hours.get(current_hour_utc, False):
-                continue
+        # Verifica se este horário está habilitado
+        if not report_hours.get(current_hour_utc, False):
+            continue
         
         # Título único por dia e horário para evitar duplicatas
         title = f"Relatório LomusTrack {now_utc.date().isoformat()} {current_hour_utc}"

@@ -2,190 +2,58 @@
 
 **Sistema de Tracking e Gestão de Vendas para Moçambique**
 
-Plataforma completa de rastreamento de vendas, automação de campanhas e análise de métricas para empresas em Moçambique.
+Plataforma SaaS para rastreamento de vendas, automação de campanhas Meta Ads, relatórios agendados com IA e gestão multi-empresa.
 
-**Live app**: https://lomustrack.online
-
----
-
-## 🚀 Início Rápido
-
-### 👉 [COMECE_AQUI.md](COMECE_AQUI.md) - Setup em 3 passos (5 minutos)
-
-### Mais Detalhes:
-- 📋 **[COMANDOS_PARA_EXECUTAR.md](COMANDOS_PARA_EXECUTAR.md)** - Comandos prontos com troubleshooting
-- 📚 **[INDICE_DOCUMENTACAO.md](INDICE_DOCUMENTACAO.md)** - Índice de todos os guias (25+ documentos)
+- **Produção:** https://lomustrack.online
 
 ---
 
-## 📦 O que é o LomusTrack?
+## Stack Tecnológico
 
-LomusTrack é uma plataforma SaaS que oferece:
-
-- 📊 **Dashboard em Tempo Real** - Métricas de vendas e campanhas
-- 🤖 **Automação de Campanhas** - Regras automáticas para Facebook Ads
-- 📱 **Notificações Push** - Relatórios agendados automáticos
-- 👥 **Multi-empresa** - Gerenciamento de múltiplas empresas
-- 🎯 **Rastreamento UTM** - Tracking completo de campanhas
-- 💰 **Gestão de Subscrições** - Planos Free, Premium e Monster
-- 🤝 **Integração Facebook Ads** - Gestão completa de campanhas
+- **Frontend:** React, TypeScript, TanStack Router, TanStack Query, TailwindCSS, shadcn/ui, Recharts, PWA (Service Worker).
+- **Backend:** Python 3.12, FastAPI, SQLAlchemy, PostgreSQL (Supabase), OpenRouter AI, Meta Graph API (`v25.0`), Web Push (VAPID), Resend (email).
+- **Deploy:** Vercel Services (`vercel.json` na raiz):
+  - `app`: frontend TanStack Start (usa `/api` same-origin por padrão; manter `VITE_API_URL` vazio na Vercel).
+  - `original-backend`: serviço FastAPI em `reference/original-backend/`.
 
 ---
 
-## 🛠️ Stack Tecnológico
-
-### Frontend:
-- **React** + **TypeScript**
-- **TanStack Router** (file-based routing)
-- **TailwindCSS** + **shadcn/ui**
-- **Tanstack Query** (React Query)
-- **PWA** com Service Worker
-- **Inter Variable** font
-
-### Backend:
-- **Python** + **FastAPI**
-- **PostgreSQL** (Supabase)
-- **SQLAlchemy** ORM
-- **OpenRouter AI** (relatórios automáticos)
-- **Meta Ads API** (Facebook/Instagram)
-
-### Automação:
-- **cron-job.org** (execução a cada 10 minutos)
-- **Push Notifications** (VAPID)
-- **Campaign Rules Engine**
-
----
-
-## ⚙️ Configuração
+## Setup Local
 
 ### 1. Variáveis de Ambiente
 
-Copie o template:
-```bash
-cp reference/original-backend/.env.example reference/original-backend/.env
-```
+Copie os templates `.env.example` (raiz) e `reference/original-backend/.env.example` para `.env`.
 
-Preencha as variáveis obrigatórias:
-```bash
-DATABASE_URL=postgresql://...
-CRON_SECRET=seu-token-secreto-forte
-CORS_ALLOWED_ORIGINS=https://lomustrack.online,https://api.cron-job.org
-OPENROUTER_API_KEY=sk-or-v1-...
-```
+Principais variáveis do **backend**:
+- `DATABASE_URL`: string PostgreSQL (no Vercel/Supabase, usar **Transaction pooler**, porta `6543`, com caracteres especiais da senha em percent-encoding).
+- `SECRET_KEY`: segredo forte para tokens de sessão.
+- `CRON_SECRET`: token para proteger os endpoints de automação/cron.
+- `OPENROUTER_API_KEY` (opcional `OPENROUTER_MODEL`, padrão `openrouter/free`): geração de relatórios com IA.
+- `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_CLAIM_EMAIL`: notificações push.
+- `RESEND_API_KEY`, `FROM_EMAIL`, `BASE_URL`: envio de emails e links de recuperação de senha.
+- `CORS_ALLOWED_ORIGINS`: origens permitidas em cenários cross-origin.
 
-### 2. Backend
+Principais variáveis do **frontend** (`app`):
+- `VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY` (browser).
+- `SUPABASE_URL` e `SUPABASE_PUBLISHABLE_KEY` (SSR / middleware).
+- Nunca expor `DATABASE_URL`, `SECRET_KEY`, `CRON_SECRET`, `OPENROUTER_API_KEY` ou `service_role` com prefixo `VITE_`.
+
+### 2. Executar Localmente
 
 ```bash
+# Backend
 cd reference/original-backend
 pip install -r requirements.txt
 uvicorn app:app --host 0.0.0.0 --port 8000
-```
 
-### 3. Frontend
-
-```bash
+# Frontend (na raiz)
 npm install
 npm run dev
 ```
 
 ---
 
-## 📚 Documentação Principal
+## Banco de Dados (Supabase)
 
-| Documento | Descrição |
-|-----------|-----------|
-| [COMANDOS_PARA_EXECUTAR.md](COMANDOS_PARA_EXECUTAR.md) | 🔥 Comandos prontos para setup |
-| [COMO_CONFIGURAR_CRON_JOB_ORG.md](COMO_CONFIGURAR_CRON_JOB_ORG.md) | Configuração do cron-job.org |
-| [GUIA_COMPLETO_AUTOMACAO.md](GUIA_COMPLETO_AUTOMACAO.md) | Guia técnico completo (891 linhas) |
-| [INDICE_DOCUMENTACAO.md](INDICE_DOCUMENTACAO.md) | Índice completo de todos os guias |
-
-**Total**: 24+ documentos, ~7.500 linhas de documentação
-
----
-
-## 🤖 Automação
-
-A plataforma executa automaticamente **a cada 10 minutos** (144x por dia):
-
-1. ✅ **Regras de Campanha** - Ativa/pausa/ajusta orçamentos baseado em métricas
-2. 📊 **Relatórios Agendados** - Envia notificações push (08:00, 12:00, 18:00, 23:00 UTC)
-3. 🔄 **Retry de Notificações** - Reenvia notificações que falharam
-
-Configurado via **cron-job.org** → ver [COMO_CONFIGURAR_CRON_JOB_ORG.md](COMO_CONFIGURAR_CRON_JOB_ORG.md)
-
----
-
-## 💰 Planos e Preços
-
-| Plano | Preço | Limite de Vendas |
-|-------|-------|------------------|
-| **Free** | 0 MT | 100 vendas |
-| **Premium** | 500 MT/mês | 1.000 vendas |
-| **Monster** | 2.000 MT/mês | Ilimitado |
-
----
-
-## 👨‍💼 Superadmin
-
-**Email**: `suporte@lomustrack.online`  
-**Senha**: `yuld0000`
-
-Apenas este email pode fazer login como superadmin. Owners e admins normais podem usar qualquer email.
-
-Ver: [RESTRICAO_EMAIL_ADMIN.md](RESTRICAO_EMAIL_ADMIN.md)
-
----
-
-## 📊 Status do Projeto
-
-| Componente | Status |
-|------------|--------|
-| Frontend | ✅ 100% |
-| Backend Code | ✅ 100% |
-| Documentação | ✅ 100% |
-| Deploy Backend | ⏳ Pendente |
-| Automação Setup | ⏳ Pendente |
-
-**Projeto 95% completo** - Código 100% pronto, aguardando deploy.
-
----
-
-## 🔧 Troubleshooting
-
-Ver seção de troubleshooting em:
-- [CONFIGURACAO_CRON_JOB_ORG.md](CONFIGURACAO_CRON_JOB_ORG.md) - Seção 8
-- [COMANDOS_PARA_EXECUTAR.md](COMANDOS_PARA_EXECUTAR.md) - Seção 7
-
----
-
-## 📞 Suporte
-
-- **Email**: suporte@lomustrack.online
-- **Documentação**: Ver [INDICE_DOCUMENTACAO.md](INDICE_DOCUMENTACAO.md)
-
----
-
-## 🌟 Built with Lovable
-
-Imported website: https://github.com/yuldchissico-alt/jkddj.git
-
-This project was built with [Lovable](https://lovable.dev)
-
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/3c527fad-56e0-4def-98ad-7011ef4a0e0c).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
-
-```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
-```
+- **Banco novo:** execute `supabase/migrations/20261107000000_lomustrack_schema.sql` no SQL Editor do Supabase antes do deploy (o Vercel não roda migrações na inicialização por usar Transaction pooler). O script cria tabelas, índices, enums e habilita RLS bloqueando acesso direto de `anon` e `authenticated`.
+- **Banco existente:** faça backup e aplique apenas as migrações pendentes em `reference/original-backend/database/migrations/`.

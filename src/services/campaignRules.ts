@@ -4,6 +4,7 @@ export interface CampaignRuleCondition {
   field: "spend" | "cpa" | "ctr" | "roas" | "sales";
   operator: "gt" | "gte" | "lt" | "lte" | "eq";
   value: string;
+  currency?: "MZN" | "BRL" | "USD" | "EUR";
 }
 
 export interface CampaignRule {
