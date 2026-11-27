@@ -100,6 +100,27 @@ export function AIChatBubble({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isOpen]);
 
+  // Fechar chat quando sair da página/app
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      setIsOpen(false);
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        setIsOpen(false);
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
+
   // Auto-abrir com relatório diário
   useEffect(() => {
     if (!shouldAutoOpen || !dailyReport || hasInjectedReport.current) return;
