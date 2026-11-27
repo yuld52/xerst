@@ -103,8 +103,8 @@ export function usePushNotifications() {
       writeDemoEnabled(true);
       setDemoEnabled(true);
       showDemoNotification(
-        "Notificações de vendas ativadas",
-        "Você será avisado aqui sempre que entrar uma nova venda.",
+        "✅ Notificações Ativas",
+        "Você receberá alertas em tempo real quando houver uma nova venda.",
       );
       toast.success(
         granted
@@ -131,6 +131,17 @@ export function usePushNotifications() {
       if (result === "granted") {
         const sub = await subscribeUser();
         if (sub) {
+          // Enviar notificação de confirmação
+          if ("Notification" in window && Notification.permission === "granted") {
+            try {
+              new Notification("✅ Notificações Ativas", {
+                body: "Você receberá alertas em tempo real quando houver uma nova venda.",
+                icon: "/icon-192.png",
+              });
+            } catch (error) {
+              console.warn("Erro ao mostrar notificação de confirmação:", error);
+            }
+          }
           toast.success("Notificações ativadas com sucesso!");
           return true;
         } else {
