@@ -10,11 +10,11 @@ Plataforma completa de rastreamento de vendas, automação de campanhas e análi
 
 ## 🚀 Início Rápido
 
-### Para Deploy e Configuração:
-👉 **[COMANDOS_PARA_EXECUTAR.md](COMANDOS_PARA_EXECUTAR.md)** - Comece aqui!
+### 👉 [COMECE_AQUI.md](COMECE_AQUI.md) - Setup em 3 passos (5 minutos)
 
-### Documentação Completa:
-📚 **[INDICE_DOCUMENTACAO.md](INDICE_DOCUMENTACAO.md)** - Índice de todos os guias
+### Mais Detalhes:
+- 📋 **[COMANDOS_PARA_EXECUTAR.md](COMANDOS_PARA_EXECUTAR.md)** - Comandos prontos com troubleshooting
+- 📚 **[INDICE_DOCUMENTACAO.md](INDICE_DOCUMENTACAO.md)** - Índice de todos os guias (25+ documentos)
 
 ---
 
