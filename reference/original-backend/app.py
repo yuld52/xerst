@@ -107,11 +107,12 @@ def health_check():
 
 # Vercel serves the frontend and API from one origin, so production does not
 # require cross-origin access. Set CORS_ALLOWED_ORIGINS only for trusted clients.
+# Include cron-job.org domains for automated scheduled tasks.
 cors_origins = [
     origin.strip()
     for origin in os.getenv(
         "CORS_ALLOWED_ORIGINS",
-        "http://localhost:8080,http://localhost:5173",
+        "http://localhost:8080,http://localhost:5173,https://api.cron-job.org,https://cron-job.org",
     ).split(",")
     if origin.strip()
 ]
