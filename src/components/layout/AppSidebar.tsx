@@ -14,7 +14,6 @@ import { useLocation, useNavigate } from "@/lib/import-navigation";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader } from "@/components/ui/sidebar";
 import { SidebarNavGroup } from "./SidebarNavGroup";
 import { SidebarUser } from "./SidebarUser";
-import { NotificationBell } from "@/components/NotificationBell";
 import { AiTrainingProfile } from "./AiTrainingProfile";
 import { getStoredUser } from "@/services/auth";
 import { useAdvancedFeatures } from "@/contexts/AdvancedFeaturesContext";
@@ -136,7 +135,6 @@ export function AppSidebar() {
             LomusTrack
           </span>
         </div>
-        <NotificationBell />
       </SidebarHeader>
       <SidebarContent className="px-3 gap-0">
         <SidebarNavGroup

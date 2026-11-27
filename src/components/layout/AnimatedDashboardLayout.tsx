@@ -10,6 +10,8 @@ import {
   CreditCard,
   ArrowRightLeft,
   PanelLeft,
+  PanelLeftClose,
+  PanelLeftOpen,
   X,
   ChevronRight,
 } from "lucide-react";
@@ -31,7 +33,6 @@ import {
   AnimatedSidebarTrigger,
   useAnimatedSidebar,
 } from "@/components/ui/animated-sidebar";
-import { NotificationBell } from "@/components/NotificationBell";
 import { AiTrainingProfile } from "./AiTrainingProfile";
 import { getStoredUser, logout } from "@/services/auth";
 import { useAdvancedFeatures } from "@/contexts/AdvancedFeaturesContext";
@@ -266,6 +267,9 @@ function AppSidebarContent() {
   const allNavItems = visibleGroups.flatMap((group) => group.items);
   const currentPath = location.pathname;
 
+  const { state } = useAnimatedSidebar();
+  const isCollapsed = state === "collapsed";
+
   return (
     <AnimatedSidebar
       ariaLabel="LomusTrack"
@@ -274,7 +278,13 @@ function AppSidebarContent() {
       panelClassName="h-full border-border"
     >
       <AnimatedSidebarHeader className="p-3 pb-2">
-        <div className="flex min-h-11 items-center gap-3 overflow-hidden px-2">
+        <div
+          className={
+            isCollapsed
+              ? "flex min-h-11 flex-col items-center justify-center gap-2 overflow-hidden"
+              : "flex min-h-11 items-center gap-3 overflow-hidden px-2"
+          }
+        >
           <div className="grid size-8 shrink-0 place-items-center rounded-xl bg-black p-1 shadow-sm">
             <img
               src="/brand-logo.png"
@@ -288,9 +298,17 @@ function AppSidebarContent() {
           <span className="truncate text-sm font-bold text-foreground tracking-tight group-data-[state=collapsed]/sidebar:hidden">
             LomusTrack
           </span>
-          <div className="ml-auto flex items-center gap-1 group-data-[state=collapsed]/sidebar:hidden">
-            <NotificationBell />
-          </div>
+          <AnimatedSidebarTrigger
+            className="ml-auto hidden md:inline-flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground group-data-[state=collapsed]/sidebar:ml-0"
+            title={isCollapsed ? "Abrir menu" : "Fechar menu"}
+            aria-label={isCollapsed ? "Abrir menu" : "Fechar menu"}
+          >
+            {isCollapsed ? (
+              <PanelLeftOpen aria-hidden="true" className="size-4" />
+            ) : (
+              <PanelLeftClose aria-hidden="true" className="size-4" />
+            )}
+          </AnimatedSidebarTrigger>
           <AnimatedSidebarClose className="ml-auto text-muted-foreground hover:bg-muted md:hidden">
             <X aria-hidden="true" className="size-4" />
           </AnimatedSidebarClose>
@@ -342,8 +360,11 @@ function DashboardContent() {
         <span className="text-sm font-semibold text-foreground">LomusTrack</span>
       </header>
 
-      <main className="flex-1 p-6">
-        <div className="mx-auto w-full min-h-full" style={{ maxWidth: "min(1600px, 100%)" }}>
+      <main className="flex-1 min-w-0 p-4 sm:p-6 transition-[padding] duration-300 ease-out">
+        <div
+          data-sidebar-state={state}
+          className="w-full min-w-0 min-h-full transition-[max-width] duration-300 ease-out"
+        >
           <Outlet />
         </div>
       </main>
