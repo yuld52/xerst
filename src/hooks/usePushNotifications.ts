@@ -65,7 +65,7 @@ export function usePushNotifications() {
           // Enviar notificação de confirmação
           if ("Notification" in window && Notification.permission === "granted") {
             try {
-              new Notification("✅ Notificações Ativas", {
+              new Notification("Notificações Ativas", {
                 body: "Você receberá alertas em tempo real quando houver uma nova venda.",
                 icon: "/icon-192.png",
               });

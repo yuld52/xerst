@@ -160,9 +160,8 @@ def process_webhook_event(db: Session, event: StandardizedWebhookEvent, company_
                     product_name=event.product_name or "Produto",
                     customer_name=event.customer_name,
                     company_id=company_id,
-                    amount_mzn=existing_tx.amount_mzn or amount_mzn,
-                    original_amount=getattr(event, "amount", None),
-                    currency_code=currency_code,
+                    original_amount=existing_tx.original_amount if existing_tx.original_amount is not None else orig_amount,
+                    currency_code=existing_tx.original_currency or orig_currency,
                     campaign_value=event.utm_campaign,
                 )
             except Exception as e:
@@ -176,10 +175,9 @@ def process_webhook_event(db: Session, event: StandardizedWebhookEvent, company_
                     product_name=event.product_name or "Produto",
                     customer_name=event.customer_name,
                     company_id=company_id,
-                    amount_mzn=existing_tx.amount_mzn or amount_mzn,
                     status="pending",
-                    original_amount=getattr(event, "amount", None),
-                    currency_code=currency_code,
+                    original_amount=existing_tx.original_amount if existing_tx.original_amount is not None else orig_amount,
+                    currency_code=existing_tx.original_currency or orig_currency,
                     campaign_value=event.utm_campaign,
                 )
             except Exception as e:
@@ -281,10 +279,9 @@ def process_webhook_event(db: Session, event: StandardizedWebhookEvent, company_
                 product_name=event.product_name or "Produto",
                 customer_name=event.customer_name,
                 company_id=company_id,
-                amount_mzn=amount_mzn,
                 status="pending" if event.status == TransactionStatus.PENDING else "approved",
-                original_amount=getattr(event, "amount", None),
-                currency_code=currency_code,
+                original_amount=orig_amount,
+                currency_code=orig_currency,
                 campaign_value=event.utm_campaign,
             )
         except Exception as e:

@@ -99,19 +99,12 @@ class PushNotificationService:
         amount_mzn: Optional[float] = None,
         status: str = "approved",
         original_amount: Optional[float] = None,
-        currency_code: str = "MZN",
+        currency_code: str = "BRL",
         campaign_value: Optional[str] = None,
     ):
         """
-        Envia notificação de venda para todas as subscrições ativas.
-        
-        Args:
-            db: Sessão do banco de dados
-            amount: Valor da venda normalizado (BRL base)
-            product_name: Nome do produto vendido
-            customer_name: Nome do cliente (opcional)
-            company_id: ID da empresa (multi-tenant)
-            amount_mzn: Valor exato em Metical (se None, converte amount * 13)
+        Envia notificação de venda para todas as subscrições ativas,
+        preservando o valor e a moeda originais da plataforma de vendas (sem conversão).
         """
         settings = db.query(CompanySettings).filter(CompanySettings.company_id == company_id).first()
         preferences = (settings.notification_preferences if settings else None) or {}
@@ -119,12 +112,8 @@ class PushNotificationService:
         if preferences.get(pref_key, "show" if status == "approved" else "hide") != "show":
             return
 
-        # Se não foi fornecido amount_mzn direto, converte amount * 13
-        if amount_mzn is None:
-            amount_mzn = amount * 13
-
-        value = original_amount if original_amount is not None else amount_mzn
-        code = (currency_code or "MZN").upper()
+        value = original_amount if original_amount is not None else amount
+        code = (currency_code or "BRL").upper()
         formatted_amount = f"{value:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + f" {code}"
         status_label = "Venda Pendente!" if status == "pending" else "Venda Aprovada!"
         lines = []

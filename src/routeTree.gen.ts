@@ -40,6 +40,7 @@ import { Route as DashboardUsersRouteImport } from './routes/_dashboard.users'
 import { Route as DashboardCampaignsCreateRouteImport } from './routes/_dashboard.campaigns_.create'
 import { Route as ManagementAdminAwardsRouteImport } from './routes/_management.admin.awards'
 import { Route as ManagementAdminDashboardRouteImport } from './routes/_management.admin.dashboard'
+import { Route as ManagementAdminEmailRouteImport } from './routes/_management.admin.email'
 import { Route as ManagementAdminGeminiRouteImport } from './routes/_management.admin.gemini'
 import { Route as ManagementAdminOperationsRouteImport } from './routes/_management.admin.operations'
 import { Route as ManagementAdminSettingsRouteImport } from './routes/_management.admin.settings'
@@ -203,6 +204,11 @@ const ManagementAdminDashboardRoute =
     path: '/admin/dashboard',
     getParentRoute: () => ManagementRoute,
   } as any)
+const ManagementAdminEmailRoute = ManagementAdminEmailRouteImport.update({
+  id: '/admin/email',
+  path: '/admin/email',
+  getParentRoute: () => ManagementRoute,
+} as any)
 const ManagementAdminGeminiRoute = ManagementAdminGeminiRouteImport.update({
   id: '/admin/gemini',
   path: '/admin/gemini',
@@ -261,6 +267,7 @@ export interface FileRoutesByFullPath {
   '/campaigns/create': typeof DashboardCampaignsCreateRoute
   '/admin/awards': typeof ManagementAdminAwardsRoute
   '/admin/dashboard': typeof ManagementAdminDashboardRoute
+  '/admin/email': typeof ManagementAdminEmailRoute
   '/admin/gemini': typeof ManagementAdminGeminiRoute
   '/admin/operations': typeof ManagementAdminOperationsRoute
   '/admin/settings': typeof ManagementAdminSettingsRoute
@@ -297,6 +304,7 @@ export interface FileRoutesByTo {
   '/campaigns/create': typeof DashboardCampaignsCreateRoute
   '/admin/awards': typeof ManagementAdminAwardsRoute
   '/admin/dashboard': typeof ManagementAdminDashboardRoute
+  '/admin/email': typeof ManagementAdminEmailRoute
   '/admin/gemini': typeof ManagementAdminGeminiRoute
   '/admin/operations': typeof ManagementAdminOperationsRoute
   '/admin/settings': typeof ManagementAdminSettingsRoute
@@ -336,6 +344,7 @@ export interface FileRoutesById {
   '/_dashboard/campaigns_/create': typeof DashboardCampaignsCreateRoute
   '/_management/admin/awards': typeof ManagementAdminAwardsRoute
   '/_management/admin/dashboard': typeof ManagementAdminDashboardRoute
+  '/_management/admin/email': typeof ManagementAdminEmailRoute
   '/_management/admin/gemini': typeof ManagementAdminGeminiRoute
   '/_management/admin/operations': typeof ManagementAdminOperationsRoute
   '/_management/admin/settings': typeof ManagementAdminSettingsRoute
@@ -374,6 +383,7 @@ export interface FileRouteTypes {
     | '/campaigns/create'
     | '/admin/awards'
     | '/admin/dashboard'
+    | '/admin/email'
     | '/admin/gemini'
     | '/admin/operations'
     | '/admin/settings'
@@ -410,6 +420,7 @@ export interface FileRouteTypes {
     | '/campaigns/create'
     | '/admin/awards'
     | '/admin/dashboard'
+    | '/admin/email'
     | '/admin/gemini'
     | '/admin/operations'
     | '/admin/settings'
@@ -448,6 +459,7 @@ export interface FileRouteTypes {
     | '/_dashboard/campaigns_/create'
     | '/_management/admin/awards'
     | '/_management/admin/dashboard'
+    | '/_management/admin/email'
     | '/_management/admin/gemini'
     | '/_management/admin/operations'
     | '/_management/admin/settings'
@@ -688,6 +700,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ManagementAdminDashboardRouteImport
       parentRoute: typeof ManagementRoute
     }
+    '/_management/admin/email': {
+      id: '/_management/admin/email'
+      path: '/admin/email'
+      fullPath: '/admin/email'
+      preLoaderRoute: typeof ManagementAdminEmailRouteImport
+      parentRoute: typeof ManagementRoute
+    }
     '/_management/admin/gemini': {
       id: '/_management/admin/gemini'
       path: '/admin/gemini'
@@ -775,6 +794,7 @@ const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
 interface ManagementRouteChildren {
   ManagementAdminAwardsRoute: typeof ManagementAdminAwardsRoute
   ManagementAdminDashboardRoute: typeof ManagementAdminDashboardRoute
+  ManagementAdminEmailRoute: typeof ManagementAdminEmailRoute
   ManagementAdminGeminiRoute: typeof ManagementAdminGeminiRoute
   ManagementAdminOperationsRoute: typeof ManagementAdminOperationsRoute
   ManagementAdminSettingsRoute: typeof ManagementAdminSettingsRoute
@@ -785,6 +805,7 @@ interface ManagementRouteChildren {
 const ManagementRouteChildren: ManagementRouteChildren = {
   ManagementAdminAwardsRoute: ManagementAdminAwardsRoute,
   ManagementAdminDashboardRoute: ManagementAdminDashboardRoute,
+  ManagementAdminEmailRoute: ManagementAdminEmailRoute,
   ManagementAdminGeminiRoute: ManagementAdminGeminiRoute,
   ManagementAdminOperationsRoute: ManagementAdminOperationsRoute,
   ManagementAdminSettingsRoute: ManagementAdminSettingsRoute,
