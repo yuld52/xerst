@@ -200,8 +200,8 @@ export function RevenueChart({ data }: RevenueChartProps) {
             </CardDescription>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="hidden sm:flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            <div className="flex flex-wrap items-center gap-1.5">
               {METRICS.map((m) => {
                 const active = visibleSeries[m.key];
                 return (

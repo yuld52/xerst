@@ -31,7 +31,11 @@ import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 import { useFacebookAccounts } from "@/hooks/useFacebookAccounts";
 import type { FacebookAccountAPI } from "@/services/integrations";
 import { useCachedQuery } from "@/hooks/useCachedQuery";
-import { fetchCampaignFilterOptions, type CampaignFilterOptionsAPI } from "@/services/campaigns";
+import {
+  fetchCampaignFilterOptions,
+  type CampaignData,
+  type CampaignFilterOptionsAPI,
+} from "@/services/campaigns";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useNavigate } from "@tanstack/react-router";
 
@@ -101,12 +105,14 @@ function RuleForm({
   onSave,
   products,
   accounts,
+  campaigns,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: (rule: CampaignRule) => void;
   products: { id: number; name: string }[];
   accounts: FacebookAccountAPI[];
+  campaigns: CampaignData[];
 }) {
   const [name, setName] = useState("");
   const [product, setProduct] = useState("any");
@@ -132,6 +138,18 @@ function RuleForm({
       setPeriod("today");
     }
   }, [open]);
+
+  const filteredCampaigns = campaigns.filter((c) => {
+    if (account !== "all" && String(c.account_id) !== account) return false;
+    if (scope === "active" && c.status !== "active") return false;
+    return true;
+  });
+
+  useEffect(() => {
+    if (nameFilter !== "any" && !filteredCampaigns.some((c) => c.id === nameFilter)) {
+      setNameFilter("any");
+    }
+  }, [account, scope, nameFilter, filteredCampaigns]);
 
   const canSave =
     name.trim().length > 1 &&
@@ -165,14 +183,14 @@ function RuleForm({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="!h-[675px] !w-[800px] !min-w-[800px] !max-w-[800px] overflow-x-hidden overflow-y-auto p-0">
-        <DialogHeader className="border-b px-6 py-5">
+      <DialogContent className="max-h-[90dvh] w-[95vw] max-w-[800px] overflow-x-hidden overflow-y-auto p-0">
+        <DialogHeader className="border-b px-4 py-4 sm:px-6 sm:py-5">
           <DialogTitle className="text-lg">Criar regra personalizada</DialogTitle>
           <DialogDescription>
             Atualize campanhas, conjuntos ou anúncios por meio de regras automatizadas.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-6 px-8 py-6">
+        <div className="space-y-6 px-4 py-4 sm:px-8 sm:py-6">
           <label className="block space-y-2">
             <span className="text-xs font-medium text-muted-foreground">Nome da regra</span>
             <Input
@@ -225,8 +243,11 @@ function RuleForm({
             </span>
             <RuleSelect value={nameFilter} onChange={setNameFilter}>
               <SelectItem value="any">Qualquer</SelectItem>
-              <SelectItem value="sales">Campanhas de vendas</SelectItem>
-              <SelectItem value="remarketing">Campanhas de remarketing</SelectItem>
+              {filteredCampaigns.map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.name}
+                </SelectItem>
+              ))}
             </RuleSelect>
           </label>
           <label className="block space-y-2">
@@ -422,7 +443,7 @@ function RuleForm({
   );
 }
 
-export function RulesSection() {
+export function RulesSection({ campaigns = [] }: { campaigns?: CampaignData[] }) {
   const [rules, setRules] = useState<CampaignRule[]>([]);
   const [selectedRuleIds, setSelectedRuleIds] = useState<string[]>([]);
   const [open, setOpen] = useState(false);
@@ -670,6 +691,7 @@ export function RulesSection() {
         onSave={saveRule}
         products={products}
         accounts={accounts}
+        campaigns={campaigns}
       />
     </section>
   );

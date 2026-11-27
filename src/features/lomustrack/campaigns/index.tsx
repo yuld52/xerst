@@ -230,7 +230,7 @@ export default function CampaignsPage() {
       />
       {activePresetId !== "rules" && <CampaignsKpis data={metricsForKpi} />}
       {activePresetId === "rules" ? (
-        <RulesSection />
+        <RulesSection campaigns={campaigns} />
       ) : (
         <>
           <div className="flex flex-wrap items-center gap-2">

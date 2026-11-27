@@ -71,10 +71,10 @@ export function CampaignsHeader({
               className="pl-9 w-full sm:w-[220px] h-9 text-sm"
             />
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               size="sm"
-              className="gap-1.5 h-9 hidden sm:flex"
+              className="gap-1.5 h-9 flex"
               onClick={() => navigate("/campaigns/create")}
             >
               <RiAddLine className="size-4" />

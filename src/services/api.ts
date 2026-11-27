@@ -34,7 +34,13 @@ export async function apiRequest<T>(endpoint: string, options: RequestOptions = 
   const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
 
   if (!response.ok) {
-    if (response.status === 401) {
+    const isAuthAttempt =
+      endpoint === "/login" ||
+      endpoint.startsWith("/setup") ||
+      endpoint === "/forgot-password" ||
+      endpoint === "/reset-password";
+
+    if (response.status === 401 && !isAuthAttempt) {
       removeCookie("access_token");
       localStorage.removeItem("user");
 
@@ -62,7 +68,10 @@ export async function apiRequest<T>(endpoint: string, options: RequestOptions = 
     let errorMsg = "Request failed";
 
     if (typeof error?.detail === "string") {
-      errorMsg = error.detail;
+      errorMsg =
+        error.detail === "Invalid credentials"
+          ? "Email ou senha inválidos"
+          : error.detail;
     } else if (Array.isArray(error?.detail)) {
       errorMsg = error.detail.map((e: any) => e.msg || e.message || JSON.stringify(e)).join(", ");
     } else if (typeof error?.message === "string") {

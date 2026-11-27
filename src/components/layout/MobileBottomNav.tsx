@@ -13,7 +13,11 @@ import {
   RiMetaLine,
   RiSettings3Line,
   RiUserLine,
+  RiBankCardLine,
 } from "@remixicon/react";
+import { useTheme } from "next-themes";
+import { getStoredUser } from "@/services/auth";
+import { SupportModal } from "./SupportModal";
 import { MoreDropdown } from "./MobileMoreDropdown";
 
 const NAV_ITEMS = [
@@ -30,6 +34,7 @@ export const MORE_ITEMS = [
   { label: "Funil", icon: RiFilter2Line, path: "/funnel" },
   { label: "Plataformas", icon: RiWalletLine, path: "/platforms" },
   { label: "Facebook Ads", icon: RiMetaLine, path: "/facebook-ads" },
+  { label: "Assinatura", icon: RiBankCardLine, path: "/my-subscription" },
   { label: "Configurações", icon: RiSettings3Line, path: "/advanced-settings" },
   { label: "Meu Perfil", icon: RiUserLine, path: "/profile" },
 ];
@@ -44,7 +49,11 @@ export function MobileBottomNav({ onOpenAI }: MobileBottomNavProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const [isMoreOpen, setIsMoreOpen] = useState(false);
+  const [supportOpen, setSupportOpen] = useState(false);
   const moreRef = useRef<HTMLDivElement>(null);
+  const { resolvedTheme, setTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
+  const user = getStoredUser();
 
   const isMoreActive = MORE_PATHS.some((p) => location.pathname.startsWith(p));
 
@@ -95,6 +104,15 @@ export function MobileBottomNav({ onOpenAI }: MobileBottomNavProps) {
                   items={MORE_ITEMS}
                   currentPath={location.pathname}
                   onItemClick={handleMoreItemClick}
+                  isDark={isDark}
+                  onToggleTheme={() => {
+                    setTheme(isDark ? "light" : "dark");
+                    setIsMoreOpen(false);
+                  }}
+                  onOpenSupport={() => {
+                    setIsMoreOpen(false);
+                    setSupportOpen(true);
+                  }}
                 />
                 <button
                   onClick={() => setIsMoreOpen((prev) => !prev)}
@@ -131,6 +149,12 @@ export function MobileBottomNav({ onOpenAI }: MobileBottomNavProps) {
           );
         })}
       </div>
+      <SupportModal
+        open={supportOpen}
+        onOpenChange={setSupportOpen}
+        userEmail={user?.email}
+        userName={user?.name}
+      />
     </nav>
   );
 }

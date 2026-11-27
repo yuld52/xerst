@@ -226,11 +226,16 @@ async def _run_campaign_rules(db: Session, now: datetime) -> dict:
                         matches_name = bool(product_name and product_name.lower() in name)
                         if not (matches_marker or matches_name):
                             continue
-                    name_filter = definition.get("nameFilter", "any")
-                    if name_filter == "sales" and not any(term in name for term in ("sales", "venda", "convers", "purchase")):
-                        continue
-                    if name_filter == "remarketing" and not any(term in name for term in ("remarketing", "retarget", "remark")):
-                        continue
+                    name_filter = str(definition.get("nameFilter") or "any")
+                    if name_filter == "sales":
+                        if not any(term in name for term in ("sales", "venda", "convers", "purchase")):
+                            continue
+                    elif name_filter == "remarketing":
+                        if not any(term in name for term in ("remarketing", "retarget", "remark")):
+                            continue
+                    elif name_filter != "any":
+                        if str(campaign.id) != name_filter and name_filter.lower() not in name:
+                            continue
                     metrics = {
                         "spend": float(campaign.spend),
                         "cpa": float(campaign.cpa),

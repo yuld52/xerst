@@ -94,6 +94,17 @@ export function DashboardHeader({ onRefresh, currentRevenue = 0 }: DashboardHead
         <NotificationBell />
         <RefreshButton onRefresh={onRefresh} />
 
+        {/* Prêmios compacto no mobile */}
+        <button
+          onClick={handleOpenDialog}
+          className="flex sm:hidden items-center gap-1 rounded-lg border border-border/60 bg-card px-2 py-1.5 text-xs font-semibold text-primary hover:opacity-80 transition-opacity"
+          title={`Prêmios (${prizeProgress.toFixed(0)}%)`}
+          aria-label="Prêmios"
+        >
+          <RiTrophyLine className="size-4 shrink-0" strokeWidth={2.15} />
+          <span className="tabular-nums">{prizeProgress.toFixed(0)}%</span>
+        </button>
+
         {/* Prêmios com barra de progresso */}
         <button
           onClick={handleOpenDialog}

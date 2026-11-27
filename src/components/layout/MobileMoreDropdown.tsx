@@ -1,6 +1,9 @@
-import type { RemixiconComponentType } from "@remixicon/react";
-import { RiMoneyDollarCircleLine } from "@remixicon/react";
-import { useValueDisplay } from "@/contexts/ValueDisplayContext";
+import {
+  RiCustomerService2Line,
+  RiMoonLine,
+  RiSunLine,
+  type RemixiconComponentType,
+} from "@remixicon/react";
 
 interface MoreItem {
   label: string;
@@ -13,10 +16,20 @@ interface MoreDropdownProps {
   items: MoreItem[];
   currentPath: string;
   onItemClick: (path: string) => void;
+  isDark?: boolean;
+  onToggleTheme?: () => void;
+  onOpenSupport?: () => void;
 }
 
-export function MoreDropdown({ isOpen, items, currentPath, onItemClick }: MoreDropdownProps) {
-  const { showFull, toggle } = useValueDisplay();
+export function MoreDropdown({
+  isOpen,
+  items,
+  currentPath,
+  onItemClick,
+  isDark,
+  onToggleTheme,
+  onOpenSupport,
+}: MoreDropdownProps) {
 
   return (
     <div
@@ -49,32 +62,34 @@ export function MoreDropdown({ isOpen, items, currentPath, onItemClick }: MoreDr
           );
         })}
 
-        <div className="my-1 border-t border-border/30" />
-
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            toggle();
-          }}
-          aria-pressed={showFull}
-          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl transition-colors text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-        >
-          <RiMoneyDollarCircleLine className="size-4.5 shrink-0" />
-          <span className="text-sm font-medium flex-1 text-left">Valores Reais</span>
-          <span
-            aria-hidden="true"
-            className={`relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors ${
-              showFull ? "bg-primary" : "bg-input"
-            }`}
-          >
-            <span
-              className={`pointer-events-none block size-4 translate-y-0.5 rounded-full bg-background shadow-lg transition-transform ${
-                showFull ? "translate-x-4" : "translate-x-0.5"
-              }`}
-            />
-          </span>
-        </button>
+        {(onToggleTheme || onOpenSupport) && (
+          <div className="my-1 border-t border-border/50 pt-1 space-y-0.5">
+            {onToggleTheme && (
+              <button
+                onClick={onToggleTheme}
+                className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors"
+              >
+                {isDark ? (
+                  <RiSunLine className="size-4.5 shrink-0" />
+                ) : (
+                  <RiMoonLine className="size-4.5 shrink-0" />
+                )}
+                <span className="text-sm font-medium">
+                  {isDark ? "Modo Claro" : "Modo Escuro"}
+                </span>
+              </button>
+            )}
+            {onOpenSupport && (
+              <button
+                onClick={onOpenSupport}
+                className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors"
+              >
+                <RiCustomerService2Line className="size-4.5 shrink-0" />
+                <span className="text-sm font-medium">Suporte</span>
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
