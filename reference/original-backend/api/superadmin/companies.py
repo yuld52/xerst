@@ -17,6 +17,8 @@ from database.models.product import Product
 from database.models.subscription_plan_request import SubscriptionPlanRequest
 from database.models.audit_log import AuditLog
 from database.models.global_app_settings import GlobalAppSettings
+from database.models.push_subscription import PushSubscription
+from services.push_notifications import push_service
 from api.auth.deps import get_current_user
 
 router = APIRouter(prefix="/superadmin", tags=["superadmin"])
@@ -372,3 +374,52 @@ def review_subscription_request(
 
     db.commit()
     return {"id": request.id, "status": request.status, "message": "Solicitação atualizada."}
+
+
+class BroadcastPushPayload(BaseModel):
+    title: str = Field(min_length=1, max_length=140)
+    body: str = Field(min_length=1, max_length=500)
+    url: Optional[str] = None
+
+
+@router.post("/push-notification")
+def broadcast_push_notification(
+    payload: BroadcastPushPayload,
+    db: Session = Depends(get_db),
+    actor: Admin = Depends(require_superadmin),
+):
+    """Envia uma notificação push global para todas as subscrições ativas (apenas superadmin)."""
+    if not push_service.has_vapid_config():
+        raise HTTPException(
+            status_code=503,
+            detail="Notificações push indisponíveis: configure VAPID_PUBLIC_KEY e VAPID_PRIVATE_KEY no servidor.",
+        )
+
+    subscriptions = db.query(PushSubscription).filter(PushSubscription.is_active == True).all()
+    if not subscriptions:
+        raise HTTPException(status_code=404, detail="Nenhuma subscrição push ativa encontrada.")
+
+    sent = 0
+    failed = 0
+    data = {"url": payload.url or "/dashboard"}
+    for sub in subscriptions:
+        if push_service.send_notification(sub, payload.title, payload.body, data):
+            sub.last_used_at = datetime.utcnow()
+            sent += 1
+        else:
+            failed += 1
+
+    db.add(AuditLog(
+        actor_id=actor.id,
+        action="admin.send_push",
+        resource_type="push_notification",
+        resource_id="broadcast",
+        details={"title": payload.title, "sent": sent, "failed": failed},
+    ))
+    db.commit()
+
+    return {
+        "message": f"Notificação enviada para {sent} dispositivo(s).",
+        "total_sent": sent,
+        "total_failed": failed,
+    }

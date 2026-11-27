@@ -9,7 +9,6 @@ import {
   RiSettings4Line,
   RiShieldStarLine,
   RiArrowLeftLine,
-  RiGeminiLine,
   RiBankCardLine,
   RiTrophyLine,
   RiPulseLine,
@@ -31,7 +30,6 @@ const NAV_ITEMS: AdminNavItem[] = [
   { label: "Prêmios", icon: RiTrophyLine, path: "/admin/awards" },
   { label: "Operação", icon: RiPulseLine, path: "/admin/operations" },
   { label: "Comunicações", icon: RiMailSendLine, path: "/admin/email" },
-  { label: "OpenRouter", icon: RiGeminiLine, path: "/admin/gemini" },
   { label: "Configurações", icon: RiSettings4Line, path: "/admin/settings" },
 ];
 

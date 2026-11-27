@@ -41,7 +41,6 @@ import { Route as DashboardCampaignsCreateRouteImport } from './routes/_dashboar
 import { Route as ManagementAdminAwardsRouteImport } from './routes/_management.admin.awards'
 import { Route as ManagementAdminDashboardRouteImport } from './routes/_management.admin.dashboard'
 import { Route as ManagementAdminEmailRouteImport } from './routes/_management.admin.email'
-import { Route as ManagementAdminGeminiRouteImport } from './routes/_management.admin.gemini'
 import { Route as ManagementAdminOperationsRouteImport } from './routes/_management.admin.operations'
 import { Route as ManagementAdminSettingsRouteImport } from './routes/_management.admin.settings'
 import { Route as ManagementAdminSubscriptionsRouteImport } from './routes/_management.admin.subscriptions'
@@ -209,11 +208,6 @@ const ManagementAdminEmailRoute = ManagementAdminEmailRouteImport.update({
   path: '/admin/email',
   getParentRoute: () => ManagementRoute,
 } as any)
-const ManagementAdminGeminiRoute = ManagementAdminGeminiRouteImport.update({
-  id: '/admin/gemini',
-  path: '/admin/gemini',
-  getParentRoute: () => ManagementRoute,
-} as any)
 const ManagementAdminOperationsRoute =
   ManagementAdminOperationsRouteImport.update({
     id: '/admin/operations',
@@ -268,7 +262,6 @@ export interface FileRoutesByFullPath {
   '/admin/awards': typeof ManagementAdminAwardsRoute
   '/admin/dashboard': typeof ManagementAdminDashboardRoute
   '/admin/email': typeof ManagementAdminEmailRoute
-  '/admin/gemini': typeof ManagementAdminGeminiRoute
   '/admin/operations': typeof ManagementAdminOperationsRoute
   '/admin/settings': typeof ManagementAdminSettingsRoute
   '/admin/subscriptions': typeof ManagementAdminSubscriptionsRoute
@@ -305,7 +298,6 @@ export interface FileRoutesByTo {
   '/admin/awards': typeof ManagementAdminAwardsRoute
   '/admin/dashboard': typeof ManagementAdminDashboardRoute
   '/admin/email': typeof ManagementAdminEmailRoute
-  '/admin/gemini': typeof ManagementAdminGeminiRoute
   '/admin/operations': typeof ManagementAdminOperationsRoute
   '/admin/settings': typeof ManagementAdminSettingsRoute
   '/admin/subscriptions': typeof ManagementAdminSubscriptionsRoute
@@ -345,7 +337,6 @@ export interface FileRoutesById {
   '/_management/admin/awards': typeof ManagementAdminAwardsRoute
   '/_management/admin/dashboard': typeof ManagementAdminDashboardRoute
   '/_management/admin/email': typeof ManagementAdminEmailRoute
-  '/_management/admin/gemini': typeof ManagementAdminGeminiRoute
   '/_management/admin/operations': typeof ManagementAdminOperationsRoute
   '/_management/admin/settings': typeof ManagementAdminSettingsRoute
   '/_management/admin/subscriptions': typeof ManagementAdminSubscriptionsRoute
@@ -384,7 +375,6 @@ export interface FileRouteTypes {
     | '/admin/awards'
     | '/admin/dashboard'
     | '/admin/email'
-    | '/admin/gemini'
     | '/admin/operations'
     | '/admin/settings'
     | '/admin/subscriptions'
@@ -421,7 +411,6 @@ export interface FileRouteTypes {
     | '/admin/awards'
     | '/admin/dashboard'
     | '/admin/email'
-    | '/admin/gemini'
     | '/admin/operations'
     | '/admin/settings'
     | '/admin/subscriptions'
@@ -460,7 +449,6 @@ export interface FileRouteTypes {
     | '/_management/admin/awards'
     | '/_management/admin/dashboard'
     | '/_management/admin/email'
-    | '/_management/admin/gemini'
     | '/_management/admin/operations'
     | '/_management/admin/settings'
     | '/_management/admin/subscriptions'
@@ -707,13 +695,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ManagementAdminEmailRouteImport
       parentRoute: typeof ManagementRoute
     }
-    '/_management/admin/gemini': {
-      id: '/_management/admin/gemini'
-      path: '/admin/gemini'
-      fullPath: '/admin/gemini'
-      preLoaderRoute: typeof ManagementAdminGeminiRouteImport
-      parentRoute: typeof ManagementRoute
-    }
     '/_management/admin/operations': {
       id: '/_management/admin/operations'
       path: '/admin/operations'
@@ -795,7 +776,6 @@ interface ManagementRouteChildren {
   ManagementAdminAwardsRoute: typeof ManagementAdminAwardsRoute
   ManagementAdminDashboardRoute: typeof ManagementAdminDashboardRoute
   ManagementAdminEmailRoute: typeof ManagementAdminEmailRoute
-  ManagementAdminGeminiRoute: typeof ManagementAdminGeminiRoute
   ManagementAdminOperationsRoute: typeof ManagementAdminOperationsRoute
   ManagementAdminSettingsRoute: typeof ManagementAdminSettingsRoute
   ManagementAdminSubscriptionsRoute: typeof ManagementAdminSubscriptionsRoute
@@ -806,7 +786,6 @@ const ManagementRouteChildren: ManagementRouteChildren = {
   ManagementAdminAwardsRoute: ManagementAdminAwardsRoute,
   ManagementAdminDashboardRoute: ManagementAdminDashboardRoute,
   ManagementAdminEmailRoute: ManagementAdminEmailRoute,
-  ManagementAdminGeminiRoute: ManagementAdminGeminiRoute,
   ManagementAdminOperationsRoute: ManagementAdminOperationsRoute,
   ManagementAdminSettingsRoute: ManagementAdminSettingsRoute,
   ManagementAdminSubscriptionsRoute: ManagementAdminSubscriptionsRoute,

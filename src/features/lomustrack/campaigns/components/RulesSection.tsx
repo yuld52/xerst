@@ -183,7 +183,7 @@ function RuleForm({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90dvh] w-[95vw] max-w-[800px] overflow-x-hidden overflow-y-auto p-0">
+      <DialogContent className="max-h-[90dvh] w-[95vw] max-w-[1000px] overflow-x-hidden overflow-y-auto p-0">
         <DialogHeader className="border-b px-4 py-4 sm:px-6 sm:py-5">
           <DialogTitle className="text-lg">Criar regra personalizada</DialogTitle>
           <DialogDescription>
