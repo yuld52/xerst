@@ -12,11 +12,10 @@ interface NotificationBellProps {
 }
 
 export function NotificationBell({ className }: NotificationBellProps) {
-  const { permission, isSubscribed, isDemo, requestPermission, unsubscribe, testNotification } =
+  const { permission, isSubscribed, isDemo, requestPermission, unsubscribe } =
     usePushNotifications();
 
   const [loading, setLoading] = useState(false);
-  const [testing, setTesting] = useState(false);
 
   const handleToggle = async (enabled: boolean) => {
     setLoading(true);
@@ -28,15 +27,6 @@ export function NotificationBell({ className }: NotificationBellProps) {
       }
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleTest = async () => {
-    setTesting(true);
-    try {
-      await testNotification();
-    } finally {
-      setTesting(false);
     }
   };
 
@@ -118,20 +108,6 @@ export function NotificationBell({ className }: NotificationBellProps) {
               </p>
             )}
           </div>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleTest}
-            disabled={testing || permission === "denied"}
-            className="w-full text-xs h-8"
-          >
-            {testing
-              ? "Enviando teste..."
-              : isSubscribed
-                ? "🔔 Testar notificação de venda"
-                : "🔔 Permitir e testar notificação"}
-          </Button>
         </div>
       </PopoverContent>
     </Popover>

@@ -97,57 +97,6 @@ def unsubscribe_from_push(
     return {"message": "Subscrição removida com sucesso"}
 
 
-@router.post("/test")
-def send_test_notification(
-    db: Session = Depends(get_db),
-    company_id: int = Depends(get_company_id)
-):
-    """Envia uma notificação de teste para todas as subscrições ativas."""
-    if not push_service.has_vapid_config():
-        raise HTTPException(
-            status_code=503,
-            detail="Notificações indisponíveis: configure VAPID_PUBLIC_KEY e VAPID_PRIVATE_KEY no servidor.",
-        )
-
-    subscriptions = db.query(PushSubscription).filter(
-        PushSubscription.is_active == True,
-        PushSubscription.company_id == company_id
-    ).all()
-    
-    if not subscriptions:
-        raise HTTPException(
-            status_code=404,
-            detail="Nenhuma subscrição ativa encontrada"
-        )
-    
-    success_count = 0
-    
-    for sub in subscriptions:
-        success = push_service.send_notification(
-            subscription=sub,
-            title="Venda Aprovada!",
-            body="Valor: 1.656 MT",
-            data={"url": "/sales", "amount": "1.656 MT"}
-        )
-        
-        if success:
-            success_count += 1
-    
-    db.commit()
-
-    if success_count == 0:
-        raise HTTPException(
-            status_code=502,
-            detail="O servidor não conseguiu entregar o push. Reative as notificações neste navegador e tente novamente.",
-        )
-    
-    return {
-        "message": f"Notificação de teste enviada para {success_count} dispositivo(s)",
-        "total_sent": success_count,
-        "total_subscriptions": len(subscriptions)
-    }
-
-
 @router.get("/subscriptions")
 def list_subscriptions(
     db: Session = Depends(get_db),

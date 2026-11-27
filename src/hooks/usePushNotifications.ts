@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { convertAndFormatMZN } from "@/utils/format";
 import { getCookie } from "@/lib/cookies";
 import {
   NOTIFICATION_PREFERENCES_EVENT,
@@ -218,68 +217,11 @@ export function usePushNotifications() {
     }
   };
 
-  // Simular notificação de venda (para teste)
-  const testNotification = async () => {
-    if (notificationPreferences.approvedSales === "hide") {
-      toast.info("Vendas aprovadas estão desabilitadas nas configurações de notificações.");
-      return;
-    }
-
-    const productLine = notificationPreferences.productName === "show" ? "\nProduto: Produto" : "";
-    const productValueLine =
-      notificationPreferences.saleValue === "show"
-        ? `\nValor: ${convertAndFormatMZN(8.99, 2)}`
-        : "";
-
-    if (!("Notification" in window)) {
-      toast.error("Este navegador não oferece suporte a notificações.");
-      return;
-    }
-
-    const currentPermission = Notification.permission;
-    if (currentPermission !== "granted") {
-      const granted = await requestPermission();
-      if (!granted) return;
-    } else if (!subscription) {
-      try {
-        const sub = await subscribeUser();
-        if (!sub) throw new Error("Não foi possível registrar este dispositivo.");
-      } catch (error) {
-        console.error("Erro ao registrar dispositivo para teste:", error);
-        toast.error(error instanceof Error ? error.message : "Erro ao registrar dispositivo");
-        return;
-      }
-    }
-
-    try {
-      const token = getCookie("access_token") || "";
-      const response = await fetch("/api/notifications/test", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      });
-
-      const data = await response.json().catch(() => ({}));
-
-      if (response.ok) {
-        toast.success(data.message || "Notificação de teste enviada!");
-      } else {
-        toast.error(data.detail || "Erro ao enviar notificação de teste");
-      }
-    } catch (error) {
-      console.error("Erro ao enviar notificação de teste:", error);
-      toast.error(error instanceof Error ? error.message : "Erro ao enviar notificação");
-    }
-  };
-
   return {
     permission,
     subscription,
     isSubscribed: !!subscription,
     requestPermission,
     unsubscribe,
-    testNotification,
   };
 }
