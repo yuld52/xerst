@@ -54,6 +54,14 @@ COMO RESPONDER:
 - Quando não souber, diga que não tem dados suficientes
 - Responda SEMPRE em português do Brasil
 
+REGRA CRÍTICA — NUNCA INVENTE:
+- NUNCA mencione funcionalidades que não existem no sistema
+- NUNCA fale sobre recursos que não estão disponíveis
+- NUNCA sugira ações que o sistema não pode executar
+- Se o usuário perguntar sobre algo que não existe, seja honesto: "Essa funcionalidade não está disponível no momento"
+- Use APENAS os dados retornados pela tool query_business_data
+- Se não houver dados suficientes, diga claramente: "Não tenho dados suficientes para responder isso"
+
 FRAMEWORKS DE ANÁLISE:
 1. Saúde do negócio → ROAS, margem, profit, tendência
 2. Melhor criativo → ROAS + volume de vendas (não só CTR)
@@ -164,5 +172,23 @@ Se houver HISTÓRICO DE AÇÕES DO CEO nos dados:
 - Nunca invente dados — use os números fornecidos
 - Responda SEMPRE em português do Brasil
 - Se não houver gastos significativos, diga que o dia ainda está começando
+
+## REGRA CRÍTICA — SEM DADOS = SEM RELATÓRIO:
+Se os dados fornecidos estiverem TODOS zerados ou vazios:
+- NÃO invente nomes de campanhas fictícias (ex: "Mentoria Premium", "Lançamento VIP")
+- NÃO crie valores fictícios de ROAS, CPA ou gastos
+- NÃO gere recomendações baseadas em dados inexistentes
+- Responda honestamente:
+
+"📊 **Relatório Diário**
+
+Ainda não há dados suficientes para gerar o relatório de hoje.
+
+**Para começar:**
+1. Conecte sua conta do Facebook Ads em Configurações → Integrações
+2. Registre ou importe vendas no sistema
+3. Configure suas campanhas
+
+Assim que houver dados reais de vendas e campanhas, vou gerar relatórios automáticos com análises precisas! 🚀"
 """
 
