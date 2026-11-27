@@ -267,8 +267,6 @@ async def _send_scheduled_reports(db: Session, now: datetime) -> dict:
     for settings in settings_rows:
         prefs = settings.notification_preferences or {}
         report_hours = prefs.get("reportHours") or {}
-        if not any(report_hours.values()):
-            continue
         
         # Verifica o horário atual UTC
         now_utc = (
@@ -278,9 +276,17 @@ async def _send_scheduled_reports(db: Session, now: datetime) -> dict:
         )
         current_hour_utc = now_utc.strftime("%H:00")
         
-        # Verifica se este horário está habilitado
-        if not report_hours.get(current_hour_utc, False):
-            continue
+        # Modo "hourly": envia a cada hora se reportHours tiver {"hourly": true}
+        # Caso contrário, verifica horários específicos
+        hourly_mode = report_hours.get("hourly", False)
+        
+        if not hourly_mode:
+            # Modo tradicional: verifica horários específicos
+            if not any(report_hours.values()):
+                continue
+            # Verifica se este horário está habilitado
+            if not report_hours.get(current_hour_utc, False):
+                continue
         
         # Título único por dia e horário para evitar duplicatas
         title = f"Relatório LomusTrack {now_utc.date().isoformat()} {current_hour_utc}"
