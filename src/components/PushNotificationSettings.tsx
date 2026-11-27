@@ -6,7 +6,7 @@ import { BellIcon, BellAlertIcon } from "@heroicons/react/24/outline";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 export function PushNotificationSettings() {
-  const { permission, isSubscribed, isDemo, requestPermission, unsubscribe, testNotification } =
+  const { permission, isSubscribed, isDemo, requestPermission, unsubscribe } =
     usePushNotifications();
 
   const handleToggle = async (enabled: boolean) => {
@@ -60,19 +60,6 @@ export function PushNotificationSettings() {
             </p>
           </div>
         )}
-
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={testNotification}
-            disabled={permission === "denied"}
-            className="gap-2"
-          >
-            <BellAlertIcon className="h-4 w-4" />
-            {isSubscribed ? "Testar Notificação" : "Permitir e testar"}
-          </Button>
-        </div>
 
         {permission === "default" && (
           <div className="rounded-lg bg-muted p-3 text-sm text-muted-foreground">
