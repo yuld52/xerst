@@ -383,10 +383,10 @@ function RuleForm({
                 />
               </span>
               <div className="rounded-md border bg-muted/30 px-3 py-2 text-sm">
-                Uma vez por dia, por volta das 08:00 (horário de Maputo)
+                A cada 10 minutos
               </div>
               <p className="text-xs text-muted-foreground">
-                No plano Hobby, a Vercel pode iniciar a rotina com até 59 minutos de variação.
+                As regras são verificadas automaticamente a cada 10 minutos (144 vezes por dia).
               </p>
             </label>
           </div>
