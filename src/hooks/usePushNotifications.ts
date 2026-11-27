@@ -2,61 +2,20 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { convertAndFormatMZN } from "@/utils/format";
 import { getCookie } from "@/lib/cookies";
-import { isImportDemo } from "@/lib/import-demo";
 import {
   NOTIFICATION_PREFERENCES_EVENT,
   readNotificationPreferences,
   type NotificationPreferences,
 } from "@/lib/notificationPreferences";
 
-const DEMO_SALES_NOTIFICATIONS_KEY = "sales_notifications_enabled";
-
-function readDemoEnabled(): boolean {
-  if (typeof window === "undefined") return false;
-  try {
-    return window.localStorage.getItem(DEMO_SALES_NOTIFICATIONS_KEY) === "true";
-  } catch {
-    return false;
-  }
-}
-
-function writeDemoEnabled(enabled: boolean) {
-  try {
-    if (enabled) {
-      window.localStorage.setItem(DEMO_SALES_NOTIFICATIONS_KEY, "true");
-    } else {
-      window.localStorage.removeItem(DEMO_SALES_NOTIFICATIONS_KEY);
-    }
-  } catch {
-    /* armazenamento indisponível */
-  }
-}
-
-function showDemoNotification(title: string, body: string) {
-  if (typeof window === "undefined") return false;
-  if (!("Notification" in window) || Notification.permission !== "granted") {
-    return false;
-  }
-  try {
-    new Notification(title, { body });
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 export function usePushNotifications() {
-  const demo = isImportDemo();
   const [permission, setPermission] = useState<NotificationPermission>("default");
   const [subscription, setSubscription] = useState<PushSubscription | null>(null);
-  const [demoEnabled, setDemoEnabled] = useState(readDemoEnabled);
 
   useEffect(() => {
     if ("Notification" in window) {
       setPermission(Notification.permission);
     }
-
-    if (demo) return;
 
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.ready
@@ -70,7 +29,7 @@ export function usePushNotifications() {
           console.warn("Não foi possível verificar subscrição push:", err);
         });
     }
-  }, [demo]);
+  }, []);
 
   useEffect(() => {
     const refreshPreferences = () => setNotificationPreferences(readNotificationPreferences());
@@ -87,33 +46,6 @@ export function usePushNotifications() {
   );
 
   const requestPermission = async () => {
-    if (demo) {
-      let granted = false;
-      if ("Notification" in window && Notification.permission === "default") {
-        try {
-          granted = (await Notification.requestPermission()) === "granted";
-          setPermission(granted ? "granted" : Notification.permission);
-        } catch {
-          granted = false;
-        }
-      } else if ("Notification" in window) {
-        granted = Notification.permission === "granted";
-      }
-
-      writeDemoEnabled(true);
-      setDemoEnabled(true);
-      showDemoNotification(
-        "✅ Notificações Ativas",
-        "Você receberá alertas em tempo real quando houver uma nova venda.",
-      );
-      toast.success(
-        granted
-          ? "Notificações de vendas ativadas!"
-          : "Notificações de vendas ativadas neste navegador. Para alertas do sistema, permita as notificações do site.",
-      );
-      return true;
-    }
-
     if (!("Notification" in window)) {
       toast.error("Notificações não suportadas neste navegador");
       return false;
@@ -265,13 +197,6 @@ export function usePushNotifications() {
   };
 
   const unsubscribe = async () => {
-    if (demo) {
-      writeDemoEnabled(false);
-      setDemoEnabled(false);
-      toast.success("Notificações de vendas desativadas");
-      return;
-    }
-
     if (subscription) {
       try {
         const token = getCookie("access_token") || "";
@@ -306,19 +231,6 @@ export function usePushNotifications() {
         ? `\nValor: ${convertAndFormatMZN(8.99, 2)}`
         : "";
 
-    if (demo) {
-      const shown = showDemoNotification(
-        "Venda aprovada!",
-        `${productValueLine}${productLine}`.trim(),
-      );
-      toast.success(
-        shown
-          ? "Notificação de teste enviada!"
-          : "Notificação de teste exibida no app. Permita as notificações do site para receber alertas do sistema.",
-      );
-      return;
-    }
-
     if (!("Notification" in window)) {
       toast.error("Este navegador não oferece suporte a notificações.");
       return;
@@ -329,8 +241,6 @@ export function usePushNotifications() {
       const granted = await requestPermission();
       if (!granted) return;
     } else if (!subscription) {
-      // The browser may already have granted permission while this app has no
-      // server-side subscription (for example, after reinstalling or clearing data).
       try {
         const sub = await subscribeUser();
         if (!sub) throw new Error("Não foi possível registrar este dispositivo.");
@@ -367,8 +277,7 @@ export function usePushNotifications() {
   return {
     permission,
     subscription,
-    isSubscribed: demo ? demoEnabled : !!subscription,
-    isDemo: demo,
+    isSubscribed: !!subscription,
     requestPermission,
     unsubscribe,
     testNotification,
